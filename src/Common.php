@@ -24,8 +24,7 @@ class Common
     
     /**
      * 省份转化为简称
-     *
-     * @param Type $var Description
+	 *      
      * @return mixed
      **/
     public static function provinceAbbreviation($province = null)
