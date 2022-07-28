@@ -28,7 +28,7 @@ class Common
      * @param Type $var Description
      * @return mixed
      **/
-    public function provinceAbbreviation($province = null)
+    public static function provinceAbbreviation($province = null)
     {
         $province=str_replace($province, '省', '');
         $data=[
