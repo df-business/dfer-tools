@@ -5,8 +5,6 @@
 
 ### 发布
 - [package地址](https://packagist.org/packages/dfer/test)
-- [git地址]()
-
 
 ### 使用
 ```
