@@ -22,10 +22,9 @@ composer remove dfer/tools
 ```
 <?php
 require "./vendor/autoload.php";
-$tools = new Dfer\Tools\Common();
-echo $tools->about();
+$common = new Dfer\Tools\Common;
+echo $common->about();
 ```
-
 
 ```
 php index.php
