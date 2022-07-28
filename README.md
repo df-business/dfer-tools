@@ -12,6 +12,10 @@ composer require dfer/tools
 composer remove dfer/tools
 ```
 
+**通用命令**
+```
+composer require dfer/tools:*
+```
 
 **index.php**
 ```
