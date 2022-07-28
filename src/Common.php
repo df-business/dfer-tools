@@ -15,13 +15,21 @@ class Common
      * @param Type $var Description
      * @return mixed
      **/
-    public function about()
+    public static function about()
     {
         $host='http://www.dfer.top';
         header("Location:".$host);
         return $host;
     }
     
+	/**
+	 * 打印
+	 **/
+	public static function print($str=null)
+	{
+		echo $str.PHP_EOL;		
+	}
+	
     /**
      * 省份转化为简称
      *
