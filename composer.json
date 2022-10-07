@@ -9,12 +9,13 @@
 	}],
 	"homepage": "http://www.dfer.top",
 	"require": {
-		"php": ">=7.0"		
+		"php": ">=7.0",
+		"phpoffice/phpspreadsheet": "^1.23"
 	},
 	"keywords": ["df", "dfer.top"],
 	"autoload": {
 		"psr-4": {
 			"Dfer\\Tools\\": "src/"
 		}
-	}	
+	}
 }

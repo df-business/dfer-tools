@@ -10,7 +10,7 @@ class Address
    
     
     /**
-     * 份转化为简称
+     * 省份转化为简称
      *
      * @return mixed
      **/
