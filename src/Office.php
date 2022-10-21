@@ -1,6 +1,10 @@
 <?php
 namespace Dfer\Tools;
 
+/**
+ * composer require phpoffice/phpspreadsheet
+ */
+
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Style;

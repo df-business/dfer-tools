@@ -62,6 +62,9 @@ $b=$dfer_address->getChinaChar(rand(2, 3));
 
 ## Office
 ```
+composer require phpoffice/phpspreadsheet
+```
+```
 use Dfer\Tools\Office;
 ```
 ```
@@ -79,4 +82,22 @@ $file_stream = $spService->setTableTitle('2021销售记录')
 ->setStyle()
 ->setVContent($header, $data)
 ->saveStream('2021销售记录.xlsx');
+```
+
+
+## Img
+```
+use Dfer\Tools\Img\Common;
+use Dfer\Tools\Img\Compress;
+```
+```
+$newname="1.jpg";
+$percent = 1;  #原图压缩，不缩放，但体积大大降低
+$imgcompress=new Compress($newname, $percent);
+$image = $imgcompress->compressImg($newname);
+
+$img_common=new Common;
+#将临时文件转变尺寸之后移动到网站目录
+$img_common->resizeJpg("1.jpg", "2.jpg", 150, 100);  
+
 ```

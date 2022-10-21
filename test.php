@@ -1,14 +1,20 @@
 <?php
 require "./src/Common.php";
 require "./src/Address.php";
+require "./src/Img/Common.php";
+require "./src/Img/Compress.php";
+require "./src/Files.php";
 
 $common = new Dfer\Tools\Common;
 $Address = new Dfer\Tools\Address;
+
+$Files = new Dfer\Tools\Files;
 
 $common::print($common::about());
 $common::print($Address->provinceAbbreviation('湖北省'));
 $common::print($Address->getChinaChar(5));
 $common::print($Address->randAddress(true));
+
 
 $str='{
     "RECORDS": [
@@ -27,3 +33,8 @@ $str='{
     ]
 }';
 $common::print($common->mysqlJsonToArray($str));
+
+
+$common::print($common->isWeixin());
+
+$common::print($Files->uploadFile('C:\unintall.log'));
