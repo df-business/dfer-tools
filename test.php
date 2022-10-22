@@ -4,11 +4,14 @@ require "./src/Address.php";
 require "./src/Img/Common.php";
 require "./src/Img/Compress.php";
 require "./src/Files.php";
+// require "./src/Ws/Game.php";
 
 $common = new Dfer\Tools\Common;
 $Address = new Dfer\Tools\Address;
 
 $Files = new Dfer\Tools\Files;
+
+// $Game = new Dfer\Tools\Ws\Game;
 
 $common::print($common::about());
 $common::print($Address->provinceAbbreviation('湖北省'));
@@ -38,3 +41,6 @@ $common::print($common->mysqlJsonToArray($str));
 $common::print($common->isWeixin());
 
 $common::print($Files->uploadFile('C:\unintall.log'));
+
+
+// $Game::init();

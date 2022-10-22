@@ -6,6 +6,11 @@
 ### 发布
 - [package地址](https://packagist.org/packages/dfer/tools)
 
+
+### 测试
+```
+php test.php
+```
 ### 使用
 ```
 composer require dfer/tools
