@@ -9,9 +9,9 @@
 	}],
 	"homepage": "http://www.dfer.top",
 	"require": {
-		"php": ">=7.0",
-		"topthink/framework":">=6.0",
-		"phpoffice/phpspreadsheet": ">1.0"
+		"php": ">=7.0"
+		// "topthink/framework":">=6.0",
+		// "phpoffice/phpspreadsheet": ">1.0"
 	},
 	"keywords": ["df", "dfer.top"],
 	"autoload": {
