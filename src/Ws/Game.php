@@ -3,6 +3,7 @@ declare(strict_types = 1);
 
 /**
 	* composer require topthink/framework
+	* composer require topthink/think-worker
 	*/
 namespace Dfer\Tools\Ws;
 
@@ -38,7 +39,7 @@ class Game extends GameModel
     {
         global $db,$input,$output;
         try {
-            if (DEBUG) {
+            if (self::DEBUG) {
                 new FileMonitor();
             }
             $action = $input->getArgument('action');

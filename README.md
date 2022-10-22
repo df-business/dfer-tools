@@ -13,6 +13,7 @@
 php test.php
 ```
 ### 使用
+
 ```
 composer require dfer/tools
 composer require dfer/tools:*
@@ -43,7 +44,11 @@ php index.php
 
 
 
-
+## 基础环境
+```
+composer require topthink/framework
+```
+- 大部分功能都是基于tp
 
 
 ## Common
@@ -105,5 +110,34 @@ $image = $imgcompress->compressImg($newname);
 $img_common=new Common;
 #将临时文件转变尺寸之后移动到网站目录
 $img_common->resizeJpg("1.jpg", "2.jpg", 150, 100);  
+
+```
+
+
+## Ws
+
+```
+composer require topthink/think-worker
+```
+
+```
+use Dfer\Tools\Ws\Modules\GameModel;
+use Dfer\Tools\Ws\Modules\FileMonitor;
+use Dfer\Tools\Ws\Modules\Common;
+```
+
+**config/console.php**
+```
+<?php
+// +----------------------------------------------------------------------
+// | 控制台配置
+// +----------------------------------------------------------------------
+// 自定义指令
+return [
+    // 指令定义
+    'commands' => [           
+           'game' => 'Dfer\Tools\Ws\Game'
+    ]
+];
 
 ```
