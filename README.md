@@ -139,3 +139,8 @@ return [
 ```
 - 自动生成ws脚本到`app\command\`
 - 自动添加指令到`console.php`
+
+**开启文件监控组件**
+```
+const DEBUG=true;
+```
