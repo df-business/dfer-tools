@@ -5,6 +5,8 @@ namespace Dfer\Tools\Ws\Modules;
 use Workerman\Worker;
 use Workerman\Connection\TcpConnection;
 
+# use Dfer\Tools\Ws\Modules\Common;
+
 class GameModel extends Common
 {
     protected $db = null;

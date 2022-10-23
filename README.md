@@ -117,15 +117,11 @@ $img_common->resizeJpg("1.jpg", "2.jpg", 150, 100);
 ## Ws
 
 ```
-composer require topthink/think-worker
+<!-- 帮助 -->
+php think dfer_ws_create -h
+<!-- 创建一个脚本 -->
+php think  create Test
 ```
-
-```
-use Dfer\Tools\Ws\Modules\GameModel;
-use Dfer\Tools\Ws\Modules\FileMonitor;
-use Dfer\Tools\Ws\Modules\Common;
-```
-
 **config/console.php**
 ```
 <?php
@@ -136,8 +132,10 @@ use Dfer\Tools\Ws\Modules\Common;
 return [
     // 指令定义
     'commands' => [           
-           'game' => 'Dfer\Tools\Ws\Game'
+           'dfer_ws_create' => 'Dfer\Tools\Ws\Create',
     ]
 ];
 
 ```
+- 自动生成ws脚本到`app\command\`
+- 自动添加指令到`console.php`

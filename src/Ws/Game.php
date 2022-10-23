@@ -16,7 +16,7 @@ use Workerman\Lib\Timer;
 
 use Dfer\Tools\Ws\Modules\GameModel;
 use Dfer\Tools\Ws\Modules\FileMonitor;
-use Dfer\Tools\Ws\Modules\Common;
+# use Dfer\Tools\Ws\Modules\Common;
 
 defined("HEARTBEAT_TIME")||define('HEARTBEAT_TIME', 55);
 defined("MAX_REQUEST")||define('MAX_REQUEST', 1000);

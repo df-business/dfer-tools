@@ -35,10 +35,14 @@ class Common extends Command
      **/
     public function print($str, $type=self::CONSOLE_WRITE)
     {
+        global $argv;
+        if (isset($argv[2])&&$argv[2]=='-d') {
+            // 后台运行时调用"CONSOLE_WRITE"会导致后台服务堵塞
+            $type=self::STDOUT_WRITE;
+        }
         $class_src=get_class($this);
         switch ($type) {
                     case self::CONSOLE_WRITE:
-                    // 后台运行时调用此方法会导致后台服务堵塞
                         global $output;
                         $output->newLine();
                         $output->writeln(sprintf("[%s]%s", $class_src, $str), Output::OUTPUT_NORMAL);
@@ -46,9 +50,9 @@ class Common extends Command
                     case self::LOG_WRITE:
                         \think\facade\Log::write($str, $this->last_slash_str($class_src));
                         break;
-                                        case self::STDOUT_WRITE:
-                                            echo sprintf("[%s]%s\n", $class_src, $str);
-                                            break;
+                    case self::STDOUT_WRITE:
+                        echo sprintf("[%s]%s\n", $class_src, $str);
+                        break;
                     default:
                         # code...
                         break;
@@ -69,13 +73,8 @@ class Common extends Command
      **/
     public function debug_print($str)
     {
-        global $argv;
         $str=substr(json_encode($str, JSON_UNESCAPED_UNICODE), 1, -1);
-        if (isset($argv[2])&&$argv[2]=='-d') {
-            $this->print($str, self::STDOUT_WRITE);
-        } else {
-            $this->print($str, self::CONSOLE_WRITE);
-        }
+        $this->print($str);
         $this->print($str, self::LOG_WRITE);
     }
         
@@ -104,5 +103,56 @@ class Common extends Command
     {
         $time =date("Y/m/d H:i:s", $timestamp);
         return $time;
+    }
+    /**
+     * 创建文件
+     */
+    public function fileCreate($from, $to, $replace_list=[])
+    {
+        $path = dirname($to);
+        $this->mkdirs($path);
+        $from=file_get_contents($from);
+        //替换
+        foreach ($replace_list as $key => $value) {
+            $from= str_replace($key, $value, $from);
+        }
+        // \var_dump($from);
+        
+        file_put_contents($to, $from);
+    }
+    
+    /**
+     * 更新配置文件
+     */
+    public function configUpdate($from_src, $replace_list=[])
+    {
+        $this->mkdirs(dirname($from_src));
+        $from=file_get_contents($from_src);
+        
+        
+        
+        //替换
+        foreach ($replace_list as $key => $value) {
+                preg_match("/]([\s\S]*?)]/", $from, $str);
+                if (count($str)>0) {
+                    $from = preg_replace('/]([\s\S]*?)]/', $value, $from);
+                }                
+            // \var_dump(stripos($from, $value), $from);        
+        }
+        file_put_contents($from_src, $from);
+    }
+    /*
+     * 创建目录
+     *
+     * 如果目录不存在就根据路径创建无限级目录
+     */
+    public function mkdirs($path)
+    {
+        //检查指定的文件是否是目录
+        if (!is_dir($path)) {
+            $this->mkdirs(dirname($path));//循环创建上级目录
+            mkdir($path);
+        }
+        return is_dir($path);
     }
 }
