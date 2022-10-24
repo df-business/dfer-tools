@@ -144,3 +144,7 @@ return [
 ```
 const DEBUG=true;
 ```
+- 不支持windows
+
+**多线程**
+- 不支持windows。在windows下只支持单线程
