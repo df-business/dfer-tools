@@ -1,3 +1,4 @@
+::发布
 chcp 65001
 @echo off
 git add *
