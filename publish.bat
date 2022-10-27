@@ -4,7 +4,7 @@ git add *
 git commit -m ''
 git push
 ::添加tag
-git tag v3.0
+git tag v3.1
 ::删除tag
 ::git tag -d v2.4
 ::查看所有tag
