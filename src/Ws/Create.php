@@ -81,7 +81,7 @@ class Create extends Common
             // 首字母大写
             $name_title=Str::title($name);
 
-            $module_name=$name."Modules";
+            $module_name=$name_title."Modules";
             $cur_dir = realpath(__DIR__);
             $root=app()->getRootPath();
             
