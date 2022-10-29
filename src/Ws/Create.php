@@ -97,6 +97,8 @@ class Create extends Common
             $this->fileCreate($cur_dir.'\Game.php', $root."/app/command/{$name}.php", [
              'namespace Dfer\Tools\Ws;'=>"namespace app\command;",
              'class Game'=>"class {$name}",
+             'setName(\'game\')'=>"setName('{$name_snake}')",
+             '游戏后台'=>"ws后台",
              'use Dfer\Tools\Ws\Modules\GameModel;'=>"use app\command\\{$module_name}\\GameModel;",
              '# use Dfer\Tools\Ws\Modules\Common;'=>"use app\command\\{$module_name}\\Common;"
             ]);
