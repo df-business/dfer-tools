@@ -78,6 +78,9 @@ class Create extends Common
             $name = trim($name);
             //驼峰转下划线
             $name_snake=Str::snake($name);
+            // 首字母大写
+            $name_title=Str::title($name);
+
             $module_name=$name."Modules";
             $cur_dir = realpath(__DIR__);
             $root=app()->getRootPath();
@@ -94,9 +97,9 @@ class Create extends Common
             ]);
             
             // main
-            $this->fileCreate($cur_dir.'\Game.php', $root."/app/command/{$name}.php", [
+            $this->fileCreate($cur_dir.'\Game.php', $root."/app/command/{$name_title}.php", [
              'namespace Dfer\Tools\Ws;'=>"namespace app\command;",
-             'class Game'=>"class {$name}",
+             'class Game'=>"class {$name_title}",
              'setName(\'game\')'=>"setName('{$name_snake}')",
              '游戏后台'=>"ws后台",
              'use Dfer\Tools\Ws\Modules\GameModel;'=>"use app\command\\{$module_name}\\GameModel;",
