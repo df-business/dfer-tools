@@ -19,7 +19,7 @@ use Dfer\Tools\Ws\Modules\Common;
  * | 用来生成console脚本
  * | eg:
  * | php think create Game
-    * | php think create -h
+ * | php think create -h
  * +----------------------------------------------------------------------
  *                      .::::.
  *                    .::::::::.            | AUTHOR: dfer

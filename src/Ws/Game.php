@@ -2,9 +2,9 @@
 declare(strict_types = 1);
 
 /**
-	* composer require topthink/framework
-	* composer require topthink/think-worker
-	*/
+    * composer require topthink/framework
+    * composer require topthink/think-worker
+    */
 namespace Dfer\Tools\Ws;
 
 use think\console\input\Argument;
@@ -16,15 +16,45 @@ use Workerman\Lib\Timer;
 
 use Dfer\Tools\Ws\Modules\GameModel;
 use Dfer\Tools\Ws\Modules\FileMonitor;
+
 # use Dfer\Tools\Ws\Modules\Common;
 
 defined("HEARTBEAT_TIME")||define('HEARTBEAT_TIME', 55);
 defined("MAX_REQUEST")||define('MAX_REQUEST', 1000);
-    
+
+
+/**
+ * +----------------------------------------------------------------------
+ * | 开启后台服务
+ * | eg:
+ * | php think game
+ * | php think game -m d
+ * +----------------------------------------------------------------------
+ *                      .::::.
+ *                    .::::::::.            | AUTHOR: dfer
+ *                    :::::::::::           | EMAIL: df_business@qq.com
+ *                 ..:::::::::::'           | QQ: 3504725309
+ *             '::::::::::::'
+ *                .::::::::::
+ *           '::::::::::::::..
+ *                ..::::::::::::.
+ *              ``::::::::::::::::
+ *               ::::``:::::::::'        .:::.
+ *              ::::'   ':::::'       .::::::::.
+ *            .::::'      ::::     .:::::::'::::.
+ *           .:::'       :::::  .:::::::::' ':::::.
+ *          .::'        :::::.:::::::::'      ':::::.
+ *         .::'         ::::::::::::::'         ``::::.
+ *     ...:::           ::::::::::::'              ``::.
+ *   ```` ':.          ':::::::::'                  ::::..
+ *                      '.:::::'                    ':'````..
+ * +----------------------------------------------------------------------
+ *
+ */
 class Game extends GameModel
 {
     const HOST='websocket://0.0.0.0:99';
-    const DEBUG=false;
+    const DEBUG=true;
   
     protected function configure()
     {
@@ -37,9 +67,10 @@ class Game extends GameModel
         
     public function init()
     {
-        global $db,$input,$output;
+        global $db,$input,$output,$debug;
         try {
-            if (self::DEBUG) {
+            $debug=self::DEBUG;
+            if ($debug) {
                 new FileMonitor();
             }
             $action = $input->getArgument('action');
@@ -66,7 +97,7 @@ class Game extends GameModel
         $ws_worker = new Worker(self::HOST);
         $ws_worker->name = '游戏后台';
         $ws_worker->count = 6;
-        $ws_worker->list = array();        
+        $ws_worker->list = array();
         $ws_worker->onWorkerStart = function (Worker $worker) {
             $this->debug_print("服务 {$worker->id} 开启...");
             $this->onWorkerStart($worker);

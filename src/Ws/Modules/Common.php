@@ -21,10 +21,11 @@ class Common extends Command
         
     protected function execute(Input $in, Output $out)
     {
-        global $db,$input,$output;
+        global $db,$input,$output,$debug;
+        $debug=false;
         $input=$in;
         $output=$out;
-        // $db =new Db;
+        $db =new Db;
         $this->print('程序开始...');
         $this->init();
         $this->print('程序结束');
@@ -73,9 +74,12 @@ class Common extends Command
      **/
     public function debug_print($str)
     {
-        $str=substr(json_encode($str, JSON_UNESCAPED_UNICODE), 1, -1);
-        $this->print($str);
-        $this->print($str, self::LOG_WRITE);
+        global $debug;
+        if ($debug) {
+            $str=substr(json_encode($str, JSON_UNESCAPED_UNICODE), 1, -1);
+            $this->print($str);
+            $this->print($str, self::LOG_WRITE);
+        }
     }
         
     
@@ -133,11 +137,11 @@ class Common extends Command
         
         //替换
         foreach ($replace_list as $key => $value) {
-                preg_match("/]([\s\S]*?)]/", $from, $str);
-                if (count($str)>0) {
-                    $from = preg_replace('/]([\s\S]*?)]/', $value, $from);
-                }                
-            // \var_dump(stripos($from, $value), $from);        
+            preg_match("/]([\s\S]*?)]/", $from, $str);
+            if (count($str)>0) {
+                $from = preg_replace('/]([\s\S]*?)]/', $value, $from);
+            }
+            // \var_dump(stripos($from, $value), $from);
         }
         file_put_contents($from_src, $from);
     }

@@ -9,15 +9,8 @@ use Workerman\Connection\TcpConnection;
 
 class GameModel extends Common
 {
-    protected $db = null;
-    // public function __construct()
-    // {
-    //     // 假设数据库连接类是MyDbClass
-    //     // $db = new MyDbClass();
-    // }
     public function onWorkerStart(Worker $worker)
     {
-			
     }
         
     public function onWorkerReload(Worker $worker)
@@ -30,7 +23,7 @@ class GameModel extends Common
         
     public function onConnect(TcpConnection $connection)
     {
-				$this->debug_print("{$connection->id} {$connection->getRemoteIp()} 建立连接");
+        $this->debug_print("{$connection->id} {$connection->getRemoteIp()} 建立连接");
         $connection->headers = [
                                         // 'Sec-WebSocket-Protocol: dfer.top',
                                     ];
