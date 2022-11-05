@@ -2,15 +2,35 @@
 declare(strict_types = 1);
 namespace Dfer\Tools\Ws\Modules;
 
-use think\console\Command;
-use think\console\Input;
-use think\console\input\Argument;
-use think\console\input\Option;
-use think\console\Output;
-
 use think\facade\Db;
+use think\console\Output;
+use Dfer\Tools\Common;
 
-class Common extends Command
+/**
+ * +----------------------------------------------------------------------
+ *                      .::::.
+ *                    .::::::::.            | AUTHOR: dfer
+ *                    :::::::::::           | EMAIL: df_business@qq.com
+ *                 ..:::::::::::'           | QQ: 3504725309
+ *             '::::::::::::'
+ *                .::::::::::
+ *           '::::::::::::::..
+ *                ..::::::::::::.
+ *              ``::::::::::::::::
+ *               ::::``:::::::::'        .:::.
+ *              ::::'   ':::::'       .::::::::.
+ *            .::::'      ::::     .:::::::'::::.
+ *           .:::'       :::::  .:::::::::' ':::::.
+ *          .::'        :::::.:::::::::'      ':::::.
+ *         .::'         ::::::::::::::'         ``::::.
+ *     ...:::           ::::::::::::'              ``::.
+ *   ```` ':.          ':::::::::'                  ::::..
+ *                      '.:::::'                    ':'````..
+ * +----------------------------------------------------------------------
+ *
+ */
+
+class CommonBase extends Common
 {
     // 控制台输出
     const CONSOLE_WRITE=0;
@@ -18,23 +38,18 @@ class Common extends Command
     const LOG_WRITE=1;
     // worker日志
     const STDOUT_WRITE=2;
-        
-    protected function execute(Input $in, Output $out)
+
+
+    public function __construct()
     {
-        global $db,$input,$output,$debug;
-        $debug=false;
-        $input=$in;
-        $output=$out;
-        $db =new Db;
-        $this->print('程序开始...');
-        $this->init();
-        $this->print('程序结束');
+        global $db;
+        $db = new Db();
     }
-  
+
     /**
      * 控制台打印、日志记录
      **/
-    public function print($str, $type=self::CONSOLE_WRITE)
+    public function tp_print($str, $type=self::CONSOLE_WRITE)
     {
         global $argv;
         if (isset($argv[2])&&$argv[2]=='-d') {
@@ -77,8 +92,8 @@ class Common extends Command
         global $debug;
         if ($debug) {
             $str=substr(json_encode($str, JSON_UNESCAPED_UNICODE), 1, -1);
-            $this->print($str);
-            $this->print($str, self::LOG_WRITE);
+            $this->tp_print($str);
+            $this->tp_print($str, self::LOG_WRITE);
         }
     }
         
@@ -87,16 +102,36 @@ class Common extends Command
     /**
      * json字符串
      **/
-    public function json($status=0, $data=[], $msg='')
+    public function json($type, $status=0, $data=[], $msg='')
     {
-        $json = array('status' => $status, 'msg' =>$msg?$msg:($status!=0?'出错':'成功'), 'data' =>$data);
+        $json = array('type' => $type,'status' => $status, 'msg' =>$msg?$msg:($status!=0?'出错':'成功'), 'data' =>$data);
         return json_encode($json);
     }
     
-    // 传递字符串
-    public function msg($msg='')
+    /**
+     * 传递字符串
+     */
+    public function msg($str='')
     {
-        $ret=$this->json(0, [], $msg);
+        $ret=$this->json('msg', 0, [], $str);
+        return $ret;
+    }
+    
+    /**
+     * 成功
+     */
+    public function success($type='', $data=[], $msg="")
+    {
+        $ret=$this->json($type, 0, $data, $msg);
+        return $ret;
+    }
+    
+    /**
+     * 失败
+     */
+    public function fail($type='', $data=[], $msg="")
+    {
+        $ret=$this->json($type, -1, $data, $msg);
         return $ret;
     }
     

@@ -12,7 +12,8 @@ use think\console\Output;
 use think\facade\Config;
 use think\helper\Str;
 
-use Dfer\Tools\Ws\Modules\Common;
+use Dfer\Tools\Ws\Modules\CommonBase;
+use Dfer\Tools\Ws\Modules\Base;
 
 /**
  * +----------------------------------------------------------------------
@@ -42,7 +43,7 @@ use Dfer\Tools\Ws\Modules\Common;
  * +----------------------------------------------------------------------
  *
  */
-class Create extends Common
+class Create extends Base
 {
     const EXPORT=1,IMPORT=2;
     public static $remote;
@@ -57,12 +58,13 @@ class Create extends Common
     
     public function init()
     {
-        global $db,$input,$output;
+        global $db,$input,$output;        
+        $CommonBase=new CommonBase();
         try {
             $name = $input->getArgument('name');
             $about = $input->getOption('about');
             if ($about) {
-                $this->print("
+                $CommonBase->print("
           | AUTHOR: dfer
           | EMAIL: df_business@qq.com
           | QQ: 3504725309");
@@ -70,11 +72,11 @@ class Create extends Common
             }
                                           
             if (empty($name)) {
-                $this->print("输入类名");
+                $CommonBase->print("输入类名");
                 exit();
             }
             
-            $this->print("开始生成脚本....");
+            $CommonBase->print("开始生成脚本....");
             $name = trim($name);
             //驼峰转下划线
             $name_snake=Str::snake($name);
@@ -86,18 +88,18 @@ class Create extends Common
             $root=app()->getRootPath();
             
             
-            $this->fileCreate($cur_dir.'\Modules\CommonTmpl.php', $root."/app/command/{$module_name}/Common.php", [
+            $CommonBase->fileCreate($cur_dir.'\Modules\CommonTmpl.php', $root."/app/command/{$module_name}/Common.php", [
              'namespace Dfer\Tools\Ws\Modules;'=>"namespace app\command\\{$module_name};",
              'CommonTmpl'=>"Common"
             ]);
             
-            $this->fileCreate($cur_dir.'\Modules\GameModel.php', $root."/app/command/{$module_name}/GameModel.php", [
+            $CommonBase->fileCreate($cur_dir.'\Modules\GameModel.php', $root."/app/command/{$module_name}/GameModel.php", [
              'namespace Dfer\Tools\Ws\Modules;'=>"namespace app\command\\{$module_name};",
              '# use Dfer\Tools\Ws\Modules\Common;'=>"use Dfer\Tools\Ws\Modules\Common;"
             ]);
             
             // main
-            $this->fileCreate($cur_dir.'\Game.php', $root."/app/command/{$name_title}.php", [
+            $CommonBase->fileCreate($cur_dir.'\Game.php', $root."/app/command/{$name_title}.php", [
              'namespace Dfer\Tools\Ws;'=>"namespace app\command;",
              'class Game'=>"class {$name_title}",
              'setName(\'game\')'=>"setName('{$name_snake}')",
@@ -106,18 +108,18 @@ class Create extends Common
              '# use Dfer\Tools\Ws\Modules\Common;'=>"use app\command\\{$module_name}\\Common;"
             ]);
             // config
-            $this->configUpdate($root."/config/console.php", [
+            $CommonBase->configUpdate($root."/config/console.php", [
              ",'{$name_snake}' => 'app\command\\{$name}'
                 ]
              ]"
             ]);
-            $this->print("            
+            $CommonBase->print("            
             | 生成脚本完成
             | /app/command/{$name}.php
             | /config/console.php
             ");
         } catch (Exception $e) {
-            $this->print($e->getMessage());
+            $CommonBase->print($e->getMessage());
         }
     }
 }
