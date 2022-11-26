@@ -37,7 +37,7 @@ class Files
         $this -> img_common = new \Dfer\Tools\Img\Common;
     }
     /**
-					* 读取文件的所有字符串
+                    * 读取文件的所有字符串
      *
      * 物理路径
      */
@@ -55,7 +55,7 @@ class Files
     }
     
     /**
-					* 
+                    *
      * 下载文件，隐藏真实下载地址
      * 下载路径显示的是下载页面的url
      * 处在同步调用下，方能生效
@@ -94,13 +94,13 @@ class Files
     }
     
     
-				/**
-					* 
-				 * 删除目录和目录下的文件，成功则返回1
-				 * $dir	目录的物理路径
-				 *
-				 * @return mixed
-				 **/
+    /**
+        *
+     * 删除目录和目录下的文件，成功则返回1
+     * $dir	目录的物理路径
+     *
+     * @return mixed
+     **/
     public function delDir($dir)
     {
         //先删除目录下的文件：
@@ -181,7 +181,7 @@ class Files
     }
     
     /**
-					* 
+                    *
      * 拼接js或者css
      * eg：/index.php?f=/css_js/df.js,/css_js/FontFamily/init.js
      */
@@ -203,7 +203,7 @@ class Files
     }
     
     /**
-					* 
+                    *
      * 上传文件
      * 配合上传组件使用
      * js上传组件会接收所有的echo
@@ -231,7 +231,7 @@ class Files
     public function uploadFile($name, $size=0, $editTool=0, $Path='')
     {
         global $common,$img_common;
-								
+                                
         //区分不同的数据类型
         switch ($name) {
         case 'vtour':break;
@@ -279,7 +279,7 @@ class Files
                 //固定路径
                 else {
                     $newname=$Path;
-                }  //新文件名    
+                }  //新文件名
     
                 if ($size) {
                     $size=$common->split($size, "*");

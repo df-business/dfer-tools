@@ -58,7 +58,7 @@ class Create extends Base
     
     public function init()
     {
-        global $db,$input,$output;        
+        global $db,$input,$output;
         $CommonBase=new CommonBase();
         try {
             $name = $input->getArgument('name');

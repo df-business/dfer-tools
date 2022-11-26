@@ -812,4 +812,14 @@ class Common
             update($db, $dt);
         }
     }
+    
+    /**
+     * 独立日志
+     *
+     * 'apart_level'   =>  ['error','sql','debug','dfer']
+     **/
+    public function log($data)
+    {
+        \think\Log::write($data, 'dfer');
+    }
 }
