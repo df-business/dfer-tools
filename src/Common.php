@@ -6,24 +6,24 @@ namespace Dfer\Tools;
  * +----------------------------------------------------------------------
  * | 常用的方法
  * +----------------------------------------------------------------------
- *                      .::::.
- *                    .::::::::.            | AUTHOR: dfer
- *                    :::::::::::           | EMAIL: df_business@qq.com
- *                 ..:::::::::::'           | QQ: 3504725309
+ *       .::::.
+ *     .::::::::.            | AUTHOR: dfer
+ *     :::::::::::           | EMAIL: df_business@qq.com
+ *  ..:::::::::::'           | QQ: 3504725309
  *             '::::::::::::'
- *                .::::::::::
+ * .::::::::::
  *           '::::::::::::::..
- *                ..::::::::::::.
+ * ..::::::::::::.
  *              ``::::::::::::::::
- *               ::::``:::::::::'        .:::.
+ *::::``:::::::::'        .:::.
  *              ::::'   ':::::'       .::::::::.
  *            .::::'      ::::     .:::::::'::::.
  *           .:::'       :::::  .:::::::::' ':::::.
  *          .::'        :::::.:::::::::'      ':::::.
  *         .::'         ::::::::::::::'         ``::::.
  *     ...:::           ::::::::::::'              ``::.
- *   ```` ':.          ':::::::::'                  ::::..
- *                      '.:::::'                    ':'````..
+ *   ```` ':.          ':::::::::'   ::::..
+ *       '.:::::'     ':'````..
  * +----------------------------------------------------------------------
  *
  */
@@ -68,23 +68,23 @@ class Common
         $result=sprintf('["%s"]', join('","', $name));
         return $result;
     }
-                
-                
-                
+ 
+ 
+ 
     //输出json，然后终止当前请求
     public function showJson($status = 1, $return = array(), $msg='')
     {
         $ret = array(
-                        'status' => $status,
-                        'msg'=>$msg
-                    );
+         'status' => $status,
+         'msg'=>$msg
+     );
         if ($return) {
             $ret['result'] = $return;
         }
-                    
+     
         showJsonBase($ret);
     }
-                
+ 
     public function showJsonBase($return = array())
     {
         //json格式
@@ -92,10 +92,10 @@ class Common
         //中文不加密
         die(json_encode($return, JSON_UNESCAPED_UNICODE));
     }
-                
-                
-                
-                
+ 
+ 
+ 
+ 
     //是微信端则返回true
     public function isWeixin()
     {
@@ -104,25 +104,25 @@ class Common
         }
         return true;
     }
-                
-                
-                
+ 
+ 
+ 
     //http与https相互转换
     public function httpAndhttps()
     {
         if ($_SERVER["HTTPS"]=="on") {
             $xredir="http://".$_SERVER["SERVER_NAME"].
-                $_SERVER["REQUEST_URI"];
+ $_SERVER["REQUEST_URI"];
             header("Location: ".$xredir);
         } else {
             $xredir="https://".$_SERVER["SERVER_NAME"].
-                $_SERVER["REQUEST_URI"];
+ $_SERVER["REQUEST_URI"];
             header("Location: ".$xredir);
         }
     }
-                
-                
-                
+ 
+ 
+ 
     /**
      * 将时间戳转化为正常的时间格式
      *
@@ -145,7 +145,7 @@ class Common
             return date("Y-m-d H:i:s");
         }
     }
-                
+ 
     /**
      * 将时间字符串转化为时间戳，格式化之后转化为正常的时间格式
      *
@@ -168,10 +168,10 @@ class Common
         //date_default_timezone_set('Asia/Shanghai'); //设置为东八区上海时间
         return date($str, strtotime($time));
     }
-                
-                
+ 
+ 
     //-------------------------------session
-                                
+  
     /**
      * 服务器缓存
      *
@@ -189,7 +189,7 @@ class Common
      *
      * Session默认的生命周期通常是20分钟
      */
-                
+ 
     public function getSession($name)
     {
         if (!empty($_SESSION[$name])) {
@@ -206,7 +206,7 @@ class Common
             header(sprintf("location:%s", SplitUrl($rt)));
         }
     }
-                
+ 
     //删除ses并跳转页面
     public function delSession($name='', $rt="")
     {
@@ -221,18 +221,18 @@ class Common
             header(sprintf("location:%s", SplitUrl($rt)));
         }
     }
-                
+ 
         
     //-------------------------------other
-                
-                
-                
+ 
+ 
+ 
     //unicode
     public function unicodeEncode($str)
     {
         //split word
         preg_match_all('/./u', $str, $matches);
-                 
+  
         $unicodeStr = "";
         foreach ($matches[0] as $m) {
             //拼接
@@ -240,7 +240,7 @@ class Common
         }
         return $unicodeStr;
     }
-                 
+  
     // unicode解码
     public function unicodeDecode($unicode_str)
     {
@@ -251,9 +251,9 @@ class Common
         }
         return $arr['str'];
     }
-                
-                
-                
+ 
+ 
+ 
     // //unicode解码
     // public function replaceUnicodeEscapeSequence($match)
     // {
@@ -264,7 +264,7 @@ class Common
     //     $str = preg_replace_callback('/\\\\u([0-9a-f]{4})/i', 'replace_unicode_escape_sequence', $name);
     //     return $str;
     // }
-                
+ 
     const REQ_JSON=0,REQ_GET=1,REQ_POST=2;
   
     /**
@@ -287,10 +287,10 @@ class Common
              $data=json_encode($data, JSON_UNESCAPED_UNICODE);
              curl_setopt($curl, CURLOPT_HEADER, false);
              curl_setopt($curl, CURLOPT_HTTPHEADER, array(
-                     'Content-Type: application/json; charset=utf-8',
-                     'Content-Length:' . strlen($data),
-                     'Cache-Control: no-cache',
-                     'Pragma: no-cache'
+               'Content-Type: application/json; charset=utf-8',
+               'Content-Length:' . strlen($data),
+               'Cache-Control: no-cache',
+               'Pragma: no-cache'
              ));
          }
           break;
@@ -332,6 +332,8 @@ class Common
         curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
         //设置浏览器，把参数url传到浏览器的设置当中
         curl_setopt($curl, CURLOPT_URL, $url);
+        // 50s延迟
+        curl_setopt($curl, CURLOPT_TIMEOUT, 50);
         //禁止https协议验证ssl安全认证证书
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
         //禁止https协议验证域名，0就是禁止验证域名且兼容php5.6
@@ -349,7 +351,7 @@ class Common
         }
         return $rt;
     }
-                
+ 
     //将get的参数字符串组装成数组
     public function getPara($str)
     {
@@ -360,7 +362,7 @@ class Common
         }
         return $rt;
     }
-                
+ 
     /**
      * 判断远程文件是否存在
      * 如果代码做过404处理就检测不出来
@@ -372,7 +374,7 @@ class Common
         curl_setopt($ch, CURLOPT_NOBODY, 1); // 不下载
         curl_setopt($ch, CURLOPT_FAILONERROR, 1);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-                   
+    
         if (curl_exec($ch)!==false) {
             return true;
         } else {
@@ -457,7 +459,7 @@ class Common
     
     
     /**
-                    *
+     *
      * 获取html中body标签的内容
      *
      *
@@ -500,11 +502,11 @@ class Common
     
     
     /**
-                    * 将字符串转换成二进制
-                    * @param type $str
-                    * @return type
-                    *
-                    */
+     * 将字符串转换成二进制
+     * @param type $str
+     * @return type
+     *
+     */
     public function strToBin($str)
     {
         //1.列出每个字符
@@ -520,11 +522,11 @@ class Common
     }
      
     /**
-                    * 讲二进制转换成字符串
-                    * @param type $str
-                    * @return type
-                    *
-                    */
+     * 二进制转换成字符串
+     * @param type $str
+     * @return type
+     *
+     */
     public function binToStr($str)
     {
         $arr = explode(' ', $str);
@@ -538,10 +540,10 @@ class Common
     
     
     /**
-                    * 字符串转十六进制函数
-                    * @pream string $str='abc';
-                    *
-                    */
+     * 字符串转十六进制函数
+     * @pream string $str='abc';
+     *
+     */
     public function strToHex($str)
     {
         $hex="";
@@ -565,10 +567,10 @@ class Common
         }
         return  $str;
     }
-                
+ 
    
     /**
-                    *
+     *
      * 字符串格式化
      * eg:
      * echo format("ddddd:v1cc:v2bb:v2bbccc:v1",array('v1'=>123,'v2'=>555));
@@ -587,7 +589,7 @@ class Common
     
     
     /**
-                    *
+     *
      * php调用网页头的验证功能
      *
      *
@@ -612,7 +614,7 @@ class Common
     
     
     /**
-                    *
+     *
      * 判断是否手机端访问
      */
     public function isMobile()
@@ -651,7 +653,7 @@ class Common
     }
     
       
-                
+ 
     //截取指定两个字符之间的字符串
     public function strCut($begin, $end, $str)
     {
@@ -659,14 +661,14 @@ class Common
         $e = mb_strpos($str, $end) - $b;
         return mb_substr($str, $b, $e);
     }
-                
-                
+ 
+ 
     //获取浏览器内核信息
     public function getBrowser()
     {
         return sprintf("%s-%s", $this -> getBrowser_name(), $this -> getBrowser_ver());
     }
-                
+ 
     //ie兼容性差，对ie内核进行警告
     public function ieNotice()
     {
@@ -675,7 +677,7 @@ class Common
             show_message("不支持IE内核", "请检查浏览器");
         }
     }
-                
+ 
     public function getBrowserName()
     {
         $agent = $_SERVER["HTTP_USER_AGENT"];
@@ -691,7 +693,7 @@ class Common
             return 'safari';
         }
     }
-                
+ 
     public function getBrowserVer()
     {
         if (empty($_SERVER['HTTP_USER_AGENT'])) {//当浏览器没有发送访问者的信息的时候
@@ -713,7 +715,7 @@ class Common
         }
     }
   
-                
+ 
     //拼装随机数，保留0位小数，生成一个字符串
     public function byteFormat($input, $prec = 0)
     {
@@ -727,7 +729,7 @@ class Common
         $return_str = round($value, $prec) . $prefix_arr[$i];
         return $return_str;
     }
-                
+ 
     //数组中所有元素都是数组则返回true
     public function isArray2($array)
     {
@@ -738,15 +740,15 @@ class Common
         }
         return false;
     }
-                
+ 
     //获取最后一天的日期
     public function getLastDay($year, $month)
     {
         return date('t', strtotime("{$year}-{$month} -1"));
     }
-                
+ 
     /**
-                    *
+     *
      * 判断是否是时间戳
      */
     public function isTimestamp($timestamp)
@@ -757,30 +759,30 @@ class Common
             return false;
         }
     }
-                
+ 
     //base64加密
     public function b64Encode($obj)
     {
         if (is_array($obj)) {
             return urlencode(base64_encode(json_encode($obj)));
         }
-                
+ 
         return urlencode(base64_encode($obj));
     }
-                
+ 
     //base64解密
     public function b64Decode($str, $is_array = true)
     {
         $str = base64_decode(urldecode($str));
-                
+ 
         if ($is_array) {
             return json_decode($str, true);
         }
-                
+ 
         return $str;
     }
-                
-                   
+ 
+    
     //将数组中的元素进行html原样输出
     public function iHtmlspecialchars($var)
     {
@@ -793,7 +795,7 @@ class Common
         }
         return $var;
     }
-                
+ 
     //获取当前页面的完整网址
     public function getCurUrl($getPort = 0)
     {
@@ -804,23 +806,23 @@ class Common
         }
         //包含端口号的完整url
     }
-                
+ 
     //执行控制台命令
     public function runShell($shell)
     {
         //	 echo exec('whoami');
         echo exec($shell);
     }
-                
+ 
     //获取"/"后的字符串
     public function getLast($file_name)
     {
         $a = explode('/', $file_name);
         return array_pop($a);
         //获取数组最后一条数据
-                        //用／号对字符串进行分组
+         //用／号对字符串进行分组
     }
-                
+ 
    
     //分割字符串
     //Split("1|2|3","|");
@@ -830,7 +832,7 @@ class Common
         return $rt;
     }
    
-                
+ 
     //生成一个指定大小的数组
     public function defineArr($a)
     {
@@ -839,21 +841,6 @@ class Common
             $array[$i] = $i;
         }
         return $array;
-    }
-                
-    //收集用户信息
-    public function colUserInfo()
-    {
-        global $_df;
-        $db = 'home_user_info';
-        $user = show_list($db, ['ip'=>IP]);
-        if (count($user) > 0) {
-            $dt = array('browser' => $_SERVER['HTTP_USER_AGENT'], 'hits' => $user['hits'] + 1, 'time' => $_df['time']);
-            update($db, $dt, $user['Id']);
-        } else {
-            $dt = array('ip' => IP, 'browser' => $_SERVER['HTTP_USER_AGENT'], 'hits' => 0, 'first_time' => $_df['time'], 'time' => $_df['time']);
-            update($db, $dt);
-        }
     }
     
     /**

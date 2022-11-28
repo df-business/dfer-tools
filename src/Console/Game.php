@@ -28,7 +28,7 @@ declare(strict_types = 1);
  *
  */
    
-namespace Dfer\Tools\Ws;
+namespace Dfer\Tools\Console;
 
 use think\console\input\Argument;
 use think\console\input\Option;
@@ -37,10 +37,10 @@ use Workerman\Worker;
 use Workerman\Connection\TcpConnection;
 use Workerman\Lib\Timer;
 
-use Dfer\Tools\Ws\Modules\GameModel;
-use Dfer\Tools\Ws\Modules\FileMonitor;
+use Dfer\Tools\Console\Modules\GameModel;
+use Dfer\Tools\Console\Modules\FileMonitor;
 
-# use Dfer\Tools\Ws\Modules\Common;
+# use Dfer\Tools\Console\Modules\Common;
 
 defined("HEARTBEAT_TIME")||define('HEARTBEAT_TIME', 55);
 defined("MAX_REQUEST")||define('MAX_REQUEST', 1000);
@@ -48,7 +48,7 @@ defined("MAX_REQUEST")||define('MAX_REQUEST', 1000);
 
 /**
  * +----------------------------------------------------------------------
- * | 开启后台服务
+ * | 游戏后台服务
  * | eg:
  * | php think game
  * | php think game -m d

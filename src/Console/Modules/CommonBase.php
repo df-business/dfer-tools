@@ -1,10 +1,10 @@
 <?php
 declare(strict_types = 1);
-namespace Dfer\Tools\Ws\Modules;
+namespace Dfer\Tools\Console\Modules;
 
-use think\facade\Db;
 use think\console\Output;
 use Dfer\Tools\Common;
+use think\Cache;
 
 /**
  * +----------------------------------------------------------------------
@@ -43,7 +43,12 @@ class CommonBase extends Common
     public function __construct()
     {
         global $db;
-        $db = new Db();
+        // tp5与tp6调用方式不同
+        if (class_exists("\think\facade\Db")) {
+            $db = new \think\facade\Db();
+        } else {
+            $db = new \think\Db();
+        }
     }
 
     /**
@@ -143,6 +148,22 @@ class CommonBase extends Common
         $time =date("Y/m/d H:i:s", $timestamp);
         return $time;
     }
+    
+    /**
+     * 设置缓存
+     * @param {Object} $key
+     * @param {Object} $val
+     */
+    protected function set_cache($key, $val)
+    {
+        return Cache::set($key, $val);
+    }
+    
+    protected function get_cache($key)
+    {
+        return Cache::get($key);
+    }
+    
     /**
      * 创建文件
      */

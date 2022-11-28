@@ -1,7 +1,7 @@
 <?php
 declare(strict_types = 1);
 
-namespace Dfer\Tools\Ws;
+namespace Dfer\Tools\Console;
 
 use think\console\Command;
 use think\console\Input;
@@ -12,8 +12,8 @@ use think\console\Output;
 use think\facade\Config;
 use think\helper\Str;
 
-use Dfer\Tools\Ws\Modules\CommonBase;
-use Dfer\Tools\Ws\Modules\Base;
+use Dfer\Tools\Console\Modules\CommonBase;
+use Dfer\Tools\Console\Modules\Base;
 
 /**
  * +----------------------------------------------------------------------
@@ -53,7 +53,8 @@ class Create extends Base
     {
         $this->setName('create')->addArgument('name', Argument::OPTIONAL, "脚本名称。命名采用驼峰法（首字母大写）", '')
                                   ->addOption('about', 'a', Option::VALUE_NONE, '简介')
-                                  ->setDescription('生成ws命令');
+                                  ->addOption('type', 't', Option::VALUE_OPTIONAL, '类型。game：websocket脚本；console：控制台脚本', 'game')
+                                  ->setDescription('生成脚本。输入`php think create -h`查看说明');
     }
     
     public function init()
@@ -63,8 +64,9 @@ class Create extends Base
         try {
             $name = $input->getArgument('name');
             $about = $input->getOption('about');
+            $type = $input->getOption('type');
             if ($about) {
-                $CommonBase->print("
+                $CommonBase->tp_print("
           | AUTHOR: dfer
           | EMAIL: df_business@qq.com
           | QQ: 3504725309");
@@ -72,11 +74,11 @@ class Create extends Base
             }
                                           
             if (empty($name)) {
-                $CommonBase->print("输入类名");
+                $CommonBase->tp_print("输入类名");
                 exit();
             }
             
-            $CommonBase->print("开始生成脚本....");
+            $CommonBase->tp_print("开始生成脚本....");
             $name = trim($name);
             //驼峰转下划线
             $name_snake=Str::snake($name);
@@ -87,39 +89,62 @@ class Create extends Base
             $cur_dir = realpath(__DIR__);
             $root=app()->getRootPath();
             
+            switch ($type) {
+             case 'game':
+              $CommonBase->fileCreate($cur_dir.'\Modules\CommonTmpl.php', $root."/app/command/{$module_name}/Common.php", [
+               'namespace Dfer\Tools\Console\Modules;'=>"namespace app\command\\{$module_name};",
+               'CommonTmpl'=>"Common"
+              ]);
+              
+              $CommonBase->fileCreate($cur_dir.'\Modules\GameModel.php', $root."/app/command/{$module_name}/GameModel.php", [
+               'namespace Dfer\Tools\Console\Modules;'=>"namespace app\command\\{$module_name};",
+               '# use Dfer\Tools\Console\Modules\Common;'=>"use Dfer\Tools\Console\Modules\Common;"
+              ]);
+              
+              // main
+              $CommonBase->fileCreate($cur_dir.'\Game.php', $root."/app/command/{$name_title}.php", [
+               'namespace Dfer\Tools\Console;'=>"namespace app\command;",
+               'class Game'=>"class {$name_title}",
+               'setName(\'game\')'=>"setName('{$name_snake}')",
+               '游戏后台'=>"ws后台",
+               'use Dfer\Tools\Console\Modules\GameModel;'=>"use app\command\\{$module_name}\\GameModel;",
+               '# use Dfer\Tools\Console\Modules\Common;'=>"use app\command\\{$module_name}\\Common;"
+              ]);
+              break;
+             case 'console':
+              $CommonBase->fileCreate($cur_dir.'\Modules\CommonTmpl.php', $root."/app/command/{$module_name}/Common.php", [
+               'namespace Dfer\Tools\Console\Modules;'=>"namespace app\command\\{$module_name};",
+               'CommonTmpl'=>"Common"
+              ]);
             
-            $CommonBase->fileCreate($cur_dir.'\Modules\CommonTmpl.php', $root."/app/command/{$module_name}/Common.php", [
-             'namespace Dfer\Tools\Ws\Modules;'=>"namespace app\command\\{$module_name};",
-             'CommonTmpl'=>"Common"
-            ]);
-            
-            $CommonBase->fileCreate($cur_dir.'\Modules\GameModel.php', $root."/app/command/{$module_name}/GameModel.php", [
-             'namespace Dfer\Tools\Ws\Modules;'=>"namespace app\command\\{$module_name};",
-             '# use Dfer\Tools\Ws\Modules\Common;'=>"use Dfer\Tools\Ws\Modules\Common;"
-            ]);
-            
-            // main
-            $CommonBase->fileCreate($cur_dir.'\Game.php', $root."/app/command/{$name_title}.php", [
-             'namespace Dfer\Tools\Ws;'=>"namespace app\command;",
-             'class Game'=>"class {$name_title}",
-             'setName(\'game\')'=>"setName('{$name_snake}')",
-             '游戏后台'=>"ws后台",
-             'use Dfer\Tools\Ws\Modules\GameModel;'=>"use app\command\\{$module_name}\\GameModel;",
-             '# use Dfer\Tools\Ws\Modules\Common;'=>"use app\command\\{$module_name}\\Common;"
-            ]);
+              // main
+              $CommonBase->fileCreate($cur_dir.'\Console.php', $root."/app/command/{$name_title}.php", [
+               'namespace Dfer\Tools\Console;'=>"namespace app\command;",
+               'class Console'=>"class {$name_title}",
+               'think console'=>"think {$name_snake}",
+               'setName(\'console\')'=>"setName('{$name_snake}')",
+               '# use Dfer\Tools\Console\Modules\Common;'=>"use app\command\\{$module_name}\\Common;"
+              ]);
+              break;
+             
+             default:
+              # code...
+              break;
+            }
+         
             // config
             $CommonBase->configUpdate($root."/config/console.php", [
              ",'{$name_snake}' => 'app\command\\{$name}'
                 ]
              ]"
             ]);
-            $CommonBase->print("            
+            $CommonBase->tp_print("            
             | 生成脚本完成
             | /app/command/{$name}.php
             | /config/console.php
             ");
         } catch (Exception $e) {
-            $CommonBase->print($e->getMessage());
+            $CommonBase->tp_print($e->getMessage());
         }
     }
 }

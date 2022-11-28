@@ -120,7 +120,7 @@ $img_common->resizeJpg("1.jpg", "2.jpg", 150, 100);
 <!-- 帮助 -->
 php think dfer_ws_create -h
 <!-- 创建一个脚本 -->
-php think  create Test
+php think create Test
 ```
 **config/console.php**
 ```
@@ -132,7 +132,7 @@ php think  create Test
 return [
     // 指令定义
     'commands' => [           
-           'dfer_ws_create' => 'Dfer\Tools\Ws\Create',
+           'dfer_ws_create' => 'Dfer\Tools\Console\Create',
     ]
 ];
 

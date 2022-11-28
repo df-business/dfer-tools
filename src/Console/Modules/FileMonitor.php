@@ -1,6 +1,6 @@
 <?php
 declare(strict_types = 1);
-namespace Dfer\Tools\Ws\Modules;
+namespace Dfer\Tools\Console\Modules;
 
 use Workerman\Worker;
 use Workerman\Lib\Timer;

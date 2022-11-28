@@ -1,11 +1,11 @@
 <?php
 declare(strict_types = 1);
-namespace Dfer\Tools\Ws\Modules;
+namespace Dfer\Tools\Console\Modules;
 
 use Workerman\Worker;
 use Workerman\Connection\TcpConnection;
 
-# use Dfer\Tools\Ws\Modules\Common;
+# use Dfer\Tools\Console\Modules\Common;
 
 class GameModel extends Common
 {
