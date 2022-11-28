@@ -265,40 +265,83 @@ class Common
     //     return $str;
     // }
                 
-                
-                
+    const REQ_JSON=0,REQ_GET=1,REQ_POST=2;
+  
     /**
      * HTTP请求（支持HTTP/HTTPS，支持GET/POST）
+     *
      * 默认post
-     * @return mixed
+     *
+     * @param $url http://www.df.net
+     * @param $data ["a"=>123]
+     * @param $header ["Content-Type: application/json"]
+     * @param $type http://www.df.net
      **/
-    public function httpRequest($url, $data = null, $type=null)
+    public function httpRequest($url, $data = null, $type=self::REQ_POST, $header=null)
     {
+        //初始化浏览器
         $curl = curl_init();
-        if ($type=='json') {
-            $data=json_encode($data, JSON_UNESCAPED_UNICODE);
-            curl_setopt($curl, CURLOPT_HEADER, false);
-        } elseif ($type=='get') {
-            $url.='?';
-            foreach ($data as $k=>$v) {
-                $url.=\sprintf("%s=%s&", $k, $v);
-            }
-            $data=null;
+        switch ($type) {
+         case self::REQ_JSON:
+         if (!empty($data)) {
+             $data=json_encode($data, JSON_UNESCAPED_UNICODE);
+             curl_setopt($curl, CURLOPT_HEADER, false);
+             curl_setopt($curl, CURLOPT_HTTPHEADER, array(
+                     'Content-Type: application/json; charset=utf-8',
+                     'Content-Length:' . strlen($data),
+                     'Cache-Control: no-cache',
+                     'Pragma: no-cache'
+             ));
+         }
+          break;
+          case self::REQ_GET:
+          //判断data是否有数据
+          if (!empty($data)) {
+              $url.='?';
+              foreach ($data as $k=>$v) {
+                  $url.=\sprintf("%s=%s&", $k, $v);
+              }
+              $data=null;
+          }
+           break;
+           case self::REQ_POST:
+            break;
+         default:
+          # code...
+          break;
         }
-                    
-                    
-        // 当遇到location跳转时，直接抓取跳转的页面，防止出现301
-        curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
-        curl_setopt($curl, CURLOPT_URL, $url);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+        
+        //设置header头
+        if (!empty($header)) {
+            $header_list=[];
+            foreach ($header as $k=>$v) {
+                $header_list[]=\sprintf("%s:%s", $k, $v);
+            }
+            curl_setopt($curl, CURLOPT_HTTPHEADER, $header_list);
+        }
+        
+        //判断data是否有数据
         if (!empty($data)) {
+            //设置POST请求方式
             curl_setopt($curl, CURLOPT_POST, true);
+            //设置POST的数据包
             curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
         }
+          
+        // 当遇到location跳转时，直接抓取跳转的页面，防止出现301
+        curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
+        //设置浏览器，把参数url传到浏览器的设置当中
+        curl_setopt($curl, CURLOPT_URL, $url);
+        //禁止https协议验证ssl安全认证证书
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+        //禁止https协议验证域名，0就是禁止验证域名且兼容php5.6
+        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+              
+        //以字符串形式返回到浏览器当中
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-                     
+        //让curl发起请求
         $output = curl_exec($curl);
+        //关闭curl浏览器
         curl_close($curl);
         $rt=json_decode($output, true);
         if (empty($rt)) {
