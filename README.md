@@ -120,8 +120,11 @@ $img_common->resizeJpg("1.jpg", "2.jpg", 150, 100);
 <!-- 帮助 -->
 php think dfer_ws_create -h
 <!-- 创建一个脚本 -->
-php think create Test
+php think dfer_ws_create Test
 ```
+
+
+
 **config/console.php**
 ```
 <?php
@@ -132,13 +135,37 @@ php think create Test
 return [
     // 指令定义
     'commands' => [           
-           'dfer_ws_create' => 'Dfer\Tools\Console\Create',
+           'dfer_ws_create' => 'Dfer\Tools\Console\Create'
     ]
 ];
 
 ```
 - 自动生成ws脚本到`app\command\`
 - 自动添加指令到`console.php`
+
+
+**application/command.php**
+```
+<?php
+
+// +----------------------------------------------------------------------
+// | ThinkPHP [ WE CAN DO IT JUST THINK ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2006-2016 http://thinkphp.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
+// +----------------------------------------------------------------------
+// | Author: yunwuxin <448901948@qq.com>
+// +----------------------------------------------------------------------
+
+return [
+    'Dfer\Tools\Console\Create'                
+];
+
+
+```
+
+
 
 **开启文件监控组件**
 ```

@@ -50,9 +50,9 @@ class Create extends CommandBase
     
     protected function configure()
     {
-        $this->setName('create')->addArgument('name', Argument::OPTIONAL, "脚本名称。命名采用驼峰法（首字母大写）", '')
+        $this->setName('dfer_ws_create')->addArgument('name', Argument::OPTIONAL, "脚本名称。命名采用驼峰法（首字母大写）", '')
                                   ->addOption('about', 'a', Option::VALUE_NONE, '简介')
-                                  ->addOption('type', 't', Option::VALUE_OPTIONAL, '类型。game：websocket脚本；plain：控制台脚本', 'game')
+                                  ->addOption('type', 't', Option::VALUE_OPTIONAL, '类型。game：websocket脚本；plain：控制台脚本', 'plain')
                                   ->setDescription('生成脚本。输入`php think create -h`查看说明');
     }
     
