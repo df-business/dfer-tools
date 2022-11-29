@@ -132,7 +132,7 @@ class Create extends CommandBase
                'namespace Dfer\Tools\Console\Modules;'=>"namespace app\command\\{$module_name};",
                'CommonTmpl'=>"Common",
                'PlainModelTmpl'=>"PlainModel"
-              ]);            
+              ]);
               // main
               $common_base->fileCreate($cur_dir.'\Plain.php', $root."/app/command/{$name_title}.php", [
                'namespace Dfer\Tools\Console;'=>"namespace app\command;",
@@ -220,9 +220,9 @@ class Create extends CommandBase
              | /application/api/command/{$name_title}.php
              | /application/command.php
              ");
-            }
-        } catch (Exception $e) {
-            $common_base->tp_print($e->getMessage());
+            } 
+       } catch (\think\exception\ErrorException $e) {
+            $common_base->tp_print(sprintf("\n%s\n\n%s %s", $e->getMessage(), $e->getFile(), $e->getLine()));
         }
     }
 }

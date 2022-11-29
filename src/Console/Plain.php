@@ -79,8 +79,8 @@ class Plain extends PlainModelTmpl
            $common_base->debug_print("类型错误");
            break;
          }
-        } catch (Exception $e) {
-            $common_base->debug_print($e->getMessage());
+        } catch (\think\exception\ErrorException $e) {
+            $common_base->tp_print(sprintf("\n%s\n\n%s %s", $e->getMessage(), $e->getFile(), $e->getLine()));
         }
     }
 }
