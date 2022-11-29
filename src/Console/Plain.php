@@ -12,7 +12,7 @@ use Dfer\Tools\Console\Modules\PlainModelTmpl;
  * | 简单控制台
  * | eg:
  * | php think plain
- * | php think plain -t all
+ * | php think plain -t a
  * | php /www/wwwroot/xxx.dfer.top/think plain
  * +----------------------------------------------------------------------
  *                      .::::.
@@ -38,6 +38,7 @@ use Dfer\Tools\Console\Modules\PlainModelTmpl;
  */
 class Plain extends PlainModelTmpl
 {
+    const DEBUG=true;
     protected function configure()
     {
         // 指令配置
@@ -50,23 +51,24 @@ class Plain extends PlainModelTmpl
     
     public function init()
     {
-        global $input,$common_base;
-        $param1 = $input->getArgument('param1');
-        $about = $input->getOption('about');
-        $type = $input->getOption('type');
-        if ($about) {
-            $common_base->tp_print("
+        global $input,$common_base,$debug;
+        try {
+            $debug=self::DEBUG;
+            $param1 = $input->getArgument('param1');
+            $about = $input->getOption('about');
+            $type = $input->getOption('type');
+            if ($about) {
+                $common_base->tp_print("
         | AUTHOR: dfer
         | EMAIL: df_business@qq.com
         | QQ: 3504725309");
-            exit();
-        }
-        if (empty($param1)) {
-            $common_base->tp_print("输入参数一");
-            exit();
-        }
+                exit();
+            }
+            if (empty($param1)) {
+                $common_base->tp_print("输入参数一");
+                exit();
+            }
         
-        try {
             switch ($type) {
           case 'a':
            
