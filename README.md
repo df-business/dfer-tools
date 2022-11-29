@@ -114,13 +114,15 @@ $img_common->resizeJpg("1.jpg", "2.jpg", 150, 100);
 ```
 
 
-## Ws
+## Console
+> 自动生成控制台脚本
+> 目前支持workerman脚本和普通脚本
 
 ```
 <!-- 帮助 -->
-php think dfer_ws_create -h
+php think dfer_console_create -h
 <!-- 创建一个脚本 -->
-php think dfer_ws_create Test
+php think dfer_console_create Test
 ```
 
 
@@ -135,12 +137,12 @@ php think dfer_ws_create Test
 return [
     // 指令定义
     'commands' => [           
-           'dfer_ws_create' => 'Dfer\Tools\Console\Create'
+           'dfer_console_create' => 'Dfer\Tools\Console\Create'
     ]
 ];
 
 ```
-- 自动生成ws脚本到`app\command\`
+- 自动生成脚本到`app\command\`
 - 自动添加指令到`console.php`
 
 
