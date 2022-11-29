@@ -89,8 +89,8 @@ class Create extends CommandBase
             $name = trim($name);
             //驼峰转下划线
             $name_snake=Str::snake($name);
-            // 首字母大写
-            $name_title=Str::title($name);
+            // 下划线转驼峰(首字母大写)
+            $name_title=Str::studly($name);
 
             $module_name=$name_title."Modules";
             $cur_dir = realpath(__DIR__);
