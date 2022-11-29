@@ -14,3 +14,4 @@ git tag
 git push --tag
 
 pause
+exit
