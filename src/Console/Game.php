@@ -1,46 +1,16 @@
 <?php
 declare(strict_types = 1);
 
-/**
- * +----------------------------------------------------------------------
- * | composer require topthink/framework
- * | composer require topthink/think-worker
- * +----------------------------------------------------------------------
- *                      .::::.
- *                    .::::::::.            | AUTHOR: dfer
- *                    :::::::::::           | EMAIL: df_business@qq.com
- *                 ..:::::::::::'           | QQ: 3504725309
- *             '::::::::::::'
- *                .::::::::::
- *           '::::::::::::::..
- *                ..::::::::::::.
- *              ``::::::::::::::::
- *               ::::``:::::::::'        .:::.
- *              ::::'   ':::::'       .::::::::.
- *            .::::'      ::::     .:::::::'::::.
- *           .:::'       :::::  .:::::::::' ':::::.
- *          .::'        :::::.:::::::::'      ':::::.
- *         .::'         ::::::::::::::'         ``::::.
- *     ...:::           ::::::::::::'              ``::.
- *   ```` ':.          ':::::::::'                  ::::..
- *                      '.:::::'                    ':'````..
- * +----------------------------------------------------------------------
- *
- */
-   
 namespace Dfer\Tools\Console;
 
 use think\console\input\Argument;
 use think\console\input\Option;
 
 use Workerman\Worker;
-use Workerman\Connection\TcpConnection;
 use Workerman\Lib\Timer;
 
-use Dfer\Tools\Console\Modules\GameModel;
+use Dfer\Tools\Console\Modules\GameModelTmpl;
 use Dfer\Tools\Console\Modules\FileMonitor;
-
-# use Dfer\Tools\Console\Modules\Common;
 
 defined("HEARTBEAT_TIME")||define('HEARTBEAT_TIME', 55);
 defined("MAX_REQUEST")||define('MAX_REQUEST', 1000);
@@ -49,6 +19,9 @@ defined("MAX_REQUEST")||define('MAX_REQUEST', 1000);
 /**
  * +----------------------------------------------------------------------
  * | 游戏后台服务
+ * | composer require topthink/framework
+ * | composer require workerman/workerman
+ * |
  * | eg:
  * | php think game
  * | php think game -m d
@@ -74,7 +47,7 @@ defined("MAX_REQUEST")||define('MAX_REQUEST', 1000);
  * +----------------------------------------------------------------------
  *
  */
-class Game extends GameModel
+class Game extends GameModelTmpl
 {
     const HOST='websocket://0.0.0.0:99';
     const DEBUG=true;
@@ -83,14 +56,14 @@ class Game extends GameModel
     {
         $this->setName('game')
           ->addArgument('action', Argument::OPTIONAL, "start|stop|restart|reload|status|connections", 'start')
-          ->addOption('mode', 'm', Option::VALUE_OPTIONAL, 'Run the workerman server in daemon mode.')
-          ->setDescription('...');
+          ->addOption('mode', 'm', Option::VALUE_OPTIONAL, '后台运行workerman服务')
+          ->setDescription('workerman脚本。输入`php think game -h`查看说明');
     }
     
         
     public function init()
     {
-        global $db,$input,$output,$debug;
+        global $db,$input,$output,$debug,$common_base;
         try {
             $debug=self::DEBUG;
             if ($debug) {
@@ -109,20 +82,20 @@ class Game extends GameModel
                         
             $this->ws_init();
         } catch (Exception $e) {
-            $this->print($e->getMessage());
+            $common_base->tp_print($e->getMessage());
         }
     }
     
     public function ws_init()
     {
-        global $ws_worker,$global_uid;
+        global $ws_worker,$global_uid,$common_base;
         $global_uid = 0;
         $ws_worker = new Worker(self::HOST);
         $ws_worker->name = '游戏后台';
         $ws_worker->count = 6;
         $ws_worker->list = array();
         $ws_worker->onWorkerStart = function (Worker $worker) {
-            $this->debug_print("服务 {$worker->id} 开启...");
+            $common_base->debug_print("服务 {$worker->id} 开启...");
             $this->onWorkerStart($worker);
             $worker->onConnect    = array($this, 'onConnect');
             $worker->onMessage    = array($this, 'onMessage');

@@ -7,7 +7,7 @@ use Workerman\Lib\Timer;
 
 /**
  * +----------------------------------------------------------------------
- * | 文件监控组件
+ * | workerman文件监控组件
  * |
  * | https://www.workerman.net/doc/workerman/components/file-monitor.html
  * | 只有在debug模式下才生效，daemon下不会执行文件监控（为何不支持daemon模式见下面说明）。
@@ -46,8 +46,17 @@ class FileMonitor
         // $monitor_dir = realpath(__DIR__);
         
         // 检查'/app/command'
-        $root=app()->getRootPath();
-        $monitor_dir = $root."/app/command/";
+        
+        if(defined('ROOT_PATH')){   
+         // tp5
+         $root=ROOT_PATH;
+         $monitor_dir = $root."/application/api/command/";
+        }else{
+         // tp6
+         $root=app()->getRootPath();
+         $monitor_dir = $root."/app/command/";
+        }
+        
         
         // worker
         $worker = new Worker();

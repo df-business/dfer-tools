@@ -5,9 +5,32 @@ namespace Dfer\Tools\Console\Modules;
 use Workerman\Worker;
 use Workerman\Connection\TcpConnection;
 
-# use Dfer\Tools\Console\Modules\Common;
-
-class GameModel extends Common
+/**
+ * +----------------------------------------------------------------------
+ * | workerman的console类模板
+ * +----------------------------------------------------------------------
+ *                      .::::.
+ *                    .::::::::.            | AUTHOR: dfer
+ *                    :::::::::::           | EMAIL: df_business@qq.com
+ *                 ..:::::::::::'           | QQ: 3504725309
+ *             '::::::::::::'
+ *                .::::::::::
+ *           '::::::::::::::..
+ *                ..::::::::::::.
+ *              ``::::::::::::::::
+ *               ::::``:::::::::'        .:::.
+ *              ::::'   ':::::'       .::::::::.
+ *            .::::'      ::::     .:::::::'::::.
+ *           .:::'       :::::  .:::::::::' ':::::.
+ *          .::'        :::::.:::::::::'      ':::::.
+ *         .::'         ::::::::::::::'         ``::::.
+ *     ...:::           ::::::::::::'              ``::.
+ *   ```` ':.          ':::::::::'                  ::::..
+ *                      '.:::::'                    ':'````..
+ * +----------------------------------------------------------------------
+ *
+ */
+class GameModelTmpl extends CommonTmpl
 {
     public function onWorkerStart(Worker $worker)
     {
@@ -15,15 +38,17 @@ class GameModel extends Common
         
     public function onWorkerReload(Worker $worker)
     {
+        global $common_base;
         // $this->debug_print("服务 {$worker->id} 已重载");
         foreach ($worker->connections as $connection) {
-            $connection->send($this->msg('服务 {$worker->id} 已重载'));
+            $connection->send($common_base->msg('服务 {$worker->id} 已重载'));
         }
     }
         
     public function onConnect(TcpConnection $connection)
     {
-        $this->debug_print("{$connection->id} {$connection->getRemoteIp()} 建立连接");
+        global $common_base;
+        $common_base->debug_print("{$connection->id} {$connection->getRemoteIp()} 建立连接");
         $connection->headers = [
                                         // 'Sec-WebSocket-Protocol: dfer.top',
                                     ];
@@ -43,10 +68,11 @@ class GameModel extends Common
     }
     public function onMessage(TcpConnection $connection, $message)
     {
+        global $common_base;
         // pingpong
         $connection->lastMessageTime = time();
         if ($message=='↑') {
-            $connection->send($this->msg([], '↓'));
+            $connection->send($common_base->msg([], '↓'));
             return;
         }
                         
@@ -97,7 +123,7 @@ class GameModel extends Common
     // 当客户端连上来时分配uid
     public function handle_connection($connection)
     {
-        global $ws_worker, $global_uid;
+        global $ws_worker, $global_uid,$common_base;
         // 为这个链接分配一个uid
         $connection->uid = ++$global_uid;
         // 用户连接
@@ -108,17 +134,17 @@ class GameModel extends Common
         $ws_worker->list[$connection->uid]['data'] = array('playing' => 0, 'name' =>$player_name , 'qipan' => array(), 'type' => 0, 'move' => 0);
         
         $data['name'] = $player_name;
-        $connection->send($this->msg($data));
-        $this->debug_print("{$connection->id} {$connection->getRemoteIp()} {$player_name} {$connection->token} 用户已加入");
+        $connection->send($common_base->msg($data));
+        $common_base->debug_print("{$connection->id} {$connection->getRemoteIp()} {$player_name} {$connection->token} 用户已加入");
     }
          
     // 当客户端发送消息过来时
     public function handle_message($connection, $data)
     {
-        global $ws_worker,$db;
+        global $ws_worker,$db,$common_base;
         $dataJson = json_decode($data, true);
         if (!$dataJson||!is_array($dataJson)) {
-            return $this->msg($data);
+            return $common_base->msg($data);
         }
         $my_uid = $connection->uid;
         $your_uid = $ws_worker->list[$my_uid]['data']['playing'];
@@ -137,7 +163,8 @@ class GameModel extends Common
     // 当客户端断开时，广播给所有客户端
     public function handle_close($connection)
     {
-        global $ws_worker;
+        global $ws_worker,$common_base;
+        ;
         if (!isset($connection->uid)) {
             return;
         }
@@ -145,7 +172,7 @@ class GameModel extends Common
             
         // 广播
         foreach ($ws_worker->connections  as $k => $val) {
-            $val->send($this->msg("用户[{$ws_worker->list[$my_uid]['data']['name']}]已退出"));
+            $val->send($common_base->msg("用户[{$ws_worker->list[$my_uid]['data']['name']}]已退出"));
         }
         unset($ws_worker->list[$my_uid]);
     }

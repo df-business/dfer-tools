@@ -10,6 +10,8 @@ use think\console\Output;
 
 /**
  * +----------------------------------------------------------------------
+ * | console基础类，继承自Command
+ * +----------------------------------------------------------------------
  *                      .::::.
  *                    .::::::::.            | AUTHOR: dfer
  *                    :::::::::::           | EMAIL: df_business@qq.com
@@ -31,18 +33,18 @@ use think\console\Output;
  * +----------------------------------------------------------------------
  *  
  */
-class Base extends Command
+class CommandBase extends Command
 {
  
     protected function execute(Input $in, Output $out)
     {
-        global $input,$output,$debug;
-        $CommonBase=new CommonBase();
+        global $input,$output,$debug,$common_base;
+        $common_base=new CommonBase();
         $debug=false;
         $input=$in;
         $output=$out;
-        $CommonBase->debug_print('程序开始...');
+        $common_base->debug_print('程序开始...');
         $this->init();
-        $CommonBase->debug_print('程序结束');
+        $common_base->debug_print('程序结束');
     }
 }

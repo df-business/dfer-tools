@@ -2,11 +2,9 @@
 declare(strict_types = 1);
 namespace Dfer\Tools\Console\Modules;
 
-use Dfer\Tools\Console\Modules\CommandBase;
-
 /**
  * +----------------------------------------------------------------------
- * | console基础类模板
+ * | 普通console类模板
  * +----------------------------------------------------------------------
  *                      .::::.
  *                    .::::::::.            | AUTHOR: dfer
@@ -27,9 +25,8 @@ use Dfer\Tools\Console\Modules\CommandBase;
  *   ```` ':.          ':::::::::'                  ::::..
  *                      '.:::::'                    ':'````..
  * +----------------------------------------------------------------------
- *  
+ *
  */
-class CommonTmpl extends CommandBase
+class PlainModelTmpl extends CommonTmpl
 {
-   
 }

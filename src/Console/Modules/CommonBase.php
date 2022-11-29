@@ -6,7 +6,10 @@ use think\console\Output;
 use Dfer\Tools\Common;
 use think\Cache;
 
+
 /**
+ * +----------------------------------------------------------------------
+ * | php基础类，继承自通用类
  * +----------------------------------------------------------------------
  *                      .::::.
  *                    .::::::::.            | AUTHOR: dfer
@@ -42,11 +45,17 @@ class CommonBase extends Common
 
     public function __construct()
     {
-        global $db;
+        global $db,$tp_ver,$tp_new;
         // tp5与tp6调用方式不同
-        if (class_exists("\think\facade\Db")) {
+        if (class_exists("\\think\\facade\\Db")) {
+            // tp6
+            $tp_new=true;
+            $tp_ver=app()->version();
             $db = new \think\facade\Db();
         } else {
+            // tp5以下
+            $tp_new=false;
+            $tp_ver=THINK_VERSION;
             $db = new \think\Db();
         }
     }
@@ -186,19 +195,33 @@ class CommonBase extends Common
      */
     public function configUpdate($from_src, $replace_list=[])
     {
+        global $tp_new;
         $this->mkdirs(dirname($from_src));
         $from=file_get_contents($from_src);
         
         
         
         //替换
-        foreach ($replace_list as $key => $value) {
-            preg_match("/]([\s\S]*?)]/", $from, $str);
-            if (count($str)>0) {
-                $from = preg_replace('/]([\s\S]*?)]/', $value, $from);
+        if ($tp_new) {
+            foreach ($replace_list as $key => $value) {
+                preg_match("/]([\s\S]*?)]/", $from, $str);
+                if (count($str)>0) {
+                    $from = preg_replace('/]([\s\S]*?)]/', $value, $from);
+                }
             }
-            // \var_dump(stripos($from, $value), $from);
+        } else {
+            foreach ($replace_list as $key => $value) {
+                preg_match("/return \[([\s\S]*?)]/", $from, $str);
+                // \var_dump($str[0]);
+                if (count($str)>0) {
+                 // \var_dump($from);
+                  $new_value = preg_replace('/]/', $value, $str[0]);
+                    $from = preg_replace('/return \[([\s\S]*?)]/', $new_value, $from);
+                    // \var_dump($from);
+                }
+            }
         }
+        // \var_dump(stripos($from, $value), $str,$from);
         file_put_contents($from_src, $from);
     }
     /*

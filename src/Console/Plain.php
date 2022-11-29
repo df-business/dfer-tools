@@ -5,7 +5,7 @@ namespace Dfer\Tools\Console;
 use think\console\input\Argument;
 use think\console\input\Option;
 
-# use Dfer\Tools\Console\Modules\Common;
+use Dfer\Tools\Console\Modules\PlainModelTmpl;
 
 /**
  * +----------------------------------------------------------------------
@@ -36,7 +36,7 @@ use think\console\input\Option;
  * +----------------------------------------------------------------------
  *
  */
-class Plain extends Common
+class Plain extends PlainModelTmpl
 {
     protected function configure()
     {
@@ -50,19 +50,19 @@ class Plain extends Common
     
     public function init()
     {
-        global $input;
+        global $input,$common_base;
         $param1 = $input->getArgument('param1');
         $about = $input->getOption('about');
         $type = $input->getOption('type');
         if ($about) {
-            $this->tp_print("
+            $common_base->tp_print("
         | AUTHOR: dfer
         | EMAIL: df_business@qq.com
         | QQ: 3504725309");
             exit();
         }
         if (empty($param1)) {
-            $this->tp_print("输入参数一");
+            $common_base->tp_print("输入参数一");
             exit();
         }
         
@@ -74,11 +74,11 @@ class Plain extends Common
           case 'b':
            break;
           default:
-           $this->debug_print("类型错误");
+           $common_base->debug_print("类型错误");
            break;
          }
         } catch (Exception $e) {
-            $this->debug_print($e->getMessage());
+            $common_base->debug_print($e->getMessage());
         }
     }
 }
