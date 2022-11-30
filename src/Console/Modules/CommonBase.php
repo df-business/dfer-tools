@@ -66,7 +66,7 @@ class CommonBase extends Common
      **/
     public function tp_print($str, $type=self::CONSOLE_WRITE)
     {
-        global $argv,$tp_new;        
+        global $argv,$tp_new,$class_src;
         // 后台运行时调用"CONSOLE_WRITE"会导致后台服务堵塞
         if ($type==self::CONSOLE_WRITE&&isset($argv[2])&&$argv[2]=='-d') {
             $type=self::STDOUT_WRITE;
@@ -79,11 +79,7 @@ class CommonBase extends Common
                         $output->writeln(sprintf("[%s]%s", $class_src, $str), Output::OUTPUT_NORMAL);
                         break;
                     case self::LOG_WRITE:
-                    if ($tp_new) {
-                        \think\facade\Log::write($str, $this->last_slash_str($class_src));
-                    } else {
-                        \think\Log::write($str, $this->last_slash_str($class_src));
-                    }
+                        $this->log($str, $this->last_slash_str($class_src));
                         break;
                     case self::STDOUT_WRITE:
                         echo sprintf("[%s]%s\n", $class_src, $str);

@@ -42,9 +42,10 @@ class CommandBase extends Command
     
     protected function execute(Input $in, Output $out)
     {
-        global $input,$output,$common_base,$debug,$db,$tp_new;
+        global $input,$output,$class_src,$common_base,$debug,$db,$tp_new;
         $input=$in;
         $output=$out;
+        $class_src=get_class($this);
         self::$common_base=$common_base=new CommonBase();
         self::$debug=$debug = $common_base->objToBool($input->getOption('debug'));
         self::$db=$db;

@@ -848,9 +848,13 @@ class Common
      *
      * 'apart_level'=>['error','sql','debug','dfer']
      **/
-    public function log($data)
+    public function log($data, $identification='dfer')
     {
-        \think\Log::write($data, 'dfer');
+        if (class_exists("\\think\\facade\\Log")) {
+            \think\facade\Log::write($data, $identification);
+        } else {
+            \think\Log::write($data, $identification);
+        }
     }
     
     /**
