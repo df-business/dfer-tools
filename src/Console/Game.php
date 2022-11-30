@@ -49,24 +49,24 @@ defined("MAX_REQUEST")||define('MAX_REQUEST', 1000);
  */
 class Game extends GameModelTmpl
 {
-    const HOST='websocket://0.0.0.0:99';
     const DEBUG=true;
+    const HOST='websocket://0.0.0.0:99';
   
     protected function configure()
     {
         $this->setName('game')
           ->addArgument('action', Argument::OPTIONAL, "start|stop|restart|reload|status|connections", 'start')
           ->addOption('mode', 'm', Option::VALUE_OPTIONAL, '后台运行workerman服务')
+          ->addOption('debug', 'd', Option::VALUE_OPTIONAL, '调试模式。1:开启;0:关闭', self::DEBUG)
           ->setDescription('workerman脚本。输入`php think game -h`查看说明');
     }
     
         
     public function init()
     {
-        global $db,$input,$output,$debug,$common_base;
+        global $input;
         try {
-            $debug=self::DEBUG;
-            if ($debug) {
+            if (self::$debug) {
                 new FileMonitor();
             }
             $action = $input->getArgument('action');
@@ -82,20 +82,20 @@ class Game extends GameModelTmpl
                         
             $this->ws_init();
         } catch (\think\exception\ErrorException $e) {
-            $common_base->tp_print(sprintf("\n%s\n\n%s %s", $e->getMessage(), $e->getFile(), $e->getLine()));
+            self::$common_base->tp_print(sprintf("\n%s\n\n%s %s", $e->getMessage(), $e->getFile(), $e->getLine()));
         }
     }
     
     public function ws_init()
     {
-        global $ws_worker,$global_uid,$common_base;
+        global $ws_worker,$global_uid;
         $global_uid = 0;
         $ws_worker = new Worker(self::HOST);
         $ws_worker->name = '游戏后台';
         $ws_worker->count = 6;
         $ws_worker->list = array();
         $ws_worker->onWorkerStart = function (Worker $worker) {
-            $common_base->debug_print("服务 {$worker->id} 开启...");
+            self::$common_base->debug_print("服务 {$worker->id} 开启...");
             $this->onWorkerStart($worker);
             $worker->onConnect    = array($this, 'onConnect');
             $worker->onMessage    = array($this, 'onMessage');

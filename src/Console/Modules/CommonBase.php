@@ -41,7 +41,9 @@ class CommonBase extends Common
     // worker日志
     const STDOUT_WRITE=2;
 
-
+    /**
+     * 实例化的时候被调用
+     */
     public function __construct()
     {
         global $db,$tp_ver,$tp_new;

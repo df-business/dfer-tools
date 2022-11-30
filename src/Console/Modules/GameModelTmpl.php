@@ -38,17 +38,16 @@ class GameModelTmpl extends CommonTmpl
         
     public function onWorkerReload(Worker $worker)
     {
-        global $common_base;
-        // $this->debug_print("服务 {$worker->id} 已重载");
+        
+        // self::$common_base->debug_print("服务 {$worker->id} 已重载");
         foreach ($worker->connections as $connection) {
-            $connection->send($common_base->msg('服务 {$worker->id} 已重载'));
+            $connection->send(self::$common_base->msg('服务 {$worker->id} 已重载'));
         }
     }
         
     public function onConnect(TcpConnection $connection)
     {
-        global $common_base;
-        $common_base->debug_print("{$connection->id} {$connection->getRemoteIp()} 建立连接");
+        self::$common_base->debug_print("{$connection->id} {$connection->getRemoteIp()} 建立连接");
         $connection->headers = [
                                         // 'Sec-WebSocket-Protocol: dfer.top',
                                     ];
@@ -68,11 +67,10 @@ class GameModelTmpl extends CommonTmpl
     }
     public function onMessage(TcpConnection $connection, $message)
     {
-        global $common_base;
         // pingpong
         $connection->lastMessageTime = time();
         if ($message=='↑') {
-            $connection->send($common_base->msg([], '↓'));
+            $connection->send(self::$common_base->msg([], '↓'));
             return;
         }
                         
@@ -98,21 +96,21 @@ class GameModelTmpl extends CommonTmpl
     
     public function onClose(TcpConnection $connection)
     {
-        $this->debug_print("{$connection->id} {$connection->getRemoteIp()} 断开连接");
+        self::$common_base->debug_print("{$connection->id} {$connection->getRemoteIp()} 断开连接");
         // $this->handle_close($connection);
     }
     public function onError(TcpConnection $connection, $code, $msg)
     {
-        $this->debug_print("{$connection->id} {$code} {$msg}");
+        self::$common_base->debug_print("{$connection->id} {$code} {$msg}");
     }
         
     public function onBufferFull(TcpConnection $connection)
     {
-        $this->debug_print("{$connection->id} 发送缓冲区数据已满");
+        self::$common_base->debug_print("{$connection->id} 发送缓冲区数据已满");
     }
     public function onBufferDrain(TcpConnection $connection)
     {
-        $this->debug_print("{$connection->id} 发送缓冲区数据已发送完毕");
+        self::$common_base->debug_print("{$connection->id} 发送缓冲区数据已发送完毕");
     }
         
         
@@ -123,7 +121,7 @@ class GameModelTmpl extends CommonTmpl
     // 当客户端连上来时分配uid
     public function handle_connection($connection)
     {
-        global $ws_worker, $global_uid,$common_base;
+        global $ws_worker,$global_uid;
         // 为这个链接分配一个uid
         $connection->uid = ++$global_uid;
         // 用户连接
@@ -134,17 +132,17 @@ class GameModelTmpl extends CommonTmpl
         $ws_worker->list[$connection->uid]['data'] = array('playing' => 0, 'name' =>$player_name , 'qipan' => array(), 'type' => 0, 'move' => 0);
         
         $data['name'] = $player_name;
-        $connection->send($common_base->msg($data));
-        $common_base->debug_print("{$connection->id} {$connection->getRemoteIp()} {$player_name} {$connection->token} 用户已加入");
+        $connection->send(self::$common_base->msg($data));
+        self::$common_base->debug_print("{$connection->id} {$connection->getRemoteIp()} {$player_name} {$connection->token} 用户已加入");
     }
          
     // 当客户端发送消息过来时
     public function handle_message($connection, $data)
     {
-        global $ws_worker,$db,$common_base;
+        global $ws_worker,$db;
         $dataJson = json_decode($data, true);
         if (!$dataJson||!is_array($dataJson)) {
-            return $common_base->msg($data);
+            return self::$common_base->msg($data);
         }
         $my_uid = $connection->uid;
         $your_uid = $ws_worker->list[$my_uid]['data']['playing'];
@@ -163,8 +161,8 @@ class GameModelTmpl extends CommonTmpl
     // 当客户端断开时，广播给所有客户端
     public function handle_close($connection)
     {
-        global $ws_worker,$common_base;
-        ;
+        global $ws_worker;
+                
         if (!isset($connection->uid)) {
             return;
         }
@@ -172,7 +170,7 @@ class GameModelTmpl extends CommonTmpl
             
         // 广播
         foreach ($ws_worker->connections  as $k => $val) {
-            $val->send($common_base->msg("用户[{$ws_worker->list[$my_uid]['data']['name']}]已退出"));
+            $val->send(self::$common_base->msg("用户[{$ws_worker->list[$my_uid]['data']['name']}]已退出"));
         }
         unset($ws_worker->list[$my_uid]);
     }

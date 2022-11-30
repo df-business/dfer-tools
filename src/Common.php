@@ -846,10 +846,24 @@ class Common
     /**
      * 独立日志
      *
-     * 'apart_level'   =>  ['error','sql','debug','dfer']
+     * 'apart_level'=>['error','sql','debug','dfer']
      **/
     public function log($data)
     {
         \think\Log::write($data, 'dfer');
+    }
+    
+    /**
+     * 对象转bool
+     **/
+    public function objToBool($obj)
+    {
+        if (is_numeric($obj)) {
+            return intval($obj)>0;
+        } elseif (is_string($obj)) {
+            return strtolower($obj)=='true';
+        } else {
+            return boolval($obj);
+        }
     }
 }

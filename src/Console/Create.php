@@ -44,21 +44,24 @@ use Dfer\Tools\Console\Modules\CommandBase;
  */
 class Create extends CommandBase
 {
+    const DEBUG=true;
     const EXPORT=1,IMPORT=2;
     public static $remote;
     public static $local;
-    
     protected function configure()
     {
         $this->setName('dfer_console_create')->addArgument('name', Argument::OPTIONAL, "脚本名称。命名采用驼峰法（首字母大写）", '')
                                   ->addOption('about', 'a', Option::VALUE_NONE, '简介')
                                   ->addOption('type', 't', Option::VALUE_OPTIONAL, '类型。game：websocket脚本；plain：控制台脚本', 'plain')
+                                  ->addOption('debug', 'd', Option::VALUE_OPTIONAL, '调试模式。1:开启;0:关闭', self::DEBUG)
                                   ->setDescription('生成脚本。输入`php think dfer_console_create -h`查看说明');
     }
     
+    
     public function init()
     {
-        global $db,$input,$output,$tp_new,$common_base;
+        global $db,$input,$output,$tp_new,$common_base,$debug;
+        
         try {
             $name = $input->getArgument('name');
             $about = $input->getOption('about');
@@ -220,8 +223,8 @@ class Create extends CommandBase
              | /application/api/command/{$name_title}.php
              | /application/command.php
              ");
-            } 
-       } catch (\think\exception\ErrorException $e) {
+            }
+        } catch (\think\exception\ErrorException $e) {
             $common_base->tp_print(sprintf("\n%s\n\n%s %s", $e->getMessage(), $e->getFile(), $e->getLine()));
         }
     }

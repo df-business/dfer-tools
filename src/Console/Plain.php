@@ -39,6 +39,7 @@ use Dfer\Tools\Console\Modules\PlainModelTmpl;
 class Plain extends PlainModelTmpl
 {
     const DEBUG=true;
+    
     protected function configure()
     {
         // 指令配置
@@ -46,14 +47,14 @@ class Plain extends PlainModelTmpl
         ->addArgument('param1', Argument::OPTIONAL, "参数一", '')
         ->addOption('type', 't', Option::VALUE_OPTIONAL, '类型。a：选项一；b：选项二', 'a')
         ->addOption('about', 'a', Option::VALUE_NONE, '简介')
-              ->setDescription('控制台脚本。输入`php think plain -h`查看说明');
+        ->addOption('debug', 'd', Option::VALUE_OPTIONAL, '调试模式。1:开启;0:关闭', self::DEBUG)
+        ->setDescription('控制台脚本。输入`php think plain -h`查看说明');
     }
     
     public function init()
     {
-        global $input,$common_base,$debug;
-        try {
-            $debug=self::DEBUG;
+        global $input,$common_base;
+        try {            
             $param1 = $input->getArgument('param1');
             $about = $input->getOption('about');
             $type = $input->getOption('type');
