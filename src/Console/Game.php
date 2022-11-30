@@ -64,15 +64,14 @@ class Game extends GameModelTmpl
         
     public function init()
     {
-        global $input;
+        global $input,$argv;
         try {
             if (self::$debug) {
                 new FileMonitor();
             }
+            $argv = [];
             $action = $input->getArgument('action');
             $mode = $input->getOption('mode');
-            global $argv;
-            $argv = [];
             array_unshift($argv, 'think', $action);
             if ($mode == 'd') {
                 $argv[] = '-d';

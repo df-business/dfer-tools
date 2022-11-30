@@ -70,8 +70,7 @@ class CommonBase extends Common
         // 后台运行时调用"CONSOLE_WRITE"会导致后台服务堵塞
         if ($type==self::CONSOLE_WRITE&&isset($argv[2])&&$argv[2]=='-d') {
             $type=self::STDOUT_WRITE;
-        }
-        $class_src=get_class($this);
+        }        
         switch ($type) {
                     case self::CONSOLE_WRITE:
                         global $output;
