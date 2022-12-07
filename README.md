@@ -52,12 +52,23 @@ composer require topthink/framework
 
 
 ## Common
+**case 1**
 ```
 use Dfer\Tools\Common;
 ```
 ```
 $dfer_common=new Common;
 $dfer_common->print('test');
+```
+
+**case 2**
+```
+protected $common;
+public function _initialize()
+{
+    parent::_initialize();
+    $this->common =new \Dfer\Tools\Common();
+}
 ```
 
 ## Address
@@ -177,3 +188,60 @@ const DEBUG=true;
 
 **多线程**
 - 不支持windows。在windows下只支持单线程
+
+
+
+## DingTalk
+```
+use Dfer\Tools\DingTalk;
+```
+
+```
+/**
+ * 钉钉登录
+ *
+ * @ApiMethod (POST)
+ * @param string $authCode  授权码
+ */
+public function dd_login()
+{
+    $authCode=isset($_POST['authCode'])?$_POST['authCode']:"";
+    $service=new DingTalk();
+    $accessToken=$service->getUserAccessToken($authCode);
+    $users=$service->getContactUsers($accessToken);
+    $this->common->log([$_GET,$_POST,$accessToken,$users]);
+    
+    $account='jiangxiao@codemao.cn';
+    $ret = $this->auth->dd_login($account);
+    if ($ret) {
+        $data = ['userinfo' => $this->auth->getUserinfo()];
+        $this->success(__('Logged in successful'), $data);
+    } else {
+        $this->error($this->auth->getError());
+    }
+}
+```
+
+
+## QiNiuService
+```
+composer require qiniu/php-sdk
+```
+
+```
+/**
+ * 七牛云上传
+ **/
+public function uploadQN()
+{
+ $fileObj = $this->request->file('file');
+ $result=\Dfer\Tools\QiNiuService::getInstance()->uploadFile($fileObj);
+ 
+ if($result['code']==0){      
+  $this->error('缺少参数[file]',$result);
+ }
+ else{
+  $this->success('',$result);
+ }
+}
+```
