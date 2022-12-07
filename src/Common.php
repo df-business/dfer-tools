@@ -225,14 +225,12 @@ class Common
         
     //-------------------------------other
  
- 
- 
     //unicode
     public function unicodeEncode($str)
     {
         //split word
         preg_match_all('/./u', $str, $matches);
-  
+   
         $unicodeStr = "";
         foreach ($matches[0] as $m) {
             //拼接
@@ -240,30 +238,18 @@ class Common
         }
         return $unicodeStr;
     }
-  
+   
     // unicode解码
     public function unicodeDecode($unicode_str)
     {
-        $json = '{"str":"'.$unicode_str.'"}';
+        $json = '["'.$unicode_str.'"]';
         $arr = json_decode($json, true);
         if (empty($arr)) {
             return '';
         }
-        return $arr['str'];
+        return is_array($arr)?$arr[0]:$arr;
     }
  
- 
- 
-    // //unicode解码
-    // public function replaceUnicodeEscapeSequence($match)
-    // {
-    //     return mb_convert_encoding(pack('H*', $match[1]), 'UTF-8', 'UCS-2BE');
-    // }
-    // public function unicodeDecode($name)
-    // {
-    //     $str = preg_replace_callback('/\\\\u([0-9a-f]{4})/i', 'replace_unicode_escape_sequence', $name);
-    //     return $str;
-    // }
  
     const REQ_JSON=0,REQ_GET=1,REQ_POST=2;
   
@@ -432,6 +418,7 @@ class Common
     /**
      *
      * 预定义字符转特殊字符
+     * `"`被转成`&quot;`
      * or
      * 特殊字符转预定义字符
      *
