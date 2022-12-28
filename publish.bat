@@ -8,7 +8,7 @@ git push
 git tag v4.7.4
 ::删除单个tag
 ::git tag -d v2.4
-::tag批量删除(windows里需要在git的bash模式下运行)
+::tag批量删除,windows里需要在git的bash模式下运行
 ::git tag|grep "v3"|xargs git tag -d
 ::查看所有tag
 git tag
