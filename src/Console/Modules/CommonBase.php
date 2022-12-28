@@ -206,6 +206,9 @@ class CommonBase extends Common
             foreach ($replace_list as $key => $value) {
                 preg_match("/]([\s\S]*?)]/", $from, $str);
                 if (count($str)>0) {
+                    if (strpos($from, $value)!==false) {
+                        return;
+                    }
                     $from = preg_replace('/]([\s\S]*?)]/', $value, $from);
                 }
             }
@@ -214,6 +217,9 @@ class CommonBase extends Common
                 preg_match("/return \[([\s\S]*?)]/", $from, $str);
                 // \var_dump($str[0]);
                 if (count($str)>0) {
+                    if (strpos($from, $value)!==false) {
+                        return;
+                    }
                     // \var_dump($from);
                     $new_value = preg_replace('/]/', $value, $str[0]);
                     $from = preg_replace('/return \[([\s\S]*?)]/', $new_value, $from);
@@ -224,6 +230,8 @@ class CommonBase extends Common
         // \var_dump(stripos($from, $value), $str,$from);
         file_put_contents($from_src, $from);
     }
+    
+    
     /*
      * 创建目录
      *
