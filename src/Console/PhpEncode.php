@@ -96,8 +96,11 @@ class PhpEncode extends PlainModelTmpl
                           $path_e = $value.'.e';
                           $path_d = $value.'.d';
                           
-                          if ($files->delDir($path_e)&&$files->delDir($path_d)) {
-                              $rt[]=\sprintf("已删除{$value}的加密、解密文件\n");
+                          if ($files->delDir($path_e)) {
+                              $rt[]=\sprintf("已删除{$value}的加密文件\n");
+                          }
+                          if ($files->delDir($path_d)) {
+                              $rt[]=\sprintf("已删除{$value}的解密文件\n");
                           }
                       }
                       break;
