@@ -127,7 +127,12 @@ $img_common->resizeJpg("1.jpg", "2.jpg", 150, 100);
 
 ## Console
 > 自动生成控制台脚本
-> 目前支持workerman脚本和普通脚本
+
+
+**支持类型**
+- workerman脚本
+- 普通控制台脚本
+- php加密、解密脚本
 
 ```
 <!-- 帮助 -->
@@ -245,3 +250,5 @@ public function uploadQN()
  }
 }
 ```
+
+

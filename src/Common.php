@@ -71,7 +71,9 @@ class Common
  
  
  
-    //输出json，然后终止当前请求
+    /**
+     * 输出json，然后终止当前请求
+     */
     public function showJson($status = 1, $return = array(), $msg='')
     {
         $ret = array(
@@ -96,7 +98,9 @@ class Common
  
  
  
-    //是微信端则返回true
+    /**
+     * 是微信端则返回true
+     */
     public function isWeixin()
     {
         if (empty($_SERVER['HTTP_USER_AGENT']) || strpos($_SERVER['HTTP_USER_AGENT'], 'MicroMessenger') === false && strpos($_SERVER['HTTP_USER_AGENT'], 'Windows Phone') === false) {
@@ -107,7 +111,9 @@ class Common
  
  
  
-    //http与https相互转换
+    /**
+     * http与https相互转换
+     */
     public function httpAndhttps()
     {
         if ($_SERVER["HTTPS"]=="on") {
@@ -189,7 +195,6 @@ class Common
      *
      * Session默认的生命周期通常是20分钟
      */
- 
     public function getSession($name)
     {
         if (!empty($_SESSION[$name])) {
@@ -207,7 +212,9 @@ class Common
         }
     }
  
-    //删除ses并跳转页面
+    /**
+     * 删除ses并跳转页面
+     */
     public function delSession($name='', $rt="")
     {
         if (empty($name)) {
@@ -225,7 +232,10 @@ class Common
         
     //-------------------------------other
  
-    //unicode
+    /**
+     * unicode加密
+     * @param {Object} $str
+     */
     public function unicodeEncode($str)
     {
         //split word
@@ -239,7 +249,10 @@ class Common
         return $unicodeStr;
     }
    
-    // unicode解码
+    /**
+     * unicode解密
+     * @param {Object} $unicode_str
+     */
     public function unicodeDecode($unicode_str)
     {
         $json = '["'.$unicode_str.'"]';
@@ -338,7 +351,10 @@ class Common
         return $rt;
     }
  
-    //将get的参数字符串组装成数组
+    /**
+     * 将get的参数字符串组装成数组
+     * @param {Object} $str
+     */
     public function getPara($str)
     {
         $str=explode("&", $str);
@@ -391,7 +407,10 @@ class Common
         
         
         
-    //去掉空格和回车
+    /**
+     * 去掉空格和回车
+     * @param {Object} $str
+     */
     public function delSpace($str)
     {
         $str=trim($str);
@@ -401,15 +420,12 @@ class Common
     }
     
     
-    //数组转url参数
+    /**
+     * 数组转url参数
+     * @param {Object} $data
+     */
     public function arr2url($data)
     {
-        
-    //	$data = array(
-        //	'foo'=>'bar',
-        //	'baz'=>'boom'
-        //	);
-        
         return http_build_query($data);
     }
     
@@ -434,7 +450,10 @@ class Common
     
     
    
-    #获取字符串中的所有中文
+    /**
+     * 获取字符串中的所有中文
+     * @param {Object} $str
+     */
     public function getChinese($str)
     {
         //utf-8页面
@@ -448,8 +467,6 @@ class Common
     /**
      *
      * 获取html中body标签的内容
-     *
-     *
      */
     public function getEle($html)
     {
@@ -575,11 +592,8 @@ class Common
     
     
     
-    /**
-     *
+    /**     
      * php调用网页头的验证功能
-     *
-     *
      */
     public function webAuthenticate($ac, $pw)
     {
@@ -641,7 +655,9 @@ class Common
     
       
  
-    //截取指定两个字符之间的字符串
+    /**
+     * 截取指定两个字符之间的字符串
+     */
     public function strCut($begin, $end, $str)
     {
         $b = mb_strpos($str, $begin) + mb_strlen($begin);
@@ -856,5 +872,81 @@ class Common
         } else {
             return boolval($obj);
         }
+    }
+    
+    /**
+     * @Description: 将时间转换为几秒前、几分钟前、几小时前、几天前
+     * @param $the_time 需要转换的时间。时间戳或者时间字符串
+     * @return string
+     */
+    public function time_tran($the_time)
+    {
+        $now_time = date("Y-m-d H:i:s", time());
+        $now_time =strtotime($now_time);
+        $show_time =is_numeric($the_time)?$the_time:strtotime($the_time);
+        $dur = $now_time - $show_time;
+        if ($dur < 0) {
+            return $the_time;
+        } else {
+            if ($dur < 60) {
+                return $dur . '秒前';
+            } else {
+                if ($dur < 3600) {
+                    return floor($dur / 60) . '分钟前';
+                } else {
+                    if ($dur < 86400) {
+                        return floor($dur / 3600) . '小时前';
+                    } else {
+                        return floor($dur / 86400) . '天前';
+                    }
+                }
+            }
+        }
+    }
+    
+    /**
+     * 将距今相隔的时间转换为秒、分钟、小时、天
+     * @param $beginDate  开始日期。时间戳或者时间字符串
+     * @return string
+     */
+    public function timeCalculation($begin_time)
+    {
+        $begin_time =is_numeric($begin_time)?$begin_time:strtotime($begin_time);
+        $subTime = time()- $begin_time;
+        $day = $subTime > 86400 ? floor($subTime / 86400) : 0;
+        $subTime -= $day * 86400;
+        $hour = $subTime > 3600 ? floor($subTime / 3600) : 0;
+        $subTime -= $hour * 3600;
+        $minute = $subTime > 60 ? floor($subTime / 60) : 0;
+        $subTime -= $minute * 60;
+        $second = $subTime;
+    
+        $dayText = $day ? $day . '天' : '';
+        $hourText = $hour ? $hour . '小时' : '';
+        $minuteText = $minute ? $minute . '分钟' : '';
+        $secondText = $second ? $second . '秒' : '';
+        $date = $dayText . $hourText . $minuteText . $second;
+        return $dayText;
+    }
+    
+    /**
+     * 冒泡排序
+     * 默认：从大到小
+     * 数值相同，则原始数组前方的靠前
+     **/
+    public function bubbleSort(array $arr, $item_name, $is_asc=false)
+    {
+        for ($i=0 ; $i <count($arr) ; $i++) {
+            $data = '';
+            for ($j=$i+1 ; $j < count($arr); $j++) {
+                if ($arr[$i][$item_name] < $arr[$j][$item_name]) {
+                    $data      = $arr[$i];
+                    $arr[$i]   = $arr[$j];
+                    $arr[$j] = $data;
+                }
+            }
+        }
+        $arr=$is_asc?array_reverse($arr, false):$arr;
+        return $arr;
     }
 }

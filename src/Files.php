@@ -36,8 +36,9 @@ class Files
         $this -> common = new \Dfer\Tools\Common;
         $this -> img_common = new \Dfer\Tools\Img\Common;
     }
+    
     /**
-                    * 读取文件的所有字符串
+     * 读取文件的所有字符串
      *
      * 物理路径
      */
@@ -55,7 +56,7 @@ class Files
     }
     
     /**
-                    *
+     *
      * 下载文件，隐藏真实下载地址
      * 下载路径显示的是下载页面的url
      * 处在同步调用下，方能生效
@@ -71,7 +72,9 @@ class Files
     }
     
     
-    //遍历目录，获取目录、文件数组
+    /**
+     * 遍历目录，获取目录、文件数组
+     */
     public $my_scenfiles = array();
     public $my_files = array();
     public function scanDir($dir)
@@ -95,7 +98,7 @@ class Files
     
     
     /**
-        *
+     *
      * 删除目录和目录下的文件，成功则返回1
      * $dir	目录的物理路径
      *
@@ -103,34 +106,46 @@ class Files
      **/
     public function delDir($dir)
     {
-        //先删除目录下的文件：
-        $dh = opendir($dir);
-        while ($file = readdir($dh)) {
-            if ($file != "." && $file != "..") {
-                $fullpath = $dir . "/" . $file;
-                if (!is_dir($fullpath)) {
-                    $rt = unlink($fullpath);
-                    if (!$rt) {
-                        return false;
+        try {
+            //先删除目录下的文件：
+            $dh = opendir($dir);
+            while ($file = readdir($dh)) {
+                if ($file != "." && $file != "..") {
+                    $fullpath = $dir . "/" . $file;
+                    if (!is_dir($fullpath)) {
+                        $rt = unlink($fullpath);
+                        if (!$rt) {
+                            return false;
+                        }
+                    } else {
+                        $this -> deldir($fullpath);
+                        //循环删除文件
                     }
-                } else {
-                    $this -> deldir($fullpath);
-                    //循环删除文件
                 }
             }
+            closedir($dh);
+            //删除当前文件夹
+            return rmdir($dir);
+        } catch (\Exception $e) {
+            return 0;
+        } catch (\Throwable  $e) {
+            return 0;
         }
-        closedir($dh);
-        //删除当前文件夹
-        return rmdir($dir);
     }
                 
-    //删除单个文件
+    /**
+     * 删除单个文件
+     * @param {Object} $file
+     */
     public function delFile($file)
     {
         return unlink($file);
     }
                 
-    //遍历一个目录下的所有文件和文件夹，返回一个easyUI的json字符串
+    /**
+     * 遍历一个目录下的所有文件和文件夹，返回一个easyUI的json字符串
+     * @param {Object} $dir
+     */
     public function getNextTree($dir)
     {
         $fileArr = '';
@@ -153,7 +168,10 @@ class Files
     }
                 
      
-    //获取文件后缀
+    /**
+     * 获取文件后缀
+     * @param {Object} $file_name
+     */
     public function getExt($file_name)
     {
         $a = explode('.', $file_name);
@@ -161,7 +179,10 @@ class Files
         //获取数组最后一条数据
                         //用.号对字符串进行分组
     }
-    //判断文件是否存在
+    /**
+     * 判断文件是否存在
+     * @param {Object} $filename
+     */
     public function fileExist($filename)
     {
         if (file_exists($filename)) {#查看文件是否存在于网站目录
@@ -172,7 +193,11 @@ class Files
     }
     
     
-    //创建一个文件，写入字符串，存在则覆盖
+    /**
+     * 创建一个文件，写入字符串，存在则覆盖
+     * @param {Object} $fileN
+     * @param {Object} $str
+     */
     public function fileW($fileN, $str)
     {
         $fp = fopen($fileN, "w");
@@ -181,7 +206,7 @@ class Files
     }
     
     /**
-                    *
+     * 
      * 拼接js或者css
      * eg：/index.php?f=/css_js/df.js,/css_js/FontFamily/init.js
      */
@@ -203,7 +228,7 @@ class Files
     }
     
     /**
-                    *
+     * 
      * 上传文件
      * 配合上传组件使用
      * js上传组件会接收所有的echo
@@ -239,7 +264,7 @@ class Files
         default:break;
     }
     
-        //设置文件上传的最大尺寸
+    //设置文件上传的最大尺寸
     $imgSize=104857600;//100M    1024*1024*100
     $mp3Size=104857600;
         $zipSize=104857600;
