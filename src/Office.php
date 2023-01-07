@@ -74,26 +74,37 @@ class Office
 
     /**
      * 设置sheet标题
-     * @param string $title sheet文件标题
+     * @param string $sheetTitle sheet栏目标题
+     * @param int $index sheet栏目编号。可添加多个栏目
      */
-    public function setTitle(string $sheetTitle)
+    public function setTitle(string $sheetTitle, $index=0)
     {
+        if ($index>0) {
+            self::instance()->createSheet($index);
+            self::instance()->setActiveSheetIndex($index);
+            $this->currentRow = 1;
+            $this->hasTitle = false;
+        }
+       
         $sheet = self::instance()->getActiveSheet();
         $sheet->setTitle($sheetTitle);
+        $this->setTableTitle($sheetTitle);
         return $this;
     }
 
     /**
      * 设置table标题
-     * @param bool $tableTitle 是否设置table的标题
+     * @param bool $tableTitle table标题
      */
     public function setTableTitle(string $tableTitle, int $height = 20)
     {
         $sheet = self::instance()->getActiveSheet();
         $sheet->setCellValue('A1', $tableTitle);
         $sheet->getRowDimension($this->currentRow)->setRowHeight($height);
-        $this->hasTitle = true;
-        $this->currentRow += 1;
+        if (!$this->hasTitle) {
+            $this->hasTitle = true;
+            $this->currentRow += 1;
+        }
         return $this;
     }
 
@@ -177,7 +188,7 @@ class Office
         $sheet->getDefaultRowDimension()->setRowHeight($this->height);
         $sheet->getDefaultColumnDimension()->setWidth($this->width);
     }
-
+    
     /**
      * 设置内容
      */
@@ -266,6 +277,7 @@ class Office
      */
     public function saveStream(string $fileName = 'test.xlsx')
     {
+        self::instance()->setActiveSheetIndex(0);
         $format = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
         $contentType = '';
         switch ($format) {
@@ -300,6 +312,7 @@ class Office
      */
     public function saveFile(string $fileName = 'test.xlsx')
     {
+        self::instance()->setActiveSheetIndex(0);
         $file = $this->getFileName($fileName);
         $format = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
         if (!in_array($format, ['xlsx', 'xls', 'csv'])) {

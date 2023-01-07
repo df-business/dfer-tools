@@ -71,6 +71,17 @@ public function _initialize()
 }
 ```
 
+## TpCommon
+**case 1**
+```
+use Dfer\Tools\TpCommon;
+```
+```
+$c=new TpCommon;
+$name_arr=$c->getColName("cat_publish_info_comment");
+```
+
+
 ## Address
 ```
 use Dfer\Tools\Address;
@@ -89,6 +100,8 @@ composer require phpoffice/phpspreadsheet
 ```
 use Dfer\Tools\Office;
 ```
+
+**普通用法**
 ```
 $spService=new Office;
 
@@ -104,6 +117,35 @@ $file_stream = $spService->setTableTitle('2021销售记录')
 ->setStyle()
 ->setVContent($header, $data)
 ->saveStream('2021销售记录.xlsx');
+```
+
+**多个栏目**
+```
+$db=Db::connect('db_cat_factory_dfer');
+   
+// -- 当天激活人数        
+$data1=$db->query("select * from cat_ems where DATE_FORMAT(FROM_UNIXTIME(createtime),'%Y-%m-%d') = DATE_FORMAT(NOW(),'%Y-%m-%d') GROUP BY email;");
+// -- 当天登录人数
+$data2=$db->query("select * from cat_user where DATE_FORMAT(FROM_UNIXTIME(logintime),'%Y-%m-%d') = DATE_FORMAT(NOW(),'%Y-%m-%d');");
+// -- 每日社区行为数（动态、点赞数、评论数）
+// -- 动态数
+$data3=$db->query("select * from cat_publish_info where DATE_FORMAT(FROM_UNIXTIME(publishtime),'%Y-%m-%d') = DATE_FORMAT(NOW(),'%Y-%m-%d');");
+// -- 点赞数
+$data4=$db->query("select * from cat_like where DATE_FORMAT(FROM_UNIXTIME(create_time),'%Y-%m-%d') = DATE_FORMAT(NOW(),'%Y-%m-%d');");
+// -- 评论数
+$data5=$db->query("select * from cat_publish_info_comment where DATE_FORMAT(FROM_UNIXTIME(comment_time),'%Y-%m-%d') = DATE_FORMAT(NOW(),'%Y-%m-%d');");
+
+
+$spService=new Office;     
+$title=\sprintf('统计-%s', date("Ymd", time()));
+$file_src = $spService->setStyle()
+->setTitle('当天激活人数')->setContent($this->getColName("cat_ems"), $data1)
+->setTitle('当天登录人数', 1)->setContent($this->getColName("cat_user"), $data2)
+->setTitle('当天动态数', 2)->setContent($this->getColName("cat_publish_info"), $data2)
+->setTitle('当天点赞数', 3)->setContent($this->getColName("cat_like"), $data2)
+->setTitle('当天评论数', 4)->setContent($this->getColName("cat_publish_info_comment"), $data2)
+->saveFile($title.'.xlsx');
+header("Location:/".$file_src);
 ```
 
 
