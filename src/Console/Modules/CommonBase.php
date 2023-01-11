@@ -53,11 +53,14 @@ class CommonBase extends Common
             $tp_new=true;
             $tp_ver=app()->version();
             $db = new \think\facade\Db();
+            // 多语言。加载一次之后，子脚本直接生效
+            \think\facade\Lang::load(APP_PATH. 'lang/zh-cn.php');
         } else {
             // tp5以下
             $tp_new=false;
             $tp_ver=THINK_VERSION;
             $db = new \think\Db();
+            \think\Lang::load(APP_PATH. 'api/lang/zh-cn.php');
         }
     }
 
