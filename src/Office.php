@@ -271,6 +271,34 @@ class Office
         }
         return $this;
     }
+    
+    /**
+     * 直接获取文件，不保存
+     */
+    public function getFile(string $fileName = 'test.xlsx')
+    {
+        self::instance()->setActiveSheetIndex(0);
+        $format = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+        $contentType = '';
+        switch ($format) {
+            case 'xlsx':
+                $contentType = 'data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;';
+                break;
+            case 'xls':
+                $contentType = 'data:application/vnd.ms-excel;';
+                break;
+            case 'csv':
+                $contentType = 'data:text/csv;';
+                break;
+            default:
+                return false;
+                break;
+        }
+        header("Content-Disposition: attachment;filename={$fileName}");
+        $writer = IOFactory::createWriter(self::instance(), ucfirst($format));
+        $writer->save('php://output');
+        exit;
+    }
 
     /**
      * 保存数据流
@@ -320,6 +348,6 @@ class Office
         }
         $writer = IOFactory::createWriter(self::instance(), ucfirst($format));
         $writer->save($file);
-        return $file;
+        return '/'.$file;
     }
 }
