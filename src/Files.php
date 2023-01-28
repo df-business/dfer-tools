@@ -179,6 +179,18 @@ class Files
         //获取数组最后一条数据
                         //用.号对字符串进行分组
     }
+    
+    
+    /**
+     * 获取文件后缀
+     * @param   string  $name   文件名
+     * @return  string
+     */
+    public function getFileExt($name)
+    {
+        return strtolower(pathinfo($name, PATHINFO_EXTENSION));
+    }
+    
     /**
      * 判断文件是否存在
      * @param {Object} $filename
@@ -206,7 +218,7 @@ class Files
     }
     
     /**
-     * 
+     *
      * 拼接js或者css
      * eg：/index.php?f=/css_js/df.js,/css_js/FontFamily/init.js
      */
@@ -228,7 +240,7 @@ class Files
     }
     
     /**
-     * 
+     *
      * 上传文件
      * 配合上传组件使用
      * js上传组件会接收所有的echo
@@ -264,7 +276,7 @@ class Files
         default:break;
     }
     
-    //设置文件上传的最大尺寸
+        //设置文件上传的最大尺寸
     $imgSize=104857600;//100M    1024*1024*100
     $mp3Size=104857600;
         $zipSize=104857600;
