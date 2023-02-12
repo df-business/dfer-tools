@@ -592,7 +592,7 @@ class Common
     
     
     
-    /**     
+    /**
      * php调用网页头的验证功能
      */
     public function webAuthenticate($ac, $pw)
@@ -948,5 +948,36 @@ class Common
         }
         $arr=$is_asc?array_reverse($arr, false):$arr;
         return $arr;
+    }
+    
+    
+    /**
+     * 根据奖品概率，进行随机抽奖，返回中奖的编号
+     * 每行数据的值必须大于等于0，相对数值越大则中奖概率越高，反之则概率越小
+     * 所有数值的总和不受限制，根据每条数据相对于总和的概率依次进行筛选
+     * 原理：将所有值进行累加，用单个值占总值的比例作为该项的概率，该值占总值的比例越大则概率越高，反之越小
+     * @param {Object} $proArr
+     */
+    public function get_prize($proArr)
+    {
+        $result = '';
+        //概率数组的总概率精度。数组值的总和
+        $proSum = array_sum($proArr);
+        if ($proSum==0) {
+            return null;
+        }
+        
+        //概率数组循环
+        foreach ($proArr as $key => $proCur) {
+            $randNum = mt_rand(1, $proSum);
+            if ($randNum <= $proCur) {
+                $result = $key;
+                break;
+            } else {
+                $proSum -= $proCur;
+            }
+        }
+        unset($proArr);
+        return $result;
     }
 }

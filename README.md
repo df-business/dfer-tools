@@ -27,7 +27,7 @@ composer remove dfer/tools
 ```
 <?php
 require "./vendor/autoload.php";
-$common = new Dfer\Tools\Common;
+$common = new \Dfer\Tools\Common;
 echo $common->about();
 ```
 
