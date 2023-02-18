@@ -242,7 +242,7 @@ class Create extends CommandBase
                     'namespace Dfer\Tools\Console\Modules;'=>"namespace app\api\command\\{$module_name};",
                     'CommonTmpl'=>"Common",
                     '// code'=>"
-  static $items=[
+  static \$items=[
            'application/admin/controller',
            'application/admin/model',
            'application/api/controller',
