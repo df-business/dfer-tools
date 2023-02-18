@@ -154,12 +154,19 @@ class Create extends CommandBase
                  case 'encode':
                   $common_base->fileCreate($cur_dir.'\Modules\CommonTmpl.php', $root."/app/command/{$module_name}/Common.php", [
                    'namespace Dfer\Tools\Console\Modules;'=>"namespace app\command\\{$module_name};",
-                   'CommonTmpl'=>"Common"
+                   'CommonTmpl'=>"Common",
+                   '// code'=>"static $items=[
+           'application/admin/controller',
+           'application/admin/model',
+           'application/api/controller',
+           'application/common/controller',
+           'application/common/model'
+           ];"
                   ]);
-                  $common_base->fileCreate($cur_dir.'\Modules\PlainModelTmpl.php', $root."/app/command/{$module_name}/PlainModel.php", [
+                  $common_base->fileCreate($cur_dir.'\Modules\PlainModelPhpEncodeTmpl.php', $root."/app/command/{$module_name}/PlainModel.php", [
                    'namespace Dfer\Tools\Console\Modules;'=>"namespace app\command\\{$module_name};",
                    'CommonTmpl'=>"Common",
-                   'PlainModelTmpl'=>"PlainModel"
+                   'PlainModelPhpEncodeTmpl'=>"PlainModel"
                   ]);
                   // main
                   $common_base->fileCreate($cur_dir.'\PhpEncode.php', $root."/app/command/{$name_title}.php", [
@@ -233,12 +240,21 @@ class Create extends CommandBase
                   case 'encode':
                    $common_base->fileCreate($cur_dir.'\Modules\CommonTmpl.php', $root."/application/api/command/{$module_name}/Common.php", [
                     'namespace Dfer\Tools\Console\Modules;'=>"namespace app\api\command\\{$module_name};",
-                    'CommonTmpl'=>"Common"
+                    'CommonTmpl'=>"Common",
+                    '// code'=>"
+  static $items=[
+           'application/admin/controller',
+           'application/admin/model',
+           'application/api/controller',
+           'application/common/controller',
+           'application/common/model'
+           ];
+"
                    ]);
-                   $common_base->fileCreate($cur_dir.'\Modules\PlainModelTmpl.php', $root."/application/api/command/{$module_name}/PlainModel.php", [
+                   $common_base->fileCreate($cur_dir.'\Modules\PlainModelPhpEncodeTmpl.php', $root."/application/api/command/{$module_name}/PlainModel.php", [
                     'namespace Dfer\Tools\Console\Modules;'=>"namespace app\api\command\\{$module_name};",
                     'CommonTmpl'=>"Common",
-                    'PlainModelTmpl'=>"PlainModel"
+                    'PlainModelPhpEncodeTmpl'=>"PlainModel"
                    ]);
                    // main
                    $common_base->fileCreate($cur_dir.'\PhpEncode.php', $root."/application/api/command/{$name_title}.php", [

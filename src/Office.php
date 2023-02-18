@@ -350,4 +350,44 @@ class Office
         $writer->save($file);
         return '/'.$file;
     }
+    
+    /**
+     * 读取文件
+     * 返回拼接好的数组，可用来做数据导入
+     * https://blog.csdn.net/qq_45450789/article/details/124168621
+     * @param string $fileName 文件名称
+     * @param string $row_index 读取的初始行编号
+     *
+     * $file = request()->file('file');
+     * $filename = $file->getRealpath();
+     *
+     */
+    public function readFile(string $fileName = 'test.xlsx', $col_item=['item1','item2'], $row_index=3)
+    {
+      
+        //设置excel格式
+        $format = 'xlsx';
+        $reader = IOFactory::createReader(ucfirst($format));
+        //载入excel文件
+        $excel = $reader->load($fileName);
+        //读取第一张表
+        $sheet = $excel->getSheet(0);
+        
+        //获取总行数
+        $row_num = $sheet->getHighestRow();
+        //获取总列数
+        $col_num = $sheet->getHighestColumn();        
+        //数组形式获取表格数据
+        $list = [];
+        $col_index=0;
+        for ($col = 'A'; $col <= $col_num; $col++) {
+            $col_val=isset($col_item[$col_index])?$col_item[$col_index]:'';
+            // 从指定开始获取数据
+            for ($row = $row_index; $row <= $row_num; $row++) {
+                $list[$row - $row_index][$col_val]= $sheet->getCell($col . $row)->getValue();
+            }
+            $col_index++;
+        }
+        return $list;
+    }
 }

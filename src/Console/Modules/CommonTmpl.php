@@ -27,9 +27,9 @@ use Dfer\Tools\Console\Modules\CommandBase;
  *   ```` ':.          ':::::::::'                  ::::..
  *                      '.:::::'                    ':'````..
  * +----------------------------------------------------------------------
- *  
+ *
  */
 class CommonTmpl extends CommandBase
-{
-   
+{ 
+   // code
 }
