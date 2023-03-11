@@ -274,7 +274,7 @@ class Common
      * @param $url http://www.df.net
      * @param $data ["a"=>123]
      * @param $header ["Content-Type: application/json"]
-     * @param $type http://www.df.net
+     * @param $type 
      **/
     public function httpRequest($url, $data = null, $type=self::REQ_POST, $header=null)
     {
