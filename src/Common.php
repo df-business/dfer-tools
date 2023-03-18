@@ -326,7 +326,14 @@ class Common
             //设置POST的数据包
             curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
         }
-          
+        
+        // 支持https请求
+        if (1 == strpos("$".$url, "https://"))
+        {
+            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+        }
+            
         // 当遇到location跳转时，直接抓取跳转的页面，防止出现301
         curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
         //设置浏览器，把参数url传到浏览器的设置当中

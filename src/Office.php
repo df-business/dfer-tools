@@ -278,22 +278,9 @@ class Office
     public function getFile(string $fileName = 'test.xlsx')
     {
         self::instance()->setActiveSheetIndex(0);
+        // 获取文件后缀
         $format = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
-        $contentType = '';
-        switch ($format) {
-            case 'xlsx':
-                $contentType = 'data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;';
-                break;
-            case 'xls':
-                $contentType = 'data:application/vnd.ms-excel;';
-                break;
-            case 'csv':
-                $contentType = 'data:text/csv;';
-                break;
-            default:
-                return false;
-                break;
-        }
+       
         header("Content-Disposition: attachment;filename={$fileName}");
         $writer = IOFactory::createWriter(self::instance(), ucfirst($format));
         $writer->save('php://output');
@@ -301,7 +288,7 @@ class Office
     }
 
     /**
-     * 保存数据流
+     * 获取base64数据流
      */
     public function saveStream(string $fileName = 'test.xlsx')
     {
