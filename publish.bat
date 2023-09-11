@@ -1,13 +1,14 @@
 ::发布
 chcp 65001
 @echo off
+ver=4.8.5
 git add *
-git commit -m ''
+git commit -m '%ver%'
 git push
 ::添加tag
-git tag v4.8.4
+git tag %ver%
 ::删除单个tag
-::git tag -d v2.4
+::git tag -d 2.4
 ::tag批量删除,windows需要在git的bash模式下运行
 ::git tag|grep "v3"|xargs git tag -d
 ::查看所有tag
