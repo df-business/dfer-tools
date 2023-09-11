@@ -39,7 +39,7 @@ class Common
      **/
     public static function about()
     {
-        $host='http://www.dfer.top';
+        $host='http://www.dfer.site';
         header("Location:".$host);
         return $host;
     }
