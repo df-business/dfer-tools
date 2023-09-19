@@ -41,6 +41,9 @@ class Office
     protected static $instance;
 
     protected $currentRow = 1;
+	
+	// 新栏目
+	protected $sheetIndex = 0;
 
     protected $width = 20;
     protected $height = 20;
@@ -77,8 +80,9 @@ class Office
      * @param string $sheetTitle sheet栏目标题
      * @param int $index sheet栏目编号。可添加多个栏目
      */
-    public function setTitle(string $sheetTitle, $index=0)
-    {
+    public function setTitle(string $sheetTitle)
+    {		
+		$index=$this->sheetIndex;
         if ($index>0) {
             self::instance()->createSheet($index);
             self::instance()->setActiveSheetIndex($index);
@@ -89,6 +93,9 @@ class Office
         $sheet = self::instance()->getActiveSheet();
         $sheet->setTitle($sheetTitle);
         $this->setTableTitle($sheetTitle);
+		
+		$this->sheetIndex++;
+		
         return $this;
     }
 
@@ -274,6 +281,7 @@ class Office
     
     /**
      * 直接获取文件，不保存
+	 * 必须以打开新页面的形式调用，比如：a标签的内部跳转或者外部跳转，js的`window.open`或者`location.href`
      */
     public function getFile(string $fileName = 'test.xlsx')
     {
