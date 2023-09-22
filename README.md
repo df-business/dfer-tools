@@ -139,11 +139,11 @@ $data5=$db->query("select * from cat_publish_info_comment where DATE_FORMAT(FROM
 $spService=new Office;     
 $title=\sprintf('统计-%s', date("Ymd", time()));
 $file_src = $spService->setStyle()
-->setTitle('当天激活人数')->setContent($this->getColName("cat_ems"), $data1)
-->setTitle('当天登录人数', 1)->setContent($this->getColName("cat_user"), $data2)
-->setTitle('当天动态数', 2)->setContent($this->getColName("cat_publish_info"), $data2)
-->setTitle('当天点赞数', 3)->setContent($this->getColName("cat_like"), $data2)
-->setTitle('当天评论数', 4)->setContent($this->getColName("cat_publish_info_comment"), $data2)
+->setTitle('当天激活人数')->setContent($this->getColName("cat_ems"), $data1,[50,30,20])
+->setTitle('当天登录人数')->setContent($this->getColName("cat_user"), $data2)
+->setTitle('当天动态数')->setContent($this->getColName("cat_publish_info"), $data2)
+->setTitle('当天点赞数')->setContent($this->getColName("cat_like"), $data2)
+->setTitle('当天评论数')->setContent($this->getColName("cat_publish_info_comment"), $data2)
 ->saveFile($title.'.xlsx');
 header("Location:/".$file_src);
 ```

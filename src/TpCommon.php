@@ -52,24 +52,13 @@ class TpCommon
     /**
      * 获取表的字段信息
      **/
-    public function getColName($table, $type=1)
+    public function getColName($table, $col_name='Comment')
     {
-        $data=self::$db::query("SHOW FULL COLUMNS FROM {$table};");
-        
-        switch ($type) {
-         case 1:
-         // 备注
-          $col_name='Comment';
-          break;
-         default:
-         // 字段名
-          $col_name='Field';
-          break;
-        }
+        $data=self::$db::query("SHOW FULL COLUMNS FROM {$table};");              
      
         $item=[];
         foreach ($data as $key => $value) {
-            $item[]=$value[$col_name];
+            $item[$value['Field']]=$value[$col_name];
         }
         return $item;
     }
