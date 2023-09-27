@@ -52,10 +52,12 @@ class Office
     protected $width = 20;
     protected $height = 20;
 
-    // 是否有标题
-    protected $hasTitle = false;
+    // 是否有内容标题
+    protected $hasContentTitle = false;
 
     // 标题样式
+    protected $titleStyle = [];
+    // 头部样式
     protected $headerStyle = [];
     // 主体样式
     protected $bodyStyle = [];
@@ -73,7 +75,89 @@ class Office
         return self::$instance;
     }
 
-
+	/**
+	 * 设置公共宽度和高度
+	 * @param {Object} int $width
+	 * @param {Object} int $height	高度 为空则使用默认值
+	 */
+	public function setWidthAndHeight(int $width, int $height=null)
+	{
+	    $this->width = $width;
+		if($height!==null)
+			$this->height = $height;
+	    return $this;
+	}
+	
+	/**
+	 * 设置表格的基本样式
+	 * @param {Object} array $titleStyle	标题样式
+	 * @param {Object} array $headerStyle	头部样式
+	 * @param {Object} array $bodyStyle	主体样式
+	 */
+	public function setStyle(array $titleStyle = [],array $headerStyle = [], array $bodyStyle = [])
+	{
+	    $this->titleStyle = array_merge([
+	        'font' => [
+	            'bold' => true,
+	            'size' => 15,
+	        ],
+	        'borders' => [
+	            'outline' => [
+	                'borderStyle' => 'thin',
+	                'color' => ['argb' => 'FF000000'],
+	            ],
+	        ],
+	        'alignment' => [
+	            'horizontal' => 'center',
+	            'vertical' => 'center'
+	        ],
+	    ], $titleStyle);
+		$this->headerStyle = array_merge([
+		    'font' => [
+		        'bold' => true,
+		        'size' => 10,
+		    ],
+		    'borders' => [
+		        'outline' => [
+		            'borderStyle' => 'thin',
+		            'color' => ['argb' => 'FF000000'],
+		        ],
+		    ],
+		    'alignment' => [
+		        'horizontal' => 'center',
+		        'vertical' => 'center'
+		    ],
+		], $headerStyle);
+	    $this->bodyStyle = array_merge([
+	        'font' => [
+	            'bold' => false,
+	            'size' => 10,
+	        ],
+	        'borders' => [
+	            'allBorders' => [
+	                'borderStyle' => 'thin',
+	                'color' => ['argb' => 'FF000000'],
+	            ],
+	        ],
+	        'alignment' => [
+	            'horizontal' => 'center',
+	            'vertical' => 'center'
+	        ],
+	    ], $bodyStyle);
+	    return $this;
+	}
+	
+	/**
+	 * 设置基础样式
+	 */
+	protected function initBaseStyle()
+	{
+	    $sheet = self::instance()->getActiveSheet();
+	    $sheet->getDefaultRowDimension()->setRowHeight($this->height);
+	    $sheet->getDefaultColumnDimension()->setWidth($this->width);
+	}
+	
+	
 	/**获取文件路径和名称
 	 * @param {Object} string $fileName
 	 */
@@ -88,19 +172,20 @@ class Office
     }
 	
 	/**
-	 * 设置sheet标题
+	 * 设置标签标题
 	 * @param {Object} string $sheetTitle	sheet栏目标题
+	 * @param {Object} bool $hasContentTitle	是否开启内容标题
 	 */
-    public function setTitle(string $sheetTitle)
+    public function setTitle(string $sheetTitle,bool $hasContentTitle=false)
     {
         $index = $this->sheetIndex;
+		$this->hasContentTitle = $hasContentTitle;
+		
         if ($index > 0) {
             self::instance()->createSheet($index);
             self::instance()->setActiveSheetIndex($index);
             $this->currentRow = 1;
-            $this->hasTitle = false;
-        }
-
+        }		
         $sheet = self::instance()->getActiveSheet();
         $sheet->setTitle($sheetTitle);
         $this->setTableTitle($sheetTitle);
@@ -111,20 +196,19 @@ class Office
     }
 
 	/**
-	 * 设置table标题
-	 * @param {Object} string $tableTitle	table标题
+	 * 设置内容标题
+	 * @param {Object} string $tableTitle	标题
 	 * @param {Object} int $height	行高
 	 */
     public function setTableTitle(string $tableTitle, int $height = 20)
     {
+		if ($this->hasContentTitle) {
         $sheet = self::instance()->getActiveSheet();
         $sheet->setCellValue('A1', $tableTitle);
         // 设置行样式
         $sheet->getRowDimension($this->currentRow)->setRowHeight($height);
-        if (!$this->hasTitle) {
-            $this->hasTitle = true;
-            $this->currentRow += 1;
-        }
+        $this->currentRow += 1;        
+		}
         return $this;
     }
 
@@ -150,72 +234,7 @@ class Office
         $this->currentRow += 1;
         return $this;
     }
-
     
-	/**
-	 * 设置公共宽度和高度
-	 * @param {Object} int $width
-	 * @param {Object} int $height
-	 */
-    public function setWidthAndHeight(int $width, int $height)
-    {
-        $this->width = $width;
-        $this->height = $height;
-        return $this;
-    }
-
-    
-	/**
-	 * 设置表格的基本样式
-	 * @param {Object} array $headerStyle	标题样式
-	 * @param {Object} array $bodyStyle	主体样式
-	 */
-    public function setStyle(array $headerStyle = [], array $bodyStyle = [])
-    {
-        $this->headerStyle = array_merge([
-            'font' => [
-                'bold' => true,
-                'size' => 15,
-            ],
-            'borders' => [
-                'outline' => [
-                    'borderStyle' => 'thin',
-                    'color' => ['argb' => 'FF000000'],
-                ],
-            ],
-            'alignment' => [
-                'horizontal' => 'center',
-                'vertical' => 'center'
-            ],
-        ], $headerStyle);
-        $this->bodyStyle = array_merge([
-            'font' => [
-                'bold' => true,
-                'size' => 10,
-            ],
-            'borders' => [
-                'allBorders' => [
-                    'borderStyle' => 'thin',
-                    'color' => ['argb' => 'FF000000'],
-                ],
-            ],
-            'alignment' => [
-                'horizontal' => 'center',
-                'vertical' => 'center'
-            ],
-        ], $bodyStyle);
-        return $this;
-    }
-
-    /**
-     * 设置基础样式
-     */
-    protected function initStyle()
-    {
-        $sheet = self::instance()->getActiveSheet();
-        $sheet->getDefaultRowDimension()->setRowHeight($this->height);
-        $sheet->getDefaultColumnDimension()->setWidth($this->width);
-    }
 
 
 	/**
@@ -223,16 +242,17 @@ class Office
 	 * @param {Object} array $header	标题数据
 	 * @param {Object} array $data	主体数据
 	 * @param {Object} array $width	行宽
-	 * @param {Object} bool $all_str	是否以字符串的格式显示
+	 * @param {Object} bool $all_str	是否全部以字符串的格式显示
 	 */
     public function setContent(array $header, array $data, array $width = [],bool $all_str=false)
     {
-        $this->initStyle();
+        $this->initBaseStyle();
         $sheet = self::instance()->getActiveSheet();
         // 总列数
         $count = count($header);
         // 开始的位置
-        $start = 'A' . $this->currentRow;
+        $start_header = 'A' . $this->currentRow;
+		$start_body = 'A' . ($this->currentRow+1);
         // 列编号
         $colEn = 'A';
         // 设置首行的标题
@@ -242,21 +262,28 @@ class Office
                 $colEn++;
             }
             // 设置行宽
-            if (isset($width[$i])) {
+            if (isset($width[$i])&&$width[$i]!==null) {
                 $sheet->getColumnDimension($colEn)->setWidth($width[$i]);
             }
         }
         // 设置行样式
         $sheet->getRowDimension($this->currentRow)->setRowHeight($this->height);
+		
+		
+		// 设置内容头部样式
+		$sheet->getStyle(sprintf("%s:%s",$start_header,$colEn.$this->currentRow))->applyFromArray($this->headerStyle);
+		
         $this->currentRow += 1;
         // 设置第二行开始的主体数据
         for ($i = 0; $i < count($data); $i++) {
             $j = 0;
             foreach ($data[$i] as $item) {
+				if($item!==null){
 				if($all_str)
 					$sheet->setCellValueExplicitByColumnAndRow($j + 1, $this->currentRow, $item,DataType::TYPE_STRING);
 				else
 					$sheet->setCellValueByColumnAndRow($j + 1, $this->currentRow, $item);
+				}
                 $j++;
             }
             // 设置行样式
@@ -265,14 +292,14 @@ class Office
         }
         // 结束的位置
         $end = $colEn . ($this->currentRow - 1);
-        // 设置主体公共样式
-        $sheet->getStyle($start . ':' . $end)->applyFromArray($this->bodyStyle);
+        // 设置内容主体公共样式
+        $sheet->getStyle($start_body . ':' . $end)->applyFromArray($this->bodyStyle);
 
-        if ($this->hasTitle) {
-            // 设置标题样式
-            $range = 'A1' . ':' . $colEn . '1';
-            $sheet->getStyle($range)->applyFromArray($this->headerStyle);
-            $sheet->mergeCells($range);
+        if ($this->hasContentTitle) {
+            // 设置内容标题样式
+			$range_title = 'A1' . ':' . $colEn . '1';
+            $sheet->getStyle($range_title)->applyFromArray($this->titleStyle);
+            $sheet->mergeCells($range_title);
         }
         return $this;
     }
@@ -285,7 +312,7 @@ class Office
 	 */
     public function setVContent(array $header, array $data)
     {
-        $this->initStyle();
+        $this->initBaseStyle();
         $sheet = self::instance()->getActiveSheet();
         // 总行数
         $count = count($header);
@@ -309,13 +336,13 @@ class Office
                 $j++;
             }
         }
-        // 设置内容样式
+        // 设置内容主体公共样式
         $end = $colEn . ($count + $this->currentRow - 1);
         $sheet->getStyle($start . ':' . $end)->applyFromArray($this->bodyStyle);
-        if ($this->hasTitle) {
-            // 设置标题样式
+        if ($this->hasContentTitle) {
+            // 设置内容标题样式
             $range = 'A1' . ':' . $colEn . '1';
-            $sheet->getStyle($range)->applyFromArray($this->headerStyle);
+            $sheet->getStyle($range)->applyFromArray($this->titleStyle);
             $sheet->mergeCells($range);
         }
         return $this;
@@ -325,9 +352,10 @@ class Office
 	/**
 	 * 直接获取文件，不保存
 	 * 必须以打开新页面的形式调用，比如：a标签的内部跳转或者外部跳转，js的`window.open`或者`location.href`
-	 * @param {Object} string $fileName
+	 * @param {Object} string $fileName	保存的文件名
+	 * @param {Object} int $max_age 文件缓存时间（秒）
 	 */
-    public function getFile(string $fileName = 'test.xlsx')
+	public function getFile(string $fileName = 'test.xlsx',int $max_age=60)
     {
         self::instance()->setActiveSheetIndex(0);
         // 获取文件后缀
@@ -335,7 +363,7 @@ class Office
 
         header("Content-Disposition: attachment;filename={$fileName}");
 		// 浏览器缓存（秒）
-		header('Cache-Control:max-age=60');
+		header("Cache-Control:max-age={$max_age}");
         $writer = IOFactory::createWriter(self::instance(), ucfirst($format));
         $writer->save('php://output');
         exit;

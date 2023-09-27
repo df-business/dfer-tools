@@ -101,10 +101,11 @@ composer require phpoffice/phpspreadsheet
 use Dfer\Tools\Office;
 ```
 
-**普通用法**
+**基本用法**
 ```
 $spService=new Office;
 
+// 下载
 $title=\sprintf('订单-%s', date("Ymd", time()));
 $header = ['姓名',	'电话',	'地址',	'随机数字（两位）'	,'省份（简称）',	'市（不要带市）',	'区县（不要带区县）'	,'随机数字（三位）'];
 $data=Db::query("SELECT * FROM dd_shop_paybill GROUP BY receive_id");
@@ -117,7 +118,35 @@ $file_stream = $spService->setTableTitle('2021销售记录')
 ->setStyle()
 ->setVContent($header, $data)
 ->saveStream('2021销售记录.xlsx');
+
+
+$title = \sprintf('模板-%s', date("Ymd", time()));
+$common_item=['序号','组织机构代码','企业详细名称'];
+$item=array_merge($common_item,['乡镇', '所属产业','本月;工业总产值;万元','1-本月;工业总产值;万元','上年同期;本月;工业总产值;万元','上年同期;1-本月;工业总产值;万元','行业大类','1-本月;行业增加值增速;%','是否为重点监测企业']);
+$lists = YjComQiyeBaseInfosReportModel::where(['year' => 2023, 'month' => 9])->order('xuhao asc')->field("xuhao,qiye_dm,qiye_mc,xiangzhen_mc,chanye,hangye_mc,s_zhongdian")->select()->toArray();
+$lists_type_1=[];
+foreach($lists as $key=>$v){
+	$v['s_zhongdian']=$v['s_zhongdian']==2 ? '是' : '';
+	$lists_type_1[]=[$v['xuhao'],$v['qiye_dm'],$v['qiye_mc'],$v['xiangzhen_mc'],$v['chanye'],null,null,null,null,$v['hangye_mc'],null,$v['s_zhongdian']];
+}
+$spService->setStyle()->setWidthAndHeight(35)
+->setTitle($title,true)->setContent($item, $lists_type_1,[10,20,50,15,20,null,null,null,null,50,null,25])->getFile($title . '.xlsx',0);
+
+
+
+
+// 上传
+$files = request()->file('file_data');
+$savename = \think\facade\Filesystem::disk('public')->putFile('filexls', $files);
+$spService = new Office;
+$items=['xuhao','qiye_dm','qiye_mc','xiangzhen_mc','chanye','chanzhi','chanzhi_lj','chanzhi_tong','chanzhi_tong_lj','hangye_mc','hangye_zeng','s_zhongdian'];
+$xls_data=$spService->readFile('./storage/' . $savename,$items,2);
+foreach($xls_data as $key=>&$v){
+}
 ```
+
+
+
 
 **多个栏目**
 ```
