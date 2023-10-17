@@ -70,7 +70,7 @@ class Encipher
         // 源文件是目录
         if (is_dir($this->_sourceFile)) {
             if (!file_exists($this->_targetFile)) {
-                $this->mkdirs($this->_targetFile);
+                $this->mkDirs($this->_targetFile);
             }
             $this->_sourceFileArray = $this->getSourceFile($this->_sourceFile);
         } else {
@@ -111,7 +111,7 @@ class Encipher
                 // 是文件夹的话，就创建对应文件夹
                 if (is_dir($v)) {
                     $target = $this->_targetFile.str_replace($this->_sourceFile, '', $v);
-                    $this->mkdirs($target);
+                    $this->mkDirs($target);
                     // 循环创建
                     $this->getSourceFile($v);
                 } else {
@@ -127,10 +127,10 @@ class Encipher
      * @param $dir
      * @return bool
      */
-    private function mkdirs($dir)
+    private function mkDirs($dir)
     {
         if (!is_dir($dir)) {
-            if (!$this->mkdirs(dirname($dir))) {
+            if (!$this->mkDirs(dirname($dir))) {
                 return false;
             }
             if (!mkdir($dir, 0777)) {

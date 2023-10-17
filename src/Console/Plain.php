@@ -59,14 +59,14 @@ class Plain extends PlainModelTmpl
             $about = $input->getOption('about');
             $type = $input->getOption('type');
             if ($about) {
-                $common_base->tp_print("
+                $common_base->tpPrint("
         | AUTHOR: dfer
         | EMAIL: df_business@qq.com
         | QQ: 3504725309");
                 exit();
             }
             if (empty($param1)) {
-                $common_base->tp_print("输入参数一");
+                $common_base->tpPrint("输入参数一");
                 exit();
             }
         
@@ -77,11 +77,11 @@ class Plain extends PlainModelTmpl
           case 'b':
            break;
           default:
-           $common_base->debug_print("类型错误");
+           $common_base->debugPrint("类型错误");
            break;
          }
         } catch (\think\exception\ErrorException $e) {
-            $common_base->tp_print(sprintf("\n%s\n\n%s %s", $e->getMessage(), $e->getFile(), $e->getLine()));
+            $common_base->tpPrint(sprintf("\n%s\n\n%s %s", $e->getMessage(), $e->getFile(), $e->getLine()));
         }
     }
 }

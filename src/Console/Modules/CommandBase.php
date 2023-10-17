@@ -50,8 +50,8 @@ class CommandBase extends Command
         self::$debug=$debug = $common_base->objToBool($input->getOption('debug'));
         self::$db=$db;
         self::$tp_new=$tp_new;
-        $common_base->debug_print('程序开始...');
+        $common_base->debugPrint('程序开始...');
         $this->init();
-        $common_base->debug_print('程序结束');
+        $common_base->debugPrint('程序结束');
     }
 }

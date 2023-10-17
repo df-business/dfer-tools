@@ -41,7 +41,7 @@ class Upload
     /**
      * 表单文件
      */
-    public function form_upload()
+    public function formUpload()
     {
         $files=request()->file();
         // dump($files);

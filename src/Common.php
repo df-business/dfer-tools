@@ -55,7 +55,7 @@ class Common
     /**
      * 把mysql导出的json文本拼接成数组字符串
      **/
-    public static function mysqlJsonToArray($str=null)
+    public static function mySqlJsonToArray($str=null)
     {
         $arr=json_decode($str);
         $item=$arr->RECORDS;
@@ -414,7 +414,7 @@ class Common
      *
      * eg:findstr('abc','c')
      */
-    public function findstr($find, $str)
+    public function findStr($find, $str)
     {
         $pos=strpos($find, $str);
         //	echo $pos;
@@ -901,7 +901,7 @@ class Common
      * @param $the_time 需要转换的时间。时间戳或者时间字符串
      * @return string
      */
-    public function time_tran($the_time)
+    public function timeTran($the_time)
     {
         $now_time = date("Y-m-d H:i:s", time());
         $now_time =strtotime($now_time);
@@ -980,7 +980,7 @@ class Common
      * 原理：将所有值进行累加，用单个值占总值的比例作为该项的概率，该值占总值的比例越大则概率越高，反之越小
      * @param {Object} $proArr
      */
-    public function get_prize($proArr)
+    public function getPrize($proArr)
     {
         $result = '';
         //概率数组的总概率精度。数组值的总和

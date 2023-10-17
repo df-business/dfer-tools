@@ -39,7 +39,7 @@ class GameModelTmpl extends CommonTmpl
     public function onWorkerReload(Worker $worker)
     {
         
-        // self::$common_base->debug_print("服务 {$worker->id} 已重载");
+        // self::$common_base->debugPrint("服务 {$worker->id} 已重载");
         foreach ($worker->connections as $connection) {
             $connection->send(self::$common_base->msg('服务 {$worker->id} 已重载'));
         }
@@ -47,7 +47,7 @@ class GameModelTmpl extends CommonTmpl
         
     public function onConnect(TcpConnection $connection)
     {
-        self::$common_base->debug_print("{$connection->id} {$connection->getRemoteIp()} 建立连接");
+        self::$common_base->debugPrint("{$connection->id} {$connection->getRemoteIp()} 建立连接");
         $connection->headers = [
                                         // 'Sec-WebSocket-Protocol: dfer.top',
                                     ];
@@ -96,21 +96,21 @@ class GameModelTmpl extends CommonTmpl
     
     public function onClose(TcpConnection $connection)
     {
-        self::$common_base->debug_print("{$connection->id} {$connection->getRemoteIp()} 断开连接");
+        self::$common_base->debugPrint("{$connection->id} {$connection->getRemoteIp()} 断开连接");
         // $this->handle_close($connection);
     }
     public function onError(TcpConnection $connection, $code, $msg)
     {
-        self::$common_base->debug_print("{$connection->id} {$code} {$msg}");
+        self::$common_base->debugPrint("{$connection->id} {$code} {$msg}");
     }
         
     public function onBufferFull(TcpConnection $connection)
     {
-        self::$common_base->debug_print("{$connection->id} 发送缓冲区数据已满");
+        self::$common_base->debugPrint("{$connection->id} 发送缓冲区数据已满");
     }
     public function onBufferDrain(TcpConnection $connection)
     {
-        self::$common_base->debug_print("{$connection->id} 发送缓冲区数据已发送完毕");
+        self::$common_base->debugPrint("{$connection->id} 发送缓冲区数据已发送完毕");
     }
         
         
@@ -133,7 +133,7 @@ class GameModelTmpl extends CommonTmpl
         
         $data['name'] = $player_name;
         $connection->send(self::$common_base->msg($data));
-        self::$common_base->debug_print("{$connection->id} {$connection->getRemoteIp()} {$player_name} {$connection->token} 用户已加入");
+        self::$common_base->debugPrint("{$connection->id} {$connection->getRemoteIp()} {$player_name} {$connection->token} 用户已加入");
     }
          
     // 当客户端发送消息过来时

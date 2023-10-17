@@ -67,7 +67,7 @@ class Create extends CommandBase
             $about = $input->getOption('about');
             $type = $input->getOption('type');
             if ($about) {
-                $common_base->tp_print("
+                $common_base->tpPrint("
               | AUTHOR: dfer
               | EMAIL: df_business@qq.com
               | QQ: 3504725309");
@@ -77,21 +77,21 @@ class Create extends CommandBase
                 $name="PhpEncode";
             }
             if (empty($name)) {
-                $common_base->tp_print("输入类名");
+                $common_base->tpPrint("输入类名");
                 exit();
             }
             switch ($type) {
                  case 'game':
-                  $common_base->tp_print("开始生成[websocket脚本]...");
+                  $common_base->tpPrint("开始生成[websocket脚本]...");
                   break;
                  case 'plain':
-                  $common_base->tp_print("开始生成[控制台脚本]...");
+                  $common_base->tpPrint("开始生成[控制台脚本]...");
                   break;
                  case 'encode':
-                  $common_base->tp_print("开始生成[php加密、解密脚本]...");
+                  $common_base->tpPrint("开始生成[php加密、解密脚本]...");
                   break;
                  default:
-                  $common_base->tp_print("类型选择错误");
+                  $common_base->tpPrint("类型选择错误");
                   exit();
                 }
             $name = trim($name);
@@ -185,7 +185,7 @@ class Create extends CommandBase
                     ]
                  ]"
                 ]);
-                $common_base->tp_print("            
+                $common_base->tpPrint("            
                 | 生成脚本完成
                 | /app/command/{$name}.php
                 | /config/console.php
@@ -273,14 +273,14 @@ class Create extends CommandBase
 ,'app\api\command\\{$name_title}'
 ]"
                  ]);
-                $common_base->tp_print("            
+                $common_base->tpPrint("            
                  | 生成脚本完成
                  | /application/api/command/{$name_title}.php
                  | /application/command.php
                  ");
             }
         } catch (\think\exception\ErrorException $e) {
-            $common_base->tp_print(sprintf("\n%s\n\n%s %s", $e->getMessage(), $e->getFile(), $e->getLine()));
+            $common_base->tpPrint(sprintf("\n%s\n\n%s %s", $e->getMessage(), $e->getFile(), $e->getLine()));
         }
     }
 }

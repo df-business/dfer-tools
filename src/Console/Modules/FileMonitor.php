@@ -83,13 +83,13 @@ class FileMonitor
         $dir_iterator = new \RecursiveDirectoryIterator($monitor_dir);
         $iterator = new \RecursiveIteratorIterator($dir_iterator);
         foreach ($iterator as $file) {
-            // var_dump($file->getBasename('.php'), [get_class(),Common::last_slash_str(get_class())]);
+            // var_dump($file->getBasename('.php'), [get_class(),Common::lastSlashStr(get_class())]);
             // only check php files
             if (pathinfo($file->getFilename(), PATHINFO_EXTENSION) != 'php') {
                 continue;
             }
             // 排除部分文件
-            if (in_array($file->getBasename('.php'), [CommonBase::last_slash_str(get_class())])) {
+            if (in_array($file->getBasename('.php'), [CommonBase::lastSlashStr(get_class())])) {
                 continue;
             }
                         

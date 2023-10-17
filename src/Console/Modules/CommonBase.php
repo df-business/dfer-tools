@@ -67,7 +67,7 @@ class CommonBase extends Common
     /**
      * 控制台打印、日志记录
      **/
-    public function tp_print($str, $type=self::CONSOLE_WRITE)
+    public function tpPrint($str, $type=self::CONSOLE_WRITE)
     {
         global $argv,$tp_new,$class_src;
         // 后台运行时调用"CONSOLE_WRITE"会导致后台服务堵塞
@@ -81,7 +81,7 @@ class CommonBase extends Common
                         $output->writeln(sprintf("[%s]%s", $class_src, $str), Output::OUTPUT_NORMAL);
                         break;
                     case self::LOG_WRITE:
-                        $this->log($str, $this->last_slash_str($class_src));
+                        $this->log($str, $this->lastSlashStr($class_src));
                         break;
                     case self::STDOUT_WRITE:
                         echo sprintf("[%s]%s\n", $class_src, $str);
@@ -95,7 +95,7 @@ class CommonBase extends Common
     /**
      * 最后一个斜杠后的字符串
      **/
-    public static function last_slash_str($str)
+    public static function lastSlashStr($str)
     {
         $arr=\explode("\\", $str);
         return $arr[count($arr)-1];
@@ -104,13 +104,13 @@ class CommonBase extends Common
     /**
      * 调试打印
      **/
-    public function debug_print($str)
+    public function debugPrint($str)
     {
         global $debug;
         if ($debug) {
             $str=substr(json_encode($str, JSON_UNESCAPED_UNICODE), 1, -1);
-            $this->tp_print($str);
-            $this->tp_print($str, self::LOG_WRITE);
+            $this->tpPrint($str);
+            $this->tpPrint($str, self::LOG_WRITE);
         }
     }
         
@@ -166,12 +166,12 @@ class CommonBase extends Common
      * @param {Object} $key
      * @param {Object} $val
      */
-    protected function set_cache($key, $val)
+    protected function setCache($key, $val)
     {
         return Cache::set($key, $val);
     }
     
-    protected function get_cache($key)
+    protected function getCache($key)
     {
         return Cache::get($key);
     }

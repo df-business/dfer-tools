@@ -60,7 +60,7 @@ class PhpEncode extends PlainModelTmpl
             $encode_type = $input->getOption('encode_type');
             $about = $input->getOption('about');
             if ($about) {
-                $common_base->tp_print("
+                $common_base->tpPrint("
                  | AUTHOR: dfer
                  | EMAIL: df_business@qq.com
                  | QQ: 3504725309");
@@ -80,7 +80,7 @@ class PhpEncode extends PlainModelTmpl
             }
            
         } catch (\think\exception\ErrorException $e) {
-            $common_base->tp_print(sprintf("\n%s\n\n%s %s", $e->getMessage(), $e->getFile(), $e->getLine()));
+            $common_base->tpPrint(sprintf("\n%s\n\n%s %s", $e->getMessage(), $e->getFile(), $e->getLine()));
         }
     }
 }

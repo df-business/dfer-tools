@@ -79,13 +79,13 @@ class Game extends GameModelTmpl
                 $argv[] = '-g';
             }
                         
-            $this->ws_init();
+            $this->wsInit();
         } catch (\think\exception\ErrorException $e) {
-            self::$common_base->tp_print(sprintf("\n%s\n\n%s %s", $e->getMessage(), $e->getFile(), $e->getLine()));
+            self::$common_base->tpPrint(sprintf("\n%s\n\n%s %s", $e->getMessage(), $e->getFile(), $e->getLine()));
         }
     }
     
-    public function ws_init()
+    public function wsInit()
     {
         global $ws_worker,$global_uid;
         $global_uid = 0;
@@ -94,7 +94,7 @@ class Game extends GameModelTmpl
         $ws_worker->count = 6;
         $ws_worker->list = array();
         $ws_worker->onWorkerStart = function (Worker $worker) {
-            self::$common_base->debug_print("服务 {$worker->id} 开启...");
+            self::$common_base->debugPrint("服务 {$worker->id} 开启...");
             $this->onWorkerStart($worker);
             $worker->onConnect    = array($this, 'onConnect');
             $worker->onMessage    = array($this, 'onMessage');

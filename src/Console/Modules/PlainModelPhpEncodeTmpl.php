@@ -65,7 +65,7 @@ class PlainModelPhpEncodeTmpl extends CommonTmpl
             }
             break;
            default:
-            $common_base->debug_print("类型错误");
+            $common_base->debugPrint("类型错误");
             break;
           }
         echo "\n
@@ -146,7 +146,7 @@ class PlainModelPhpEncodeTmpl extends CommonTmpl
             }
             break;
            default:
-            $common_base->debug_print("类型错误");
+            $common_base->debugPrint("类型错误");
             break;
           }
         echo "\n
