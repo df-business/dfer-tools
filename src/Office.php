@@ -422,8 +422,6 @@ class Office
         return '/' . $file;
     }
 
-
-
     /**
      * 读取文件
      * 返回拼接好的数组，可用来做数据导入
@@ -434,10 +432,11 @@ class Office
      * $filename = $file->getRealpath();
      * 
      * @param {Object} string $fileName	文件名称
-     * @param {Object} array $col_item 自定义列名
+     * @param {Object} array $col_item 自定义列名	eg:['item1', 'item2']
      * @param {Object} int $row_index	读取的初始行编号
+     * @param {Object} array $format_item	需要格式化的列名	eg:['item1']
      */
-    public function readFile(string $fileName = 'test.xlsx', array $col_item = ['item1', 'item2'], int $row_index = 3)
+    public function readFile(string $fileName = 'test.xlsx', array $col_item = [], int $row_index = 3, array $format_item = [])
     {
         //设置excel格式
         $format = 'xlsx';
@@ -457,11 +456,18 @@ class Office
         // 遍历列
         for ($col = 'A'; $col <= $col_num; $col++) {
             $col_val = isset($col_item[$col_index]) ? $col_item[$col_index] : '';
+            $need_format = in_array($col_val, $format_item);
             // 遍历行
             for ($row = $row_index; $row <= $row_num; $row++) {
                 // 把每一行的数据保存到自定义列名
-                // 获取带格式的单元格值（让单元格数据保持正常的格式）
-                $list[$row - $row_index][$col_val] = $sheet->getCell($col . $row)->getFormattedValue();
+
+                if ($need_format) {
+                    // 读取格式化之后的值(时间类型的原始值不是正常的时间格式)
+                    $list[$row - $row_index][$col_val] = $sheet->getCell($col . $row)->getFormattedValue();
+                } else {
+                    // 读取原始值
+                    $list[$row - $row_index][$col_val] = $sheet->getCell($col . $row)->getValue();
+                }
             }
             $col_index++;
         }
