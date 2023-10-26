@@ -323,3 +323,29 @@ public function uploadQN()
 ```
 
 
+
+
+## QrCode
+```
+composer require endroid/qr-code
+```
+
+```
+use Endroid\QrCode\Color\Color;
+```
+
+```
+public function index()
+{
+	
+	$qr=new \Dfer\Tools\QrCode;
+	$data=$qr->setStyle(500,30,new Color(255, 250, 232))
+	->setText("二维码测试",new Color(0, 0, 0))
+	->setData('http://www.baidu.com/')
+	->setLogo()
+	->getFile();
+	$this->success('请求成功!', $data);
+}
+```
+
+
