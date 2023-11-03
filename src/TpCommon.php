@@ -84,4 +84,18 @@ class TpCommon
     	}
     	return $data;
     }
+	
+	/**
+	 * 独立日志
+	 *
+	 * 'apart_level'=>['error','sql','debug','dfer']
+	 **/
+	public function log($data, $identification='dfer')
+	{
+	    if (class_exists("\\think\\facade\\Log")) {
+	        \think\facade\Log::write($data, $identification);
+	    } else {
+	        \think\Log::write($data, $identification);
+	    }
+	}
 }
