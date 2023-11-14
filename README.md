@@ -48,7 +48,7 @@ php index.php
 ```
 composer require topthink/framework
 ```
-- 大部分功能都是基于tp
+- 部分功能是基于tp
 
 
 ## Common
