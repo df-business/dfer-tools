@@ -349,3 +349,17 @@ public function index()
 ```
 
 
+
+## Mail
+
+```
+public function index()
+{	
+	$mail=new \Dfer\Tools\Mail;
+	$data=$mail->instance(['debug'=>true])	
+	->send('test@qq.com','邮件主题','邮件内容');
+	$this->success('请求成功!', $data);
+}
+```
+
+
