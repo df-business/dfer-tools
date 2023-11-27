@@ -6,31 +6,31 @@ namespace Dfer\Tools;
  * +----------------------------------------------------------------------
  * | 操作文件
  * +----------------------------------------------------------------------
- *                                            ...     .............          
- *                                          ..   .:!o&*&&&&&ooooo&; .        
- *                                        ..  .!*%*o!;.                      
- *                                      ..  !*%*!.      ...                  
- *                                     .  ;$$!.   .....                      
- *                          ........... .*#&   ...                           
- *                                     :$$: ...                              
- *                          .;;;;;;;:::#%      ...                           
- *                        . *@ooooo&&&#@***&&;.   .                          
- *                        . *@       .@%.::;&%$*!. . .                       
- *          ................!@;......$@:      :@@$.                          
- *                          .@!   ..!@&.:::::::*@@*.:..............          
- *        . :!!!!!!!!!!ooooo&@$*%%%*#@&*&&&&&&&*@@$&&&oooooooooooo.          
- *        . :!!!!!!!!;;!;;:::@#;::.;@*         *@@o                          
- *                           @$    &@!.....  .*@@&................           
- *          ................:@* .  ##.     .o#@%;                            
- *                        . &@%..:;@$:;!o&*$#*;  ..                          
- *                        . ;@@#$$$@#**&o!;:   ..                            
- *                           :;:: !@;        ..                              
- *                               ;@*........                                 
- *                       ....   !@* ..                                       
- *                 ......    .!%$! ..        | AUTHOR: dfer                             
- *         ......        .;o*%*!  .          | EMAIL: df_business@qq.com                             
- *                .:;;o&***o;.   .           | QQ: 3504725309                             
- *        .;;!o&****&&o;:.    ..        
+ *                                            ...     .............
+ *                                          ..   .:!o&*&&&&&ooooo&; .
+ *                                        ..  .!*%*o!;.
+ *                                      ..  !*%*!.      ...
+ *                                     .  ;$$!.   .....
+ *                          ........... .*#&   ...
+ *                                     :$$: ...
+ *                          .;;;;;;;:::#%      ...
+ *                        . *@ooooo&&&#@***&&;.   .
+ *                        . *@       .@%.::;&%$*!. . .
+ *          ................!@;......$@:      :@@$.
+ *                          .@!   ..!@&.:::::::*@@*.:..............
+ *        . :!!!!!!!!!!ooooo&@$*%%%*#@&*&&&&&&&*@@$&&&oooooooooooo.
+ *        . :!!!!!!!!;;!;;:::@#;::.;@*         *@@o
+ *                           @$    &@!.....  .*@@&................
+ *          ................:@* .  ##.     .o#@%;
+ *                        . &@%..:;@$:;!o&*$#*;  ..
+ *                        . ;@@#$$$@#**&o!;:   ..
+ *                           :;:: !@;        ..
+ *                               ;@*........
+ *                       ....   !@* ..
+ *                 ......    .!%$! ..        | AUTHOR: dfer
+ *         ......        .;o*%*!  .          | EMAIL: df_business@qq.com
+ *                .:;;o&***o;.   .           | QQ: 3504725309
+ *        .;;!o&****&&o;:.    ..
  * +----------------------------------------------------------------------
  *
  */
@@ -215,12 +215,13 @@ class Files
 
     /**
      * 创建一个文件，写入字符串，存在则覆盖
-     * @param {Object} $fileN
      * @param {Object} $str
+					* @param {Object} $file_src	文件路径
+					* @param {Object} $type	写入类型
      */
-    public function fileW($fileN, $str)
+    public function writeFile($str,$file_src,$type="w")
     {
-        $fp = fopen($fileN, "w");
+        $fp = fopen($file_src, $type) or die("无法打开文件!");
         fwrite($fp, $str);
         fclose($fp);
     }
@@ -230,7 +231,7 @@ class Files
      * 拼接js或者css
      * eg：/index.php?f=/css_js/df.js,/css_js/FontFamily/init.js
      */
-    public function addF($f)
+    public function addFile($f)
     {
         $files = explode(",", $f);
 
@@ -282,12 +283,14 @@ class Files
      * 返回文件的上传路径
      *
      *
-     * $name：控件的name参数
+					* @param {Object} $edit_tool	上传组件类型
+					* @param {Object} $option	特殊配置
+					* @param {Object} $upload_root	上传目录
      */
-    public function uploadFile($editTool = self::UPLOAD_UMEDITOR_SINGLE, $option = null)
+    public function uploadFile($edit_tool = self::UPLOAD_UMEDITOR_SINGLE, $option = null,$upload_root = 'upload')
     {
         global $common;
-        // var_dump($editTool);die;
+        // var_dump($edit_tool);die;
 
         // 上传组件的name
         $name = $option['name'] ?? 'file';
@@ -299,7 +302,7 @@ class Files
         $size = $option['size'] ?? '';
 
         $img_common = new \Dfer\Tools\Img\Common;
-        $upload_root = 'data/upload';
+
         $fileSizeMax = FILE_SIZE_MAX;
         //die(json_encode($_FILES));
 
@@ -329,10 +332,10 @@ class Files
             if ($path) {
                 $new_name = $path;
             } else {
-                $path = "{$upload_root}/img/";
+                $path = str("{0}/img/{1}/",[$upload_root,date("Ymd")]);
                 $this->mkDirs($path);
                 //新文件名
-                $new_name = sprintf("%s/%s-%s.%s", $path, rand(10000, 99999), date("Ymdhis"), $this->getExt($filename));
+                $new_name = str("{0}/{1}.{2}", [$path, base64_encode(json_encode([$filename,$filesize])), $this->getExt($filename)]);
             }
 
             if ($size) {
@@ -353,7 +356,7 @@ class Files
             $new_name = '/' . $new_name;
             //header("Content-type: image/jpeg");
             //js上传插件会接收所有的echo数据
-            switch ($editTool) {
+            switch ($edit_tool) {
                 case self::UPLOAD_UMEDITOR_SINGLE:
                     return $common->delSpace($new_name);
                     break;
@@ -379,15 +382,15 @@ class Files
         } else {
             //音乐上传
             if (in_array($filetype, ['audio/mp3']) || $m->getExt($filename) == "mp3") {
-                $path = "{$upload_root}/music/";
+																$path = str("{0}/music/{1}/",[$upload_root,date("Ymd")]);
             }
             //zip文件上传
             elseif (in_array($filetype, ['application/zip']) || $m->getExt($filename) == "zip") {
-                $path = "{$upload_root}/zip/";
+																$path = str("{0}/zip/{1}/",[$upload_root,date("Ymd")]);
             }
             //video文件上传
             elseif (in_array($filetype, ['video/mp4']) || $m->getExt($filename) == "mp4") {
-                $path = "{$upload_root}/video/";
+																$path = str("{0}/video/{1}/",[$upload_root,date("Ymd")]);
             } else {
                 #不支持的文件类型
                 return "-2";
@@ -396,13 +399,14 @@ class Files
             $this->mkDirs($path);
             //新文件名
             $new_name = sprintf("%s/%s-%s.%s", $path, rand(10000, 99999), date("Ymdhis"), $this->getExt($filename));
+
             #将临时文件移动到网站目录
             move_uploaded_file($filetmpname, $new_name);
             //header("Content-type: image/jpeg");
             $new_name = '/' . $new_name;
 
 
-            switch ($editTool) {
+            switch ($edit_tool) {
                 case self::UPLOAD_WEB_UPLOADER:
                     $json = ["type" => 'file', "url" => $new_name];
                     return $common->showJsonBase($json);
@@ -416,7 +420,6 @@ class Files
         return false;
     }
 
-
     /*
 	 * 创建目录
 	 *
@@ -426,10 +429,12 @@ class Files
 	 */
     public function mkDirs($path)
     {
+					
         //检查指定的文件是否是目录
         if (!is_dir($path)) {
-            $this->mkDirs(dirname($path)); //循环创建上级目录
-            mkdir($path);
+												 //循环创建上级目录
+            $this->mkDirs(dirname($path));
+												mkdir($path);
         }
         return is_dir($path);
     }
