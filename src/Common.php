@@ -1068,7 +1068,7 @@ public function downloadDocument($fileSrc, $mimetype = "application/octet-stream
  * @param {Object} $string	字符串
  * @param {Object} $params	参数
  */
-public function str($string, $params)
+public static function str($string, $params=[])
 {
     foreach ($params as $key => $value) {
         $string = preg_replace("/\{$key\}/", $value, $string);
