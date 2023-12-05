@@ -147,9 +147,116 @@ class Files
     }
 
 
+    /*
+	 * 创建目录
+	 *
+	 * 如果目录不存在就根据路径创建无限级目录
+	 *
+	 *
+	 */
+    public function mkDirs($path)
+    {
+        //检查指定的文件是否是目录
+        if (!is_dir($path)) {
+            //循环创建上级目录
+            $this->mkDirs(dirname($path));
+            mkdir($path);
+        }
+        return is_dir($path);
+    }
+
+	/**
+	 * 覆盖文件夹的内容
+	 * @param {Object} $strSrcDir	原始目录
+	 * @param {Object} $strDstDir	目标目录
+	 */
+	public function copyDir($strSrcDir, $strDstDir,$quiet=false)
+	{
+	    $dir = opendir($strSrcDir);
+	    if (!$dir) {
+	        return false;
+	    }
+	    if (!is_dir($strDstDir)) {
+									$this->mkDirs($strDstDir);
+	    }
+	    while (false !== ($file = readdir($dir))) {
+									if(!$quiet)
+	        echo $file . "\n";
+	        if (($file != '.') && ($file != '..')) {
+	            if (is_dir($strSrcDir . DIRECTORY_SEPARATOR . $file)) {
+	                if (!$this->copyDir($strSrcDir . DIRECTORY_SEPARATOR . $file, $strDstDir . DIRECTORY_SEPARATOR . $file,$quiet)) {
+	                    return false;
+	                }
+	            } else {
+	                if (!copy($strSrcDir . DIRECTORY_SEPARATOR . $file, $strDstDir . DIRECTORY_SEPARATOR . $file)) {
+	                    return false;
+	                }
+	            }
+	        }
+	    }
+	    closedir($dir);
+	    return true;
+	}
+
+	/**
+	 * 清除文件夹
+	 * @param {Object} $dir	文件夹路径
+	 */
+	public function deleteDir($dir,$quiet=false)
+	{
+	    if (is_dir($dir)) {
+	        if ($dp = opendir($dir)) {
+	            while (($file = readdir($dp)) != false) {
+	                if ($file != '.' && $file != '..') {
+	                    $file = $dir . DIRECTORY_SEPARATOR . $file;
+	                    if (is_dir($file)) {
+																						if(!$quiet)
+	                        echo "deleting dir:" . $file . "\n";
+	                        $this->deleteDir($file,$quiet);
+	                    } else {
+	                        try {
+																										if(!$quiet)
+	                            echo "deleting file:" . $file . "\n";
+	                            unlink($file);
+	                        } catch (\Exception $e) {
+
+	                        }
+	                    }
+	                }
+	            }
+	            if (readdir($dp) == false) {
+	                closedir($dp);
+	                rmdir($dir);
+	            }
+	        } else {
+										if(!$quiet)
+	            echo 'Not permission' . "\n";
+	        }
+
+	    }
+	}
+
+	/**
+	 * 通用复制
+	 * @param {Object} $strSrc	原始路径
+	 * @param {Object} $strDst	目标路径
+	 **/
+	public function copy($strSrc, $strDst,$quiet=false)
+	{
+		if (is_dir($strSrc)) {
+			return $this->copyDir($strSrc, $strDst,$quiet);
+		}
+		else{
+			if (!copy($strSrc, $strDst)) {
+			    return false;
+			}
+		}
+		return true;
+	}
+
 
     /**
-     * 遍历一个目录下的所有文件和文件夹，返回一个
+     * 遍历一个目录下的所有文件和文件夹，返回一个字符串
      * @param {Object} $dir
      * @return {String} easyUI的json字符串
      */
@@ -215,12 +322,14 @@ class Files
 
     /**
      * 创建一个文件，写入字符串，存在则覆盖
+     * 自动根据路径创建上级文件夹
      * @param {Object} $str
-					* @param {Object} $file_src	文件路径
-					* @param {Object} $type	写入类型
+     * @param {Object} $file_src	文件路径
+     * @param {Object} $type	写入类型 a 追加 w覆盖
      */
-    public function writeFile($str,$file_src,$type="w")
+    public function writeFile($str, $file_src, $type = "w")
     {
+        $this->mkDirs(dirname($file_src));
         $fp = fopen($file_src, $type) or die("无法打开文件!");
         fwrite($fp, $str);
         fclose($fp);
@@ -283,11 +392,11 @@ class Files
      * 返回文件的上传路径
      *
      *
-					* @param {Object} $edit_tool	上传组件类型
-					* @param {Object} $option	特殊配置
-					* @param {Object} $upload_root	上传目录
+     * @param {Object} $edit_tool	上传组件类型
+     * @param {Object} $option	特殊配置
+     * @param {Object} $upload_root	上传目录
      */
-    public function uploadFile($edit_tool = self::UPLOAD_UMEDITOR_SINGLE, $option = null,$upload_root = 'upload')
+    public function uploadFile($edit_tool = self::UPLOAD_UMEDITOR_SINGLE, $option = null, $upload_root = 'upload')
     {
         global $common;
         // var_dump($edit_tool);die;
@@ -332,10 +441,10 @@ class Files
             if ($path) {
                 $new_name = $path;
             } else {
-                $path = str("{0}/img/{1}/",[$upload_root,date("Ymd")]);
+                $path = str("{0}/img/{1}/", [$upload_root, date("Ymd")]);
                 $this->mkDirs($path);
                 //新文件名
-                $new_name = str("{0}/{1}.{2}", [$path, base64_encode(json_encode([$filename,$filesize])), $this->getExt($filename)]);
+                $new_name = str("{0}/{1}.{2}", [$path, base64_encode(json_encode([$filename, $filesize])), $this->getExt($filename)]);
             }
 
             if ($size) {
@@ -382,15 +491,15 @@ class Files
         } else {
             //音乐上传
             if (in_array($filetype, ['audio/mp3']) || $m->getExt($filename) == "mp3") {
-																$path = str("{0}/music/{1}/",[$upload_root,date("Ymd")]);
+                $path = str("{0}/music/{1}/", [$upload_root, date("Ymd")]);
             }
             //zip文件上传
             elseif (in_array($filetype, ['application/zip']) || $m->getExt($filename) == "zip") {
-																$path = str("{0}/zip/{1}/",[$upload_root,date("Ymd")]);
+                $path = str("{0}/zip/{1}/", [$upload_root, date("Ymd")]);
             }
             //video文件上传
             elseif (in_array($filetype, ['video/mp4']) || $m->getExt($filename) == "mp4") {
-																$path = str("{0}/video/{1}/",[$upload_root,date("Ymd")]);
+                $path = str("{0}/video/{1}/", [$upload_root, date("Ymd")]);
             } else {
                 #不支持的文件类型
                 return "-2";
@@ -420,22 +529,5 @@ class Files
         return false;
     }
 
-    /*
-	 * 创建目录
-	 *
-	 * 如果目录不存在就根据路径创建无限级目录
-	 *
-	 *
-	 */
-    public function mkDirs($path)
-    {
-					
-        //检查指定的文件是否是目录
-        if (!is_dir($path)) {
-												 //循环创建上级目录
-            $this->mkDirs(dirname($path));
-												mkdir($path);
-        }
-        return is_dir($path);
-    }
+
 }

@@ -1063,6 +1063,7 @@ public function downloadDocument($fileSrc, $mimetype = "application/octet-stream
 
 /**
  * 格式化字符串
+	* 非字符串的数据会自动被转化为字符串
  * eg:
  * str("admin/home/{0}/{dd}",[123,'dd'=>333])
  * @param {Object} $string	字符串
@@ -1070,6 +1071,7 @@ public function downloadDocument($fileSrc, $mimetype = "application/octet-stream
  */
 public static function str($string, $params=[])
 {
+				$string = is_string($string) ? $string:var_export($string);
     foreach ($params as $key => $value) {
         $string = preg_replace("/\{$key\}/", $value, $string);
     }
