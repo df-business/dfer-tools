@@ -1071,7 +1071,7 @@ public function downloadDocument($fileSrc, $mimetype = "application/octet-stream
  */
 public static function str($string, $params=[])
 {
-				$string = is_string($string) ? $string:var_export($string);
+	$string = is_string($string) ? $string:var_export($string,true);
     foreach ($params as $key => $value) {
         $string = preg_replace("/\{$key\}/", $value, $string);
     }
