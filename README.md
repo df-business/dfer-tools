@@ -139,7 +139,7 @@ $spService->setStyle()->setWidthAndHeight(35)
 $files = request()->file('file_data');
 $savename = \think\facade\Filesystem::disk('public')->putFile('filexls', $files);
 $spService = new Office;
-$items=['xuhao','qiye_dm','qiye_mc','xiangzhen_mc','chanye','chanzhi','chanzhi_lj','chanzhi_tong','chanzhi_tong_lj','hangye_mc','hangye_zeng','s_zhongdian'];
+$items=['xuhao','qiye_dm','qiye_mc','xiangzhen_mc','chanye','chanzhi','chanzhi_lj','chanzhi_tong','chanzhi_lj_tong','hangye_mc','hangye_zeng','s_zhongdian'];
 $xls_data=$spService->readFile('./storage/' . $savename,$items,2);
 foreach($xls_data as $key=>&$v){
 }
