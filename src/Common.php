@@ -38,9 +38,7 @@ class Common
 {
     /**
      * 简介
-     *
-     * @param Type $var Description
-     * @return mixed
+	 *      
      **/
     public static function about()
     {
@@ -87,7 +85,7 @@ class Common
             $ret['result'] = $return;
         }
 
-        $this->showJsonBase($ret);
+        self::showJsonBase($ret);
     }
 
     public static function showJsonBase($return = array())
@@ -625,7 +623,7 @@ class Common
      */
     public static function getBrowser()
     {
-        return sprintf("%s-%s", $this->getBrowserName(), $this->getBrowserVer());
+        return sprintf("%s-%s", self::getBrowserName(), self::getBrowserVer());
     }
 
 
@@ -763,7 +761,7 @@ class Common
     {
         if (is_array($var)) {
             foreach ($var as $key => $value) {
-                $var[htmlspecialchars($key)] = $this->ihtmlspecialchars($value);
+                $var[htmlspecialchars($key)] = self::ihtmlspecialchars($value);
             }
         } else {
             $var = str_replace('&amp;', '&', htmlspecialchars($var, ENT_QUOTES));
@@ -1027,7 +1025,7 @@ class Common
     /**
      * 去掉空格，回车，换行，tab
      */
-    public static function trimall($str)
+    public static function trimAll($str)
     {
         $oldchar = array(" ", "　", "\t", "\n", "\r");
         $newchar = array("", "", "", "", "");
@@ -1040,7 +1038,7 @@ class Common
      */
     public static function isEmpty($obj)
     {
-        if (!isset($obj) || $obj === null || $this->trimall($obj) === '') {
+        if (!isset($obj) || $obj === null || self::trimAll($obj) === '') {
             return true;
         }
         return false;
@@ -1088,7 +1086,7 @@ class Common
      **/
     public static function runScript($var = null)
     {
-        return $this->str(shell_exec($var));
+        return self::str(shell_exec($var));
     }
 
     /**
