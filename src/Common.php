@@ -716,8 +716,8 @@ class Common
      */
     public static function isTimestamp($timestamp)
     {
-        if (strtotime(date('m-d-Y H:i:s', $timestamp)) === $timestamp) {
-            return $timestamp;
+        if (strtotime(date('Y-m-d H:i:s', $timestamp)) === intval($timestamp)) {
+            return true;
         } else {
             return false;
         }
@@ -1144,8 +1144,6 @@ class Common
         return $string;
     }
 
-
-
     /**
      * 第一个参数为空就调用第二个参数
      * @param {Object} $default
@@ -1156,4 +1154,22 @@ class Common
         $rt = empty($default) ? $other : $default;
         return $rt;
     }
+	
+	/**
+	 * 获取缩略文本
+	 * @param {Object} $str	原始字符串
+	 * @param {Object} $length	缩略文本长度
+	 */
+	public static function getThumbnailText($str, $length)
+	{
+		// 去掉HTML标签
+		$text=strip_tags($str);
+		// 截取UTF-8编码的字符串
+		$tn_text=mb_substr($text, 0, $length);
+		// 获取UTF-8编码的字符串长度
+		if(mb_strlen($str)>$length){
+			return $tn_text.'...';
+		}
+		return $tn_text;
+	}
 }
