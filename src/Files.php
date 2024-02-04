@@ -165,94 +165,91 @@ class Files
         return is_dir($path);
     }
 
-	/**
-	 * 覆盖文件夹的内容
-	 * @param {Object} $strSrcDir	原始目录
-	 * @param {Object} $strDstDir	目标目录
-	 */
-	public function copyDir($strSrcDir, $strDstDir,$quiet=false)
-	{
-	    $dir = opendir($strSrcDir);
-	    if (!$dir) {
-	        return false;
-	    }
-	    if (!is_dir($strDstDir)) {
-									$this->mkDirs($strDstDir);
-	    }
-	    while (false !== ($file = readdir($dir))) {
-									if(!$quiet)
-	        echo $file . "\n";
-	        if (($file != '.') && ($file != '..')) {
-	            if (is_dir($strSrcDir . DIRECTORY_SEPARATOR . $file)) {
-	                if (!$this->copyDir($strSrcDir . DIRECTORY_SEPARATOR . $file, $strDstDir . DIRECTORY_SEPARATOR . $file,$quiet)) {
-	                    return false;
-	                }
-	            } else {
-	                if (!copy($strSrcDir . DIRECTORY_SEPARATOR . $file, $strDstDir . DIRECTORY_SEPARATOR . $file)) {
-	                    return false;
-	                }
-	            }
-	        }
-	    }
-	    closedir($dir);
-	    return true;
-	}
+    /**
+     * 覆盖文件夹的内容
+     * @param {Object} $strSrcDir	原始目录
+     * @param {Object} $strDstDir	目标目录
+     */
+    public function copyDir($strSrcDir, $strDstDir, $quiet = false)
+    {
+        $dir = opendir($strSrcDir);
+        if (!$dir) {
+            return false;
+        }
+        if (!is_dir($strDstDir)) {
+            $this->mkDirs($strDstDir);
+        }
+        while (false !== ($file = readdir($dir))) {
+            if (!$quiet)
+                echo $file . "\n";
+            if (($file != '.') && ($file != '..')) {
+                if (is_dir($strSrcDir . DIRECTORY_SEPARATOR . $file)) {
+                    if (!$this->copyDir($strSrcDir . DIRECTORY_SEPARATOR . $file, $strDstDir . DIRECTORY_SEPARATOR . $file, $quiet)) {
+                        return false;
+                    }
+                } else {
+                    if (!copy($strSrcDir . DIRECTORY_SEPARATOR . $file, $strDstDir . DIRECTORY_SEPARATOR . $file)) {
+                        return false;
+                    }
+                }
+            }
+        }
+        closedir($dir);
+        return true;
+    }
 
-	/**
-	 * 清除文件夹
-	 * @param {Object} $dir	文件夹路径
-	 */
-	public function deleteDir($dir,$quiet=false)
-	{
-	    if (is_dir($dir)) {
-	        if ($dp = opendir($dir)) {
-	            while (($file = readdir($dp)) != false) {
-	                if ($file != '.' && $file != '..') {
-	                    $file = $dir . DIRECTORY_SEPARATOR . $file;
-	                    if (is_dir($file)) {
-																						if(!$quiet)
-	                        echo "deleting dir:" . $file . "\n";
-	                        $this->deleteDir($file,$quiet);
-	                    } else {
-	                        try {
-																										if(!$quiet)
-	                            echo "deleting file:" . $file . "\n";
-	                            unlink($file);
-	                        } catch (\Exception $e) {
+    /**
+     * 清除文件夹
+     * @param {Object} $dir	文件夹路径
+     */
+    public function deleteDir($dir, $quiet = false)
+    {
+        if (is_dir($dir)) {
+            if ($dp = opendir($dir)) {
+                while (($file = readdir($dp)) != false) {
+                    if ($file != '.' && $file != '..') {
+                        $file = $dir . DIRECTORY_SEPARATOR . $file;
+                        if (is_dir($file)) {
+                            if (!$quiet)
+                                echo "deleting dir:" . $file . "\n";
+                            $this->deleteDir($file, $quiet);
+                        } else {
+                            try {
+                                if (!$quiet)
+                                    echo "deleting file:" . $file . "\n";
+                                unlink($file);
+                            } catch (\Exception $e) {
+                            }
+                        }
+                    }
+                }
+                if (readdir($dp) == false) {
+                    closedir($dp);
+                    rmdir($dir);
+                }
+            } else {
+                if (!$quiet)
+                    echo 'Not permission' . "\n";
+            }
+        }
+    }
 
-	                        }
-	                    }
-	                }
-	            }
-	            if (readdir($dp) == false) {
-	                closedir($dp);
-	                rmdir($dir);
-	            }
-	        } else {
-										if(!$quiet)
-	            echo 'Not permission' . "\n";
-	        }
-
-	    }
-	}
-
-	/**
-	 * 通用复制
-	 * @param {Object} $strSrc	原始路径
-	 * @param {Object} $strDst	目标路径
-	 **/
-	public function copy($strSrc, $strDst,$quiet=false)
-	{
-		if (is_dir($strSrc)) {
-			return $this->copyDir($strSrc, $strDst,$quiet);
-		}
-		else{
-			if (!copy($strSrc, $strDst)) {
-			    return false;
-			}
-		}
-		return true;
-	}
+    /**
+     * 通用复制
+     * @param {Object} $strSrc	原始路径
+     * @param {Object} $strDst	目标路径
+     **/
+    public function copy($strSrc, $strDst, $quiet = false)
+    {
+        if (is_dir($strSrc)) {
+            return $this->copyDir($strSrc, $strDst, $quiet);
+        } else {
+            if (!copy($strSrc, $strDst)) {
+                return false;
+            }
+        }
+        return true;
+    }
 
 
     /**
@@ -416,7 +413,7 @@ class Files
         //die(json_encode($_FILES));
 
         if ($_FILES == null) {
-            return "not file";
+            $common->showJson(false, null, null, '没有找到文件');
         }
 
         $filename = $_FILES[$name]["name"];
@@ -427,107 +424,177 @@ class Files
 
         //以byte为单位
         if ($filesize > $fileSizeMax) {
-            //超出尺寸
-            return "-3";
+            $msg = '文件超出尺寸';
+            switch ($edit_tool) {
+                case self::UPLOAD_UMEDITOR_EDITOR:
+                    $this->uploadFileJson(compact('msg'), $edit_tool);
+                    break;
+                default:
+                    $common->showJson(false, null, null, $msg);
+                    break;
+            }
         }
         if ($fileErr > 0) {
-            //上传受限
-            return "-1";
-        }
-
-        //图片上传
-        if (in_array($filetype, ['image/gif', 'image/jpeg', 'image/pjpeg', 'image/png', 'image/vnd.microsoft.icon'])) {
-            //自动生成路径
-            if ($path) {
-                $new_name = $path;
-            } else {
-                $path = str("{0}/img/{1}/", [$upload_root, date("Ymd")]);
-                $this->mkDirs($path);
-                //新文件名
-                $new_name = str("{0}/{1}.{2}", [$path, base64_encode(json_encode([$filename, $filesize])), $this->getExt($filename)]);
-            }
-
-            if ($size) {
-                $size = $common->split($size, "*");
-                $img_common->resizeJpg($filetmpname, $new_name, $size[0], $size[1]);  #将临时文件转变尺寸之后移动到网站目录
-            } else {
-                #将临时文件移动到网站目录
-                move_uploaded_file($filetmpname, $new_name);
-            }
-
-            if ($compress) {
-                #原图压缩，不缩放，但体积大大降低
-                $percent = 1;
-                $imgcompress = new  \Dfer\Tools\Img\Compress($new_name, $percent);
-                $image = $imgcompress->compressImg($new_name);
-            }
-
-            $new_name = '/' . $new_name;
-            //header("Content-type: image/jpeg");
-            //js上传插件会接收所有的echo数据
+            $msg = '文件上传受限';
             switch ($edit_tool) {
-                case self::UPLOAD_UMEDITOR_SINGLE:
-                    return $common->delSpace($new_name);
-                    break;
                 case self::UPLOAD_UMEDITOR_EDITOR:
-                    return "{'url':'{$new_name}','state':'SUCCESS',name:'',originalName:'',size:'',type:''}";
-                    break;
-                case self::UPLOAD_LAYUI_EDITOR:
-                    $json = array(code => 0, msg => 'error', 'data' => array('src' => $new_name, 'title' => $new_name));
-                    return $common->showJsonBase($json);
-                    break;
-                case self::UPLOAD_EDITORMD_EDITOR:
-                    $json = ["success" => 1, "url" => $new_name, "state" => 'SUCCESS', "name" => "", "originalName" => '', "size" => '', "type" => ''];
-                    return $common->showJsonBase($json);
-                    break;
-                case self::UPLOAD_WEB_UPLOADER:
-                    $json = ["type" => 'img', "url" => $new_name];
-                    return $common->showJsonBase($json);
+                    $this->uploadFileJson(compact('msg'), $edit_tool);
                     break;
                 default:
-                    return $new_name;
-                    break;
-            }
-        } else {
-            //音乐上传
-            if (in_array($filetype, ['audio/mp3']) || $m->getExt($filename) == "mp3") {
-                $path = str("{0}/music/{1}/", [$upload_root, date("Ymd")]);
-            }
-            //zip文件上传
-            elseif (in_array($filetype, ['application/zip']) || $m->getExt($filename) == "zip") {
-                $path = str("{0}/zip/{1}/", [$upload_root, date("Ymd")]);
-            }
-            //video文件上传
-            elseif (in_array($filetype, ['video/mp4']) || $m->getExt($filename) == "mp4") {
-                $path = str("{0}/video/{1}/", [$upload_root, date("Ymd")]);
-            } else {
-                #不支持的文件类型
-                return "-2";
-            }
-
-            $this->mkDirs($path);
-            //新文件名
-            $new_name = sprintf("%s/%s-%s.%s", $path, rand(10000, 99999), date("Ymdhis"), $this->getExt($filename));
-
-            #将临时文件移动到网站目录
-            move_uploaded_file($filetmpname, $new_name);
-            //header("Content-type: image/jpeg");
-            $new_name = '/' . $new_name;
-
-
-            switch ($edit_tool) {
-                case self::UPLOAD_WEB_UPLOADER:
-                    $json = ["type" => 'file', "url" => $new_name];
-                    return $common->showJsonBase($json);
-                    break;
-                default:
-                    //js上传插件会接收所有的echo数据
-                    return $common->delSpace($new_name);
+                    $common->showJson(false, null, null, $msg);
                     break;
             }
         }
+
+
+        switch ($filetype) {
+                //图片上传
+            case 'image/gif':
+            case 'image/jpeg':
+            case 'image/pjpeg':
+            case 'image/png':
+            case 'image/vnd.microsoft.icon':
+                //自动生成路径
+                if ($path) {
+                    $new_name = $path;
+                } else {
+                    $path = str("{0}/img/{1}/", [$upload_root, date("Ymd")]);
+                    $this->mkDirs($path);
+                    //新文件名
+                    $new_name = str("{0}/{1}.{2}", [$path, base64_encode(json_encode([$filename, $filesize])), $this->getExt($filename)]);
+                }
+
+                if ($size) {
+                    $size = $common->split($size, "*");
+                    $img_common->resizeJpg($filetmpname, $new_name, $size[0], $size[1]);  #将临时文件转变尺寸之后移动到网站目录
+                } else {
+                    #将临时文件移动到网站目录
+                    move_uploaded_file($filetmpname, $new_name);
+                }
+
+                if ($compress) {
+                    #原图压缩，不缩放，但体积大大降低
+                    $percent = 1;
+                    $imgcompress = new  \Dfer\Tools\Img\Compress($new_name, $percent);
+                    $image = $imgcompress->compressImg($new_name);
+                }
+
+                $new_name = '/' . $new_name;
+                //header("Content-type: image/jpeg");
+                //js上传插件会接收所有的echo数据
+                switch ($edit_tool) {
+                    case self::UPLOAD_UMEDITOR_SINGLE:
+                        return $common->delSpace($new_name);
+                        break;
+                    case self::UPLOAD_UMEDITOR_EDITOR:
+                        $this->uploadFileJson(['url' => $new_name], $edit_tool);
+                        break;
+                    case self::UPLOAD_LAYUI_EDITOR:
+                        $json = array(code => 0, msg => 'error', 'data' => array('src' => $new_name, 'title' => $new_name));
+                        return $common->showJsonBase($json);
+                        break;
+                    case self::UPLOAD_EDITORMD_EDITOR:
+                        $json = ["success" => 1, "url" => $new_name, "state" => 'SUCCESS', "name" => "", "originalName" => '', "size" => '', "type" => ''];
+                        return $common->showJsonBase($json);
+                        break;
+                    case self::UPLOAD_WEB_UPLOADER:
+                        $json = ["type" => 'img', "url" => $new_name];
+                        return $common->showJsonBase($json);
+                        break;
+                    default:
+                        return $new_name;
+                        break;
+                }
+                break;
+            case 'audio/mp3':
+            case 'audio/mpeg':
+                // 音乐上传
+                $path = str("{0}/music/{1}/", [$upload_root, date("Ymd")]);
+                break;
+            case 'application/zip':
+                // zip文件上传
+                $path = str("{0}/zip/{1}/", [$upload_root, date("Ymd")]);
+                break;
+            case 'video/mp4':
+                // video文件上传
+                $path = str("{0}/video/{1}/", [$upload_root, date("Ymd")]);
+                break;
+            default:
+                $msg = "不支持的文件类型:{$filetype}";
+                switch ($edit_tool) {
+                    case self::UPLOAD_UMEDITOR_EDITOR:
+                        $this->uploadFileJson(compact('msg'), $edit_tool);
+                        break;
+                    default:
+                        $common->showJson(false, null, null, $msg);
+                        break;
+                }
+                break;
+        }
+
+        // 特殊处理
+        // switch($this->getExt($filename)){
+        // 	case 'mp3':
+        // 		break;
+        // 	case 'zip':
+        // 		break;
+        // 	case 'mp4':
+        // 		break;
+        // 	default:
+        // 		#不支持的文件类型
+        // 		return "-2";
+        // 		break;
+        // }
+        // var_dump($upload_root,$path);die;
+        $this->mkDirs($path);
+        //新文件名
+        $new_name = sprintf("%s/%s-%s.%s", $path, rand(10000, 99999), date("Ymdhis"), $this->getExt($filename));
+
+        #将临时文件移动到网站目录
+        move_uploaded_file($filetmpname, $new_name);
+        //header("Content-type: image/jpeg");
+        $new_name = '/' . $new_name;
+
+
+        switch ($edit_tool) {
+            case self::UPLOAD_WEB_UPLOADER:
+                $json = ["type" => 'file', "url" => $new_name];
+                $common->showJson(true, $json, null, null);
+                break;
+            default:
+                //js上传插件会接收所有的echo数据
+                return $common->delSpace($new_name);
+                break;
+        }
+
         return false;
     }
 
-
+    /**
+     * 不同组件的返回格式
+     * @param {Object} $var 变量
+     **/
+    public function uploadFileJson($data, $edit_tool = self::UPLOAD_UMEDITOR_EDITOR)
+    {
+        global $common;
+        switch ($edit_tool) {
+            case self::UPLOAD_UMEDITOR_EDITOR:
+                $stateMap = array(    //上传状态映射表，国际化用户需考虑此处数据的国际化
+                    "SUCCESS",                //上传成功标记，在UEditor中内不可改变，否则flash判断会出错
+                );
+                $return = array(
+                    "originalName" => null,
+                    "name" => null,
+                    "url" => $data['url'],
+                    "size" => null,
+                    "type" => null,
+                    "state" => $data['msg'] ?? $stateMap[0]
+                );
+                $common->showJsonBase($return, false);
+                break;
+            default:
+                $common->showJson(false, null, null, '文件超出尺寸');
+                break;
+        }
+    }
 }

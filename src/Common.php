@@ -6,31 +6,31 @@ namespace Dfer\Tools;
  * +----------------------------------------------------------------------
  * | 常用的方法
  * +----------------------------------------------------------------------
- *                                            ...     .............          
- *                                          ..   .:!o&*&&&&&ooooo&; .        
- *                                        ..  .!*%*o!;.                      
- *                                      ..  !*%*!.      ...                  
- *                                     .  ;$$!.   .....                      
- *                          ........... .*#&   ...                           
- *                                     :$$: ...                              
- *                          .;;;;;;;:::#%      ...                           
- *                        . *@ooooo&&&#@***&&;.   .                          
- *                        . *@       .@%.::;&%$*!. . .                       
- *          ................!@;......$@:      :@@$.                          
- *                          .@!   ..!@&.:::::::*@@*.:..............          
- *        . :!!!!!!!!!!ooooo&@$*%%%*#@&*&&&&&&&*@@$&&&oooooooooooo.          
- *        . :!!!!!!!!;;!;;:::@#;::.;@*         *@@o                          
- *                           @$    &@!.....  .*@@&................           
- *          ................:@* .  ##.     .o#@%;                            
- *                        . &@%..:;@$:;!o&*$#*;  ..                          
- *                        . ;@@#$$$@#**&o!;:   ..                            
- *                           :;:: !@;        ..                              
- *                               ;@*........                                 
- *                       ....   !@* ..                                       
- *                 ......    .!%$! ..        | AUTHOR: dfer                             
- *         ......        .;o*%*!  .          | EMAIL: df_business@qq.com                             
- *                .:;;o&***o;.   .           | QQ: 3504725309                             
- *        .;;!o&****&&o;:.    ..        
+ *                                            ...     .............
+ *                                          ..   .:!o&*&&&&&ooooo&; .
+ *                                        ..  .!*%*o!;.
+ *                                      ..  !*%*!.      ...
+ *                                     .  ;$$!.   .....
+ *                          ........... .*#&   ...
+ *                                     :$$: ...
+ *                          .;;;;;;;:::#%      ...
+ *                        . *@ooooo&&&#@***&&;.   .
+ *                        . *@       .@%.::;&%$*!. . .
+ *          ................!@;......$@:      :@@$.
+ *                          .@!   ..!@&.:::::::*@@*.:..............
+ *        . :!!!!!!!!!!ooooo&@$*%%%*#@&*&&&&&&&*@@$&&&oooooooooooo.
+ *        . :!!!!!!!!;;!;;:::@#;::.;@*         *@@o
+ *                           @$    &@!.....  .*@@&................
+ *          ................:@* .  ##.     .o#@%;
+ *                        . &@%..:;@$:;!o&*$#*;  ..
+ *                        . ;@@#$$$@#**&o!;:   ..
+ *                           :;:: !@;        ..
+ *                               ;@*........
+ *                       ....   !@* ..
+ *                 ......    .!%$! ..        | AUTHOR: dfer
+ *         ......        .;o*%*!  .          | EMAIL: df_business@qq.com
+ *                .:;;o&***o;.   .           | QQ: 3504725309
+ *        .;;!o&****&&o;:.    ..
  * +----------------------------------------------------------------------
  *
  */
@@ -38,7 +38,7 @@ class Common
 {
     /**
      * 简介
-	 *      
+     *
      **/
     public static function about()
     {
@@ -75,23 +75,31 @@ class Common
     /**
      * 输出json，然后终止当前请求
      */
-    public static function showJson($status = 1, $return = array(), $msg = '')
+    public static function showJson($status = 1, $data = array(), $success_msg = '', $fail_msg = '')
     {
+        $msg = boolval($status) ? ($success_msg ?: '操作成功') : ($fail_msg ?: '操作失败');
+
         $ret = array(
             'status' => $status,
             'msg' => $msg
         );
-        if ($return) {
-            $ret['result'] = $return;
+        if ($data) {
+            $ret['data'] = $data;
         }
 
         self::showJsonBase($ret);
     }
 
-    public static function showJsonBase($return = array())
+    /**
+     *	输出json数据
+     * @param {Object} $return	数据
+     * @param {Object} $to_json true:json对象 false:json字符串
+     */
+    public static function showJsonBase($return = array(), $to_json = true)
     {
-        //json格式
-        header('content-type:application/json;charset=utf-8');
+        if ($to_json)
+            //json格式
+            header('content-type:application/json;charset=utf-8');
         //中文不加密
         die(json_encode($return, JSON_UNESCAPED_UNICODE));
     }
@@ -158,7 +166,6 @@ class Common
      *
      * eg:
      * getTimeFromStr($output["time"],"Y/m/d H:i:s")
-     *
      *
      */
     public static function getTimeFromStr($time, $type = 0)
@@ -1132,14 +1139,21 @@ class Common
      * 非字符串的数据会自动被转化为字符串
      * eg:
      * str("admin/home/{0}/{dd}",[123,'dd'=>333])
+     * str("admin/home/%s/%s",[123,333])
      * @param {Object} $string	字符串
      * @param {Object} $params	参数
      */
     public static function str($string, $params = [])
     {
         $string = is_string($string) ? $string : var_export($string, true);
+
         foreach ($params as $key => $value) {
             $string = preg_replace("/\{$key\}/", $value, $string);
+            $search = "%s";
+            // 在连续调用时会保留上次的查找坐标
+            $position = strpos($string, $search);
+            if ($position > 0)
+                $string = substr_replace($string, $value, $position, 2);
         }
         return $string;
     }
@@ -1154,22 +1168,22 @@ class Common
         $rt = empty($default) ? $other : $default;
         return $rt;
     }
-	
-	/**
-	 * 获取缩略文本
-	 * @param {Object} $str	原始字符串
-	 * @param {Object} $length	缩略文本长度
-	 */
-	public static function getThumbnailText($str, $length)
-	{
-		// 去掉HTML标签
-		$text=strip_tags($str);
-		// 截取UTF-8编码的字符串
-		$tn_text=mb_substr($text, 0, $length);
-		// 获取UTF-8编码的字符串长度
-		if(mb_strlen($str)>$length){
-			return $tn_text.'...';
-		}
-		return $tn_text;
-	}
+
+    /**
+     * 获取缩略文本
+     * @param {Object} $str	原始字符串
+     * @param {Object} $length	缩略文本长度
+     */
+    public static function getThumbnailText($str, $length)
+    {
+        // 去掉HTML标签
+        $text = strip_tags($str);
+        // 截取UTF-8编码的字符串
+        $tn_text = mb_substr($text, 0, $length);
+        // 获取UTF-8编码的字符串长度
+        if (mb_strlen($str) > $length) {
+            return $tn_text . '...';
+        }
+        return $tn_text;
+    }
 }
