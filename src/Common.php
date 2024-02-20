@@ -716,6 +716,23 @@ class Common
     {
         return date('t', strtotime("{$year}-{$month} -1"));
     }
+	
+	/**
+	 * 获取上个月的日期
+	 * @param {Object} $var 变量
+	 **/
+	public static function getLastMonth($year,$month)
+	{		
+		// 使用strtotime获取上一个月的日期  
+		$previousMonthDate = strtotime('-1 month', strtotime("{$year}-{$month}"));		  
+		// 使用date格式化上个月的年月  
+		$previousYear = date('Y', $previousMonthDate);  
+		$previousMonth = date('m', $previousMonthDate);
+		$obj = new \stdClass();  
+		$obj->year = $previousYear;  
+		$obj->month = $previousMonth;
+		return $obj;		  
+	}
 
     /**
      * 判断是否是时间戳
