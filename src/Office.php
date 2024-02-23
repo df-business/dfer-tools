@@ -7,38 +7,36 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Style;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 
-use think\Env;
-
 /**
  * +----------------------------------------------------------------------
- * | 电子表格服务
+ * | 电子表格类
  * | composer require phpoffice/phpspreadsheet
  * +----------------------------------------------------------------------
- *                                            ...     .............          
- *                                          ..   .:!o&*&&&&&ooooo&; .        
- *                                        ..  .!*%*o!;.                      
- *                                      ..  !*%*!.      ...                  
- *                                     .  ;$$!.   .....                      
- *                          ........... .*#&   ...                           
- *                                     :$$: ...                              
- *                          .;;;;;;;:::#%      ...                           
- *                        . *@ooooo&&&#@***&&;.   .                          
- *                        . *@       .@%.::;&%$*!. . .                       
- *          ................!@;......$@:      :@@$.                          
- *                          .@!   ..!@&.:::::::*@@*.:..............          
- *        . :!!!!!!!!!!ooooo&@$*%%%*#@&*&&&&&&&*@@$&&&oooooooooooo.          
- *        . :!!!!!!!!;;!;;:::@#;::.;@*         *@@o                          
- *                           @$    &@!.....  .*@@&................           
- *          ................:@* .  ##.     .o#@%;                            
- *                        . &@%..:;@$:;!o&*$#*;  ..                          
- *                        . ;@@#$$$@#**&o!;:   ..                            
- *                           :;:: !@;        ..                              
- *                               ;@*........                                 
- *                       ....   !@* ..                                       
- *                 ......    .!%$! ..        | AUTHOR: dfer                             
- *         ......        .;o*%*!  .          | EMAIL: df_business@qq.com                             
- *                .:;;o&***o;.   .           | QQ: 3504725309                             
- *        .;;!o&****&&o;:.    ..        
+ *                                            ...     .............
+ *                                          ..   .:!o&*&&&&&ooooo&; .
+ *                                        ..  .!*%*o!;.
+ *                                      ..  !*%*!.      ...
+ *                                     .  ;$$!.   .....
+ *                          ........... .*#&   ...
+ *                                     :$$: ...
+ *                          .;;;;;;;:::#%      ...
+ *                        . *@ooooo&&&#@***&&;.   .
+ *                        . *@       .@%.::;&%$*!. . .
+ *          ................!@;......$@:      :@@$.
+ *                          .@!   ..!@&.:::::::*@@*.:..............
+ *        . :!!!!!!!!!!ooooo&@$*%%%*#@&*&&&&&&&*@@$&&&oooooooooooo.
+ *        . :!!!!!!!!;;!;;:::@#;::.;@*         *@@o
+ *                           @$    &@!.....  .*@@&................
+ *          ................:@* .  ##.     .o#@%;
+ *                        . &@%..:;@$:;!o&*$#*;  ..
+ *                        . ;@@#$$$@#**&o!;:   ..
+ *                           :;:: !@;        ..
+ *                               ;@*........
+ *                       ....   !@* ..
+ *                 ......    .!%$! ..        | AUTHOR: dfer
+ *         ......        .;o*%*!  .          | EMAIL: df_business@qq.com
+ *                .:;;o&***o;.   .           | QQ: 3504725309
+ *        .;;!o&****&&o;:.    ..
  * +----------------------------------------------------------------------
  *
  */
@@ -166,15 +164,14 @@ class Office
 
 
     /**获取文件路径和名称
-     * @param {Object} string $fileName
+     * @param {Object} string $fileName	文件名
+					* @param {Object} string $path 保存路径	eg:$path = Env::get('excel.savePath', 'excel/');
      */
-    protected function getFileName(string $fileName)
+    protected function getFileName(string $fileName,string $path='excel/')
     {
-        $path = Env::get('excel.savePath', 'excel/');
         if (!file_exists($path)) {
             mkdir($path, 0777, true);
         }
-
         return $path . $fileName;
     }
 
@@ -433,11 +430,11 @@ class Office
      * 读取文件
      * 返回拼接好的数组，可用来做数据导入
      * https://blog.csdn.net/qq_45450789/article/details/124168621
-     * 
+     *
      * eg:
      * $file = request()->file('file');
      * $filename = $file->getRealpath();
-     * 
+     *
      * @param {Object} string $fileName	文件名称
      * @param {Object} array $col_item 自定义列名	eg:['item1', 'item2']
      * @param {Object} int $row_index	读取的初始行编号

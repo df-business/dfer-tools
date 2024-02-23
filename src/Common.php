@@ -36,11 +36,15 @@ namespace Dfer\Tools;
  */
 class Common
 {
+
+				use ImgTrait;
+
+
     /**
      * 简介
      *
      **/
-    public static function about()
+    public function about()
     {
         $host = 'http://www.dfer.site';
         header("Location:" . $host);
@@ -50,7 +54,7 @@ class Common
     /**
      * 打印
      **/
-    public static function print($str = null)
+    public function print($str = null)
     {
         echo json_encode($str, JSON_UNESCAPED_UNICODE) . PHP_EOL;
     }
@@ -58,7 +62,7 @@ class Common
     /**
      * 把mysql导出的json文本拼接成数组字符串
      **/
-    public static function mySqlJsonToArray($str = null)
+    public function mySqlJsonToArray($str = null)
     {
         $arr = json_decode($str);
         $item = $arr->RECORDS;
@@ -75,7 +79,7 @@ class Common
     /**
      * 输出json，然后终止当前请求
      */
-    public static function showJson($status = 1, $data = array(), $success_msg = '', $fail_msg = '')
+    public function showJson($status = 1, $data = array(), $success_msg = '', $fail_msg = '')
     {
         $msg = boolval($status) ? ($success_msg ?: '操作成功') : ($fail_msg ?: '操作失败');
 
@@ -95,7 +99,7 @@ class Common
      * @param {Object} $return	数据
      * @param {Object} $to_json true:json对象 false:json字符串
      */
-    public static function showJsonBase($return = array(), $to_json = true)
+    public function showJsonBase($return = array(), $to_json = true)
     {
         if ($to_json)
             //json格式
@@ -110,7 +114,7 @@ class Common
     /**
      * 是微信端则返回true
      */
-    public static function isWeixin()
+    public function isWeixin()
     {
         if (empty($_SERVER['HTTP_USER_AGENT']) || strpos($_SERVER['HTTP_USER_AGENT'], 'MicroMessenger') === false && strpos($_SERVER['HTTP_USER_AGENT'], 'Windows Phone') === false) {
             return false;
@@ -123,7 +127,7 @@ class Common
     /**
      * http与https相互转换
      */
-    public static function httpAndhttps()
+    public function httpAndhttps()
     {
         if ($_SERVER["HTTPS"] == "on") {
             $xredir = "http://" . $_SERVER["SERVER_NAME"] .
@@ -145,7 +149,7 @@ class Common
      * getTime($output["time"],"Y/m/d H:i:s")
      *
      */
-    public static function getTime($time = '', $type = 0)
+    public function getTime($time = '', $type = 0)
     {
         if ($type == 0) {
             $str = 'Y-m-d H:i:s';
@@ -168,7 +172,7 @@ class Common
      * getTimeFromStr($output["time"],"Y/m/d H:i:s")
      *
      */
-    public static function getTimeFromStr($time, $type = 0)
+    public function getTimeFromStr($time, $type = 0)
     {
         if (is_numeric($type)) {
             if ($type == 0) {
@@ -195,14 +199,11 @@ class Common
         return $time;
     }
 
-
-
-
     /**
      * unicode加密
      * @param {Object} $str
      */
-    public static function unicodeEncode($str)
+    public function unicodeEncode($str)
     {
         //split word
         preg_match_all('/./u', $str, $matches);
@@ -215,7 +216,7 @@ class Common
         return $unicodeStr;
     }
 
-    public static function replaceUnicodeEscapeSequence($match)
+    public function replaceUnicodeEscapeSequence($match)
     {
         return mb_convert_encoding(pack('H*', $match[1]), 'UTF-8', 'UCS-2BE');
     }
@@ -224,7 +225,7 @@ class Common
      * unicode解密
      * @param {Object} $unicode_str
      */
-    public static function unicodeDecode($unicode_str)
+    public function unicodeDecode($unicode_str)
     {
         $json = '["' . $unicode_str . '"]';
         $arr = json_decode($json, true);
@@ -249,7 +250,7 @@ class Common
      * @param $header ["Content-Type: application/json"]
      * @param $type
      **/
-    public static function httpRequest($url, $data = null, $type = self::REQ_POST, $header = null)
+    public function httpRequest($url, $data = null, $type = self::REQ_POST, $header = null)
     {
         //初始化浏览器
         $curl = curl_init();
@@ -339,7 +340,7 @@ class Common
      * 将get的参数字符串组装成数组
      * @param {Object} $str
      */
-    public static function getPara($str)
+    public function getPara($str)
     {
         $str = explode("&", $str);
         foreach ($str as $i) {
@@ -353,7 +354,7 @@ class Common
      * 判断远程文件是否存在
      * 如果代码做过404处理就检测不出来
      */
-    public static function httpExist($url)
+    public function httpExist($url)
     {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
@@ -368,15 +369,13 @@ class Common
         }
     }
 
-
-
     /**
      * 在字符串中查找指定字符串，从1开始计算
      * 存在则返回大于0的数字，不存在则返回0
      *
      * eg:findstr('abc','c')
      */
-    public static function findStr($find, $str)
+    public function findStr($find, $str)
     {
         $pos = strpos($find, $str);
         //	echo $pos;
@@ -389,13 +388,11 @@ class Common
         return $rt;
     }
 
-
-
     /**
      * 去掉空格和回车
      * @param {Object} $str
      */
-    public static function delSpace($str)
+    public function delSpace($str)
     {
         $str = trim($str);
         $str = ltrim($str) . "\n";
@@ -403,17 +400,14 @@ class Common
         return $str;
     }
 
-
     /**
      * 数组转url参数
      * @param {Object} $data
      */
-    public static function arr2url($data)
+    public function arr2url($data)
     {
         return http_build_query($data);
     }
-
-
 
     /**
      *
@@ -423,7 +417,7 @@ class Common
      * 特殊字符转预定义字符
      *
      */
-    public static function html($str, $encode = true)
+    public function html($str, $encode = true)
     {
         if ($encode) {
             return htmlspecialchars($str, ENT_IGNORE);
@@ -432,13 +426,11 @@ class Common
         }
     }
 
-
-
     /**
      * 获取字符串中的所有中文
      * @param {Object} $str
      */
-    public static function getChinese($str)
+    public function getChinese($str)
     {
         //utf-8页面
         preg_match_all("/[\x{4e00}-\x{9fa5}]+/u", $str, $chinese);
@@ -447,22 +439,16 @@ class Common
         return $chinese;
     }
 
-
     /**
      *
      * 获取html中body标签的内容
      */
-    public static function getEle($html)
+    public function getEle($html)
     {
         preg_match("/<body[^>]*?>(.*\s*?)<\/body>/is", $html, $str);
 
         return $str[0];
     }
-
-
-
-
-
 
     /**
      * 将字符串转换成二进制
@@ -470,7 +456,7 @@ class Common
      * @return type
      *
      */
-    public static function strToBin($str)
+    public function strToBin($str)
     {
         //1.列出每个字符
         $arr = preg_split('/(?<!^)(?!$)/u', $str);
@@ -490,7 +476,7 @@ class Common
      * @return type
      *
      */
-    public static function binToStr($str)
+    public function binToStr($str)
     {
         $arr = explode(' ', $str);
         foreach ($arr as &$v) {
@@ -507,7 +493,7 @@ class Common
      * @pream string $str='abc';
      *
      */
-    public static function strToHex($str)
+    public function strToHex($str)
     {
         $hex = "";
         for ($i = 0; $i < strlen($str); $i++) {
@@ -522,7 +508,7 @@ class Common
      * @pream string $hex='616263';
      *
      */
-    public static function hexToStr($hex)
+    public function hexToStr($hex)
     {
         $str = "";
         for ($i = 0; $i < strlen($hex) - 1; $i += 2) {
@@ -539,7 +525,7 @@ class Common
      * echo format("ddddd:v1cc:v2bb:v2bbccc:v1",array('v1'=>123,'v2'=>555));
      *
      */
-    public static function format($str, $arr)
+    public function format($str, $arr)
     {
         foreach ($arr as $key => $v) {
             //兼容wq
@@ -556,7 +542,7 @@ class Common
      * @param {Object} $account
      * @param {Object} $password
      */
-    public static function webAuthenticate($account, $password)
+    public function webAuthenticate($account, $password)
     {
         $strAuthUser = $_SERVER['PHP_AUTH_USER'];
         $strAuthPass = $_SERVER['PHP_AUTH_PW'];
@@ -579,7 +565,7 @@ class Common
      *
      * 判断是否手机端访问
      */
-    public static function isMobile()
+    public function isMobile()
     {
         //强制调用手机端
         if (isset($_GET['wap'])) {
@@ -617,7 +603,7 @@ class Common
     /**
      * 截取指定两个字符之间的字符串
      */
-    public static function strCut($begin, $end, $str)
+    public function strCut($begin, $end, $str)
     {
         $b = mb_strpos($str, $begin) + mb_strlen($begin);
         $e = mb_strpos($str, $end) - $b;
@@ -628,7 +614,7 @@ class Common
     /**
      * 获取浏览器内核信息
      */
-    public static function getBrowser()
+    public function getBrowser()
     {
         return sprintf("%s-%s", self::getBrowserName(), self::getBrowserVer());
     }
@@ -637,7 +623,7 @@ class Common
     /**
      * 获取浏览器内核名称
      */
-    public static function getBrowserName()
+    public function getBrowserName()
     {
         $agent = $_SERVER["HTTP_USER_AGENT"];
         if (strpos($agent, 'MSIE') !== false || strpos($agent, 'rv:11.0')) { //ie11判断
@@ -656,7 +642,7 @@ class Common
     /**
      * 获取浏览器内核版本
      */
-    public static function getBrowserVer()
+    public function getBrowserVer()
     {
         if (empty($_SERVER['HTTP_USER_AGENT'])) { //当浏览器没有发送访问者的信息的时候
             return 'unknow';
@@ -680,7 +666,7 @@ class Common
     /**
      * 拼装随机数，保留0位小数，生成一个字符串
      */
-    public static function byteFormat($input, $prec = 0)
+    public function byteFormat($input, $prec = 0)
     {
         $prefix_arr = array('D', 'F', 'E', 'R');
         $value = round($input, $prec);
@@ -697,7 +683,7 @@ class Common
      * 数组中所有元素都是数组则返回true
      * @param {Object} $array
      */
-    public static function isArray($array)
+    public function isArray($array)
     {
         if (is_array($array)) {
             foreach ($array as $k => $v) {
@@ -712,33 +698,33 @@ class Common
      * @param {Object} $year
      * @param {Object} $month
      */
-    public static function getLastDay($year, $month)
+    public function getLastDay($year, $month)
     {
         return date('t', strtotime("{$year}-{$month} -1"));
     }
-	
-	/**
-	 * 获取上个月的日期
-	 * @param {Object} $var 变量
-	 **/
-	public static function getLastMonth($year,$month)
-	{		
-		// 使用strtotime获取上一个月的日期  
-		$previousMonthDate = strtotime('-1 month', strtotime("{$year}-{$month}"));		  
-		// 使用date格式化上个月的年月  
-		$previousYear = date('Y', $previousMonthDate);  
-		$previousMonth = date('m', $previousMonthDate);
-		$obj = new \stdClass();  
-		$obj->year = $previousYear;  
-		$obj->month = $previousMonth;
-		return $obj;		  
-	}
+
+					/**
+					 * 获取上个月的日期
+					 * @param {Object} $var 变量
+					 **/
+					public function getLastMonth($year,$month)
+					{
+						// 使用strtotime获取上一个月的日期
+						$previousMonthDate = strtotime('-1 month', strtotime("{$year}-{$month}"));
+						// 使用date格式化上个月的年月
+						$previousYear = date('Y', $previousMonthDate);
+						$previousMonth = date('m', $previousMonthDate);
+						$obj = new \stdClass();
+						$obj->year = $previousYear;
+						$obj->month = $previousMonth;
+						return $obj;
+					}
 
     /**
      * 判断是否是时间戳
      * @param {Object} $timestamp
      */
-    public static function isTimestamp($timestamp)
+    public function isTimestamp($timestamp)
     {
         if (strtotime(date('Y-m-d H:i:s', $timestamp)) === intval($timestamp)) {
             return true;
@@ -751,7 +737,7 @@ class Common
      * base64加密
      * @param {Object} $obj
      */
-    public static function b64Encode($obj)
+    public function b64Encode($obj)
     {
         if (is_array($obj)) {
             return urlencode(base64_encode(json_encode($obj)));
@@ -765,7 +751,7 @@ class Common
      * @param {Object} $str
      * @param {Object} $is_array
      */
-    public static function b64Decode($str, $is_array = true)
+    public function b64Decode($str, $is_array = true)
     {
         $str = base64_decode(urldecode($str));
 
@@ -781,7 +767,7 @@ class Common
      * 将数组中的元素进行html原样输出
      * @param {Object} $var
      */
-    public static function iHtmlspecialchars($var)
+    public function iHtmlspecialchars($var)
     {
         if (is_array($var)) {
             foreach ($var as $key => $value) {
@@ -797,7 +783,7 @@ class Common
      * 获取当前页面的完整网址
      * @param {Object} $getPort
      */
-    public static function getCurUrl($getPort = 0)
+    public function getCurUrl($getPort = 0)
     {
         if (!$getPort) {
             return 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
@@ -811,7 +797,7 @@ class Common
      * 执行控制台命令
      * @param {Object} $shell
      */
-    public static function runShell($shell)
+    public function runShell($shell)
     {
         //	 echo exec('whoami');
         echo exec($shell);
@@ -821,7 +807,7 @@ class Common
      * 获取"/"后的字符串
      * @param {Object} $file_name
      */
-    public static function getLast($file_name)
+    public function getLast($file_name)
     {
         //获取数组最后一条数据
         //用／号对字符串进行分组
@@ -837,7 +823,7 @@ class Common
      * @param {Object} $str
      * @param {Object} $char
      */
-    public static function split($str, $char)
+    public function split($str, $char)
     {
         $rt = explode($char, $str);
         return $rt;
@@ -848,7 +834,7 @@ class Common
      * 生成一个指定大小的数组
      * @param {Object} $a
      */
-    public static function defineArr($a)
+    public function defineArr($a)
     {
         $array = array();
         for ($i = 0; $i < $a; $i++) {
@@ -860,7 +846,7 @@ class Common
     /**
      * 对象转bool
      **/
-    public static function objToBool($obj)
+    public function objToBool($obj)
     {
         if (is_numeric($obj)) {
             return intval($obj) > 0;
@@ -876,7 +862,7 @@ class Common
      * @param $the_time 需要转换的时间。时间戳或者时间字符串
      * @return string
      */
-    public static function timeTran($the_time)
+    public function timeTran($the_time)
     {
         $now_time = date("Y-m-d H:i:s", time());
         $now_time = strtotime($now_time);
@@ -906,7 +892,7 @@ class Common
      * @param $beginDate  开始日期。时间戳或者时间字符串
      * @return string
      */
-    public static function timeCalculation($begin_time)
+    public function timeCalculation($begin_time)
     {
         $begin_time = is_numeric($begin_time) ? $begin_time : strtotime($begin_time);
         $subTime = time() - $begin_time;
@@ -931,7 +917,7 @@ class Common
      * 默认：从大到小
      * 数值相同，则原始数组前方的靠前
      **/
-    public static function bubbleSort(array $arr, $item_name, $is_asc = false)
+    public function bubbleSort(array $arr, $item_name, $is_asc = false)
     {
         for ($i = 0; $i < count($arr); $i++) {
             $data = '';
@@ -955,7 +941,7 @@ class Common
      * 原理：将所有值进行累加，用单个值占总值的比例作为该项的概率，该值占总值的比例越大则概率越高，反之越小
      * @param {Object} $proArr
      */
-    public static function getPrize($proArr)
+    public function getPrize($proArr)
     {
         $result = '';
         //概率数组的总概率精度。数组值的总和
@@ -987,7 +973,7 @@ class Common
      * @param int  $type 类型。TODBC:转换为半角；TOSBC，转换为全角
      * @return string 返回转换后的字符串
      */
-    public static function convertStrType($str, $type)
+    public function convertStrType($str, $type)
     {
         // 全角
         $dbc = array(
@@ -1049,7 +1035,7 @@ class Common
     /**
      * 去掉空格，回车，换行，tab
      */
-    public static function trimAll($str)
+    public function trimAll($str)
     {
         $oldchar = array(" ", "　", "\t", "\n", "\r");
         $newchar = array("", "", "", "", "");
@@ -1060,7 +1046,7 @@ class Common
      * 判断空字符串或者null
      * 不包括零
      */
-    public static function isEmpty($obj)
+    public function isEmpty($obj)
     {
         if (!isset($obj) || $obj === null || self::trimAll($obj) === '') {
             return true;
@@ -1074,7 +1060,7 @@ class Common
      * @param {Object} $array
      * @param {Object} $key
      */
-    public static function uniqueByKey($array, $key)
+    public function uniqueByKey($array, $key)
     {
         $temp_array = [];
         $i = 0;
@@ -1095,7 +1081,7 @@ class Common
      * @param {Object} $array 原始数组 ['北京'=>[1,2,3]]
      * @param {Object} $item 栏目 ['北京','上海']
      **/
-    public static function getArrayItem($array = [], $item = [])
+    public function getArrayItem($array = [], $item = [])
     {
         $new_arr = [];
         foreach ($item as $key => $value) {
@@ -1108,7 +1094,7 @@ class Common
      * 运行脚本
      * @param {Object} $var 脚本
      **/
-    public static function runScript($var = null)
+    public function runScript($var = null)
     {
         return self::str(shell_exec($var));
     }
@@ -1119,7 +1105,7 @@ class Common
      * step1.原字符串转小写,原字符串中的分隔符用空格替换,在字符串开头加上分隔符
      * step2.将字符串中每个单词的首字母转换为大写,再去空格,去字符串首部附加的分隔符.
      */
-    public static function hump($uncamelized_words, $separator = '_')
+    public function hump($uncamelized_words, $separator = '_')
     {
         $words = str_replace($separator, " ", strtolower($uncamelized_words));
         return str_replace(" ", "", ucwords($words));
@@ -1130,7 +1116,7 @@ class Common
      * 思路:
      * 小写和大写紧挨一起的地方,加上分隔符,然后全部转小写
      */
-    public static function unHump($camelCaps, $separator = '_')
+    public function unHump($camelCaps, $separator = '_')
     {
         return strtolower(preg_replace('/([a-z])([A-Z])/', "$1" . $separator . "$2", $camelCaps));
     }
@@ -1142,7 +1128,7 @@ class Common
      * 处在同步调用下，方能生效
      *
      */
-    public static function downloadDocument($fileSrc, $mimetype = "application/octet-stream")
+    public function downloadDocument($fileSrc, $mimetype = "application/octet-stream")
     {
         header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
         header("Content-Disposition: attachment; filename = $filename");
@@ -1160,7 +1146,7 @@ class Common
      * @param {Object} $string	字符串
      * @param {Object} $params	参数
      */
-    public static function str($string, $params = [])
+    public function str($string, $params = [])
     {
         $string = is_string($string) ? $string : var_export($string, true);
 
@@ -1180,7 +1166,7 @@ class Common
      * @param {Object} $default
      * @param {Object} $other
      */
-    public static function setVal($default, $other)
+    public function setVal($default, $other)
     {
         $rt = empty($default) ? $other : $default;
         return $rt;
@@ -1191,7 +1177,7 @@ class Common
      * @param {Object} $str	原始字符串
      * @param {Object} $length	缩略文本长度
      */
-    public static function getThumbnailText($str, $length)
+    public function getThumbnailText($str, $length)
     {
         // 去掉HTML标签
         $text = strip_tags($str);
@@ -1204,19 +1190,13 @@ class Common
         return $tn_text;
     }
 
-    protected static $snakeCache = [];
-
-    protected static $camelCache = [];
-
-    protected static $studlyCache = [];
-
     /**
      * 检查字符串中是否包含某些字符串
      * @param string       $haystack
      * @param string|array $needles
      * @return bool
      */
-    public static function contains($haystack, $needles)
+    public function contains($haystack, $needles)
     {
         foreach ((array) $needles as $needle) {
             if ($needle != '' && mb_strpos($haystack, $needle) !== false) {
@@ -1234,7 +1214,7 @@ class Common
      * @param  string|array $needles
      * @return bool
      */
-    public static function endsWith($haystack, $needles)
+    public function endsWith($haystack, $needles)
     {
         foreach ((array) $needles as $needle) {
             if ((string) $needle === static::substr($haystack, -static::length($needle))) {
@@ -1252,7 +1232,7 @@ class Common
      * @param  string|array $needles
      * @return bool
      */
-    public static function startsWith($haystack, $needles)
+    public function startsWith($haystack, $needles)
     {
         foreach ((array) $needles as $needle) {
             if ($needle != '' && mb_strpos($haystack, $needle) === 0) {
@@ -1269,7 +1249,7 @@ class Common
      * @param  int $length
      * @return string
      */
-    public static function random($length = 16)
+    public function random($length = 16)
     {
         $pool = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
@@ -1282,7 +1262,7 @@ class Common
      * @param  string $value
      * @return string
      */
-    public static function lower($value)
+    public function lower($value)
     {
         return mb_strtolower($value, 'UTF-8');
     }
@@ -1293,7 +1273,7 @@ class Common
      * @param  string $value
      * @return string
      */
-    public static function upper($value)
+    public function upper($value)
     {
         return mb_strtoupper($value, 'UTF-8');
     }
@@ -1304,7 +1284,7 @@ class Common
      * @param  string $value
      * @return int
      */
-    public static function length($value)
+    public function length($value)
     {
         return mb_strlen($value);
     }
@@ -1317,11 +1297,14 @@ class Common
      * @param  int|null $length
      * @return string
      */
-    public static function substr($string, $start, $length = null)
+    public function substr($string, $start, $length = null)
     {
         return mb_substr($string, $start, $length, 'UTF-8');
     }
 
+				protected static $snakeCache = [];
+				protected static $camelCache = [];
+				protected static $studlyCache = [];
     /**
      * 驼峰转下划线
      *
@@ -1329,7 +1312,7 @@ class Common
      * @param  string $delimiter
      * @return string
      */
-    public static function snake($value, $delimiter = '_')
+    public function snake($value, $delimiter = '_')
     {
         $key = $value;
 
@@ -1352,7 +1335,7 @@ class Common
      * @param  string $value
      * @return string
      */
-    public static function camel($value)
+    public function camel($value)
     {
         if (isset(static::$camelCache[$value])) {
             return static::$camelCache[$value];
@@ -1367,7 +1350,7 @@ class Common
      * @param  string $value
      * @return string
      */
-    public static function studly($value)
+    public function studly($value)
     {
         $key = $value;
 
@@ -1386,7 +1369,7 @@ class Common
      * @param  string $value
      * @return string
      */
-    public static function title($value)
+    public function title($value)
     {
         return mb_convert_case($value, MB_CASE_TITLE, 'UTF-8');
     }

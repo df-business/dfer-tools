@@ -34,14 +34,10 @@ namespace Dfer\Tools;
  * +----------------------------------------------------------------------
  *
  */
-class Files
+class Files extends Common
 {
-    protected $common = null;
-    protected $img_common = null;
     public function __construct()
     {
-        $this->common = new \Dfer\Tools\Common;
-        $this->img_common = new \Dfer\Tools\Img\Common;
     }
 
     /**
@@ -395,7 +391,6 @@ class Files
      */
     public function uploadFile($edit_tool = self::UPLOAD_UMEDITOR_SINGLE, $option = null, $upload_root = 'upload')
     {
-        global $common;
         // var_dump($edit_tool);die;
 
         // 上传组件的name
@@ -407,13 +402,11 @@ class Files
         // 自定义图片尺寸
         $size = $option['size'] ?? '';
 
-        $img_common = new \Dfer\Tools\Img\Common;
-
         $fileSizeMax = FILE_SIZE_MAX;
         //die(json_encode($_FILES));
 
         if ($_FILES == null) {
-            $common->showJson(false, null, null, '没有找到文件');
+            $this->showJson(false, null, null, '没有找到文件');
         }
 
         $filename = $_FILES[$name]["name"];
@@ -430,7 +423,7 @@ class Files
                     $this->uploadFileJson(compact('msg'), $edit_tool);
                     break;
                 default:
-                    $common->showJson(false, null, null, $msg);
+                    $this->showJson(false, null, null, $msg);
                     break;
             }
         }
@@ -441,7 +434,7 @@ class Files
                     $this->uploadFileJson(compact('msg'), $edit_tool);
                     break;
                 default:
-                    $common->showJson(false, null, null, $msg);
+                    $this->showJson(false, null, null, $msg);
                     break;
             }
         }
@@ -465,8 +458,8 @@ class Files
                 }
 
                 if ($size) {
-                    $size = $common->split($size, "*");
-                    $img_common->resizeJpg($filetmpname, $new_name, $size[0], $size[1]);  #将临时文件转变尺寸之后移动到网站目录
+                    $size = $this->split($size, "*");
+                    $this->resizeJpg($filetmpname, $new_name, $size[0], $size[1]);  #将临时文件转变尺寸之后移动到网站目录
                 } else {
                     #将临时文件移动到网站目录
                     move_uploaded_file($filetmpname, $new_name);
@@ -475,7 +468,7 @@ class Files
                 if ($compress) {
                     #原图压缩，不缩放，但体积大大降低
                     $percent = 1;
-                    $imgcompress = new  \Dfer\Tools\Img\Compress($new_name, $percent);
+                    $imgcompress = new ImgCompress($new_name, $percent);
                     $image = $imgcompress->compressImg($new_name);
                 }
 
@@ -484,22 +477,22 @@ class Files
                 //js上传插件会接收所有的echo数据
                 switch ($edit_tool) {
                     case self::UPLOAD_UMEDITOR_SINGLE:
-                        return $common->delSpace($new_name);
+                        return $this->delSpace($new_name);
                         break;
                     case self::UPLOAD_UMEDITOR_EDITOR:
                         $this->uploadFileJson(['url' => $new_name], $edit_tool);
                         break;
                     case self::UPLOAD_LAYUI_EDITOR:
                         $json = array(code => 0, msg => 'error', 'data' => array('src' => $new_name, 'title' => $new_name));
-                        return $common->showJsonBase($json);
+                        return $this->showJsonBase($json);
                         break;
                     case self::UPLOAD_EDITORMD_EDITOR:
                         $json = ["success" => 1, "url" => $new_name, "state" => 'SUCCESS', "name" => "", "originalName" => '', "size" => '', "type" => ''];
-                        return $common->showJsonBase($json);
+                        return $this->showJsonBase($json);
                         break;
                     case self::UPLOAD_WEB_UPLOADER:
                         $json = ["type" => 'img', "url" => $new_name];
-                        return $common->showJsonBase($json);
+                        return $this->showJsonBase($json);
                         break;
                     default:
                         return $new_name;
@@ -526,7 +519,7 @@ class Files
                         $this->uploadFileJson(compact('msg'), $edit_tool);
                         break;
                     default:
-                        $common->showJson(false, null, null, $msg);
+                        $this->showJson(false, null, null, $msg);
                         break;
                 }
                 break;
@@ -559,11 +552,11 @@ class Files
         switch ($edit_tool) {
             case self::UPLOAD_WEB_UPLOADER:
                 $json = ["type" => 'file', "url" => $new_name];
-                $common->showJson(true, $json, null, null);
+                $this->showJson(true, $json, null, null);
                 break;
             default:
                 //js上传插件会接收所有的echo数据
-                return $common->delSpace($new_name);
+                return $this->delSpace($new_name);
                 break;
         }
 
@@ -576,7 +569,6 @@ class Files
      **/
     public function uploadFileJson($data, $edit_tool = self::UPLOAD_UMEDITOR_EDITOR)
     {
-        global $common;
         switch ($edit_tool) {
             case self::UPLOAD_UMEDITOR_EDITOR:
                 $stateMap = array(    //上传状态映射表，国际化用户需考虑此处数据的国际化
@@ -590,10 +582,10 @@ class Files
                     "type" => null,
                     "state" => $data['msg'] ?? $stateMap[0]
                 );
-                $common->showJsonBase($return, false);
+                $this->showJsonBase($return, false);
                 break;
             default:
-                $common->showJson(false, null, null, '文件超出尺寸');
+                $this->showJson(false, null, null, '文件超出尺寸');
                 break;
         }
     }

@@ -1,13 +1,9 @@
 <?php
 namespace Dfer\Tools;
 
-use think\Request;
 use QL\QueryList;
 use QL\Ext\CurlMulti;
 use QL\Ext\AbsoluteUrl;
-
-use think\Config;
-
 
 /**
  * +----------------------------------------------------------------------
@@ -16,42 +12,42 @@ use think\Config;
  * | composer require jaeger/querylist-curl-multi
  * | composer require jaeger/querylist-absolute-url
  * +----------------------------------------------------------------------
- *                                            ...     .............          
- *                                          ..   .:!o&*&&&&&ooooo&; .        
- *                                        ..  .!*%*o!;.                      
- *                                      ..  !*%*!.      ...                  
- *                                     .  ;$$!.   .....                      
- *                          ........... .*#&   ...                           
- *                                     :$$: ...                              
- *                          .;;;;;;;:::#%      ...                           
- *                        . *@ooooo&&&#@***&&;.   .                          
- *                        . *@       .@%.::;&%$*!. . .                       
- *          ................!@;......$@:      :@@$.                          
- *                          .@!   ..!@&.:::::::*@@*.:..............          
- *        . :!!!!!!!!!!ooooo&@$*%%%*#@&*&&&&&&&*@@$&&&oooooooooooo.          
- *        . :!!!!!!!!;;!;;:::@#;::.;@*         *@@o                          
- *                           @$    &@!.....  .*@@&................           
- *          ................:@* .  ##.     .o#@%;                            
- *                        . &@%..:;@$:;!o&*$#*;  ..                          
- *                        . ;@@#$$$@#**&o!;:   ..                            
- *                           :;:: !@;        ..                              
- *                               ;@*........                                 
- *                       ....   !@* ..                                       
- *                 ......    .!%$! ..        | AUTHOR: dfer                             
- *         ......        .;o*%*!  .          | EMAIL: df_business@qq.com                             
- *                .:;;o&***o;.   .           | QQ: 3504725309                             
- *        .;;!o&****&&o;:.    ..        
+ *                                            ...     .............
+ *                                          ..   .:!o&*&&&&&ooooo&; .
+ *                                        ..  .!*%*o!;.
+ *                                      ..  !*%*!.      ...
+ *                                     .  ;$$!.   .....
+ *                          ........... .*#&   ...
+ *                                     :$$: ...
+ *                          .;;;;;;;:::#%      ...
+ *                        . *@ooooo&&&#@***&&;.   .
+ *                        . *@       .@%.::;&%$*!. . .
+ *          ................!@;......$@:      :@@$.
+ *                          .@!   ..!@&.:::::::*@@*.:..............
+ *        . :!!!!!!!!!!ooooo&@$*%%%*#@&*&&&&&&&*@@$&&&oooooooooooo.
+ *        . :!!!!!!!!;;!;;:::@#;::.;@*         *@@o
+ *                           @$    &@!.....  .*@@&................
+ *          ................:@* .  ##.     .o#@%;
+ *                        . &@%..:;@$:;!o&*$#*;  ..
+ *                        . ;@@#$$$@#**&o!;:   ..
+ *                           :;:: !@;        ..
+ *                               ;@*........
+ *                       ....   !@* ..
+ *                 ......    .!%$! ..        | AUTHOR: dfer
+ *         ......        .;o*%*!  .          | EMAIL: df_business@qq.com
+ *                .:;;o&***o;.   .           | QQ: 3504725309
+ *        .;;!o&****&&o;:.    ..
  * +----------------------------------------------------------------------
  *
  */
 class Spider extends Common
 {
-  
-  
+
+
   // 主机
     const HOST='http://www.chinabz.org/';
-  
-    
+
+
     /**
      * 自动初始化
      */
@@ -68,7 +64,7 @@ class Spider extends Common
     {
         $ql = QueryList::use(CurlMulti::class);
         $ql->use(AbsoluteUrl::class);
-  
+
         $ql->curlMulti([
           // 通知公告
           self::HOST.'xhgg/',
@@ -84,18 +80,18 @@ class Spider extends Common
            $menu_name=explode("/", $current);
            $menu_name=$menu_name[count($menu_name)-2];
            echo "\r\n当前路径:{$current}\r\n";
-                      
+
            // 菜单内的数据
            $menu_type = $ql->find('#banner_list a')->texts();
            $menu_url = $ql->absoluteUrl(self::HOST)->find('#banner_list a')->attrs('href');
-           
+
            if (count($menu_url)==0) {
                $menu_type[]='';
                $menu_url[]=$current;
            }
-           
+
            // \var_dump($menu_type,$menu_url);
-          
+
            $num=0;
            foreach ($menu_url as $u) {
                $list=QueryList::get($u);
@@ -127,4 +123,19 @@ class Spider extends Common
           'maxTry' => 3
       ]);
     }
+
+				/**
+				 * 从页面中截取一段html代码
+				 * eg:
+				 * 	$a=new \Dfer\Tools\Spider;
+				 * 	var_dump($a->cutHtml('http://yj.tye3.com.local/homepage/index/bgDetail.html?type=2&id=12&session_id=aed6c9eeaad3c42e1b192d9a5725433c'));die;
+				 * @param {Object} $url 地址
+				 * @param {Object} $element 元素
+				 **/
+				public function cutHtml($url,$element='#content_block')
+				{
+					$html=QueryList::get($url)->find($element)->html();
+					return $html;
+				}
+
 }

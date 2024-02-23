@@ -3,38 +3,37 @@ namespace Dfer\Tools;
 
 use Qiniu\Auth;
 use Qiniu\Storage\UploadManager;
-use think\Env;
 
 /**
  * +----------------------------------------------------------------------
  * | 七牛云服务
  * | composer require qiniu/php-sdk
  * +----------------------------------------------------------------------
- *                                            ...     .............          
- *                                          ..   .:!o&*&&&&&ooooo&; .        
- *                                        ..  .!*%*o!;.                      
- *                                      ..  !*%*!.      ...                  
- *                                     .  ;$$!.   .....                      
- *                          ........... .*#&   ...                           
- *                                     :$$: ...                              
- *                          .;;;;;;;:::#%      ...                           
- *                        . *@ooooo&&&#@***&&;.   .                          
- *                        . *@       .@%.::;&%$*!. . .                       
- *          ................!@;......$@:      :@@$.                          
- *                          .@!   ..!@&.:::::::*@@*.:..............          
- *        . :!!!!!!!!!!ooooo&@$*%%%*#@&*&&&&&&&*@@$&&&oooooooooooo.          
- *        . :!!!!!!!!;;!;;:::@#;::.;@*         *@@o                          
- *                           @$    &@!.....  .*@@&................           
- *          ................:@* .  ##.     .o#@%;                            
- *                        . &@%..:;@$:;!o&*$#*;  ..                          
- *                        . ;@@#$$$@#**&o!;:   ..                            
- *                           :;:: !@;        ..                              
- *                               ;@*........                                 
- *                       ....   !@* ..                                       
- *                 ......    .!%$! ..        | AUTHOR: dfer                             
- *         ......        .;o*%*!  .          | EMAIL: df_business@qq.com                             
- *                .:;;o&***o;.   .           | QQ: 3504725309                             
- *        .;;!o&****&&o;:.    ..        
+ *                                            ...     .............
+ *                                          ..   .:!o&*&&&&&ooooo&; .
+ *                                        ..  .!*%*o!;.
+ *                                      ..  !*%*!.      ...
+ *                                     .  ;$$!.   .....
+ *                          ........... .*#&   ...
+ *                                     :$$: ...
+ *                          .;;;;;;;:::#%      ...
+ *                        . *@ooooo&&&#@***&&;.   .
+ *                        . *@       .@%.::;&%$*!. . .
+ *          ................!@;......$@:      :@@$.
+ *                          .@!   ..!@&.:::::::*@@*.:..............
+ *        . :!!!!!!!!!!ooooo&@$*%%%*#@&*&&&&&&&*@@$&&&oooooooooooo.
+ *        . :!!!!!!!!;;!;;:::@#;::.;@*         *@@o
+ *                           @$    &@!.....  .*@@&................
+ *          ................:@* .  ##.     .o#@%;
+ *                        . &@%..:;@$:;!o&*$#*;  ..
+ *                        . ;@@#$$$@#**&o!;:   ..
+ *                           :;:: !@;        ..
+ *                               ;@*........
+ *                       ....   !@* ..
+ *                 ......    .!%$! ..        | AUTHOR: dfer
+ *         ......        .;o*%*!  .          | EMAIL: df_business@qq.com
+ *                .:;;o&***o;.   .           | QQ: 3504725309
+ *        .;;!o&****&&o;:.    ..
  * +----------------------------------------------------------------------
  *
  */
@@ -45,10 +44,6 @@ class QiNiuService
     private static $_secret;
     private static $_bucket;
 
-
-    /**
-     * @return QINIUService|null
-     */
     public static function getInstance(): ?QINIUService
     {
         self::$_secret = Env::get("qiniu.secret");
@@ -60,25 +55,25 @@ class QiNiuService
         return self::$_instance;
     }
 
-    /**
-     * @param string $file
-     * @param string $newName
-     * @return mixed
-     * @throws \Exception
-     */
-    public function upload(string $file, string $newName)
+				/**
+					*
+					* @param {Object} string $file	文件路径
+					* @param {Object} string $newName	新文件名
+					* @param {Object} string $logRoot	日志根目录	eg:ROOT_PATH
+					*/
+    public function upload(string $file, string $newName,string $logRoot)
     {
         // 获取token
-        $token = $this->_getToken();
+        $token = $this->getToken();
         // 初始化 UploadManager 对象并进行文件的上传
         $uploadMgr = new UploadManager();
         // 调用 UploadManager 的 putFile 方法进行文件的上传
         list($ret, $error) = $uploadMgr->putFile($token, $newName, $file);
-        /* @var $error Error */
+
         if ($error !== null) {
             $this->error = $error->message();
             //日志
-            $filePath = ROOT_PATH.'public/qiniu/'.date('Ymd').'/';
+            $filePath = $logRoot.'public/qiniu/'.date('Ymd').'/';
             if (!is_dir($filePath)) {
                 mkdir($filePath, 0777, true);
             }
@@ -93,18 +88,20 @@ class QiNiuService
      * 获取token
      * @return string
      */
-    private function _getToken(): string
+    private function getToken(): string
     {
         $auth = new Auth(self::$_accessKey, self::$_secret);
         return $auth->uploadToken(self::$_bucket);
     }
-    
-    /**
-     * 七牛云上传文件
-     *
-     * $fileObj = $this->request->file('file');
-     */
-    public function uploadFile($fileObj)
+
+
+				/**
+					* 七牛云上传文件
+					* $fileObj = $this->request->file('file');
+					* @param {Object} $fileObj
+					* @param {Object} $qiniuHost 七牛云根域名 eg:Env::get('qiniu.url')
+					*/
+    public function uploadFile($fileObj,$qiniuHost)
     {
         $result=[
           'code' => 0,
@@ -121,7 +118,7 @@ class QiNiuService
             if ($res['status'] == 0) {
                 $result['code']=1;
                 $result['msg']="上传成功";
-                $result['data']=['url'=>Env::get('qiniu.url').$res['url']];
+                $result['data']=['url'=>$qiniuHost.$res['url']];
             }
         }else{
          $result['msg']="上传失败";
