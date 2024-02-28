@@ -37,7 +37,10 @@ namespace Dfer\Tools;
 class Common
 {
 
-				use ImgTrait;
+    use ImgTrait;
+
+    const TIME_FULL = 0;
+    const TIME_YMD = 1;
 
 
     /**
@@ -141,7 +144,6 @@ class Common
     }
 
 
-
     /**
      * 将时间数据转化为正常的时间格式
      * eg:
@@ -153,29 +155,29 @@ class Common
      */
     public function getTime($time = null, $type = self::TIME_FULL)
     {
-    	switch($type){
-    		case self::TIME_FULL:
-    			$format = 'Y-m-d H:i:s';
-    			break;
-    		case self::TIME_YMD:
-    			$format = 'Y-m-d';
-    			break;
-    		default:
-    			$format = $type;
-    			break;
-    	}
-    	if (empty($time)) {
-    		return date("Y-m-d H:i:s");
-    	}
+        switch ($type) {
+            case self::TIME_FULL:
+                $format = 'Y-m-d H:i:s';
+                break;
+            case self::TIME_YMD:
+                $format = 'Y-m-d';
+                break;
+            default:
+                $format = $type;
+                break;
+        }
+        if (empty($time)) {
+            return date("Y-m-d H:i:s");
+        }
 
-    	if (is_numeric($time)) {
-    		// 将时间戳转化为正常的时间格式
-    		return date($format, $time);
-    	}else{
-    		// 将时间字符串转化为时间戳，格式化之后转化为正常的时间格式
-    		//date_default_timezone_set('Asia/Shanghai'); //设置为东八区上海时间
-    		return date($format, strtotime($time));
-    	}
+        if (is_numeric($time)) {
+            // 将时间戳转化为正常的时间格式
+            return date($format, $time);
+        } else {
+            // 将时间字符串转化为时间戳，格式化之后转化为正常的时间格式
+            //date_default_timezone_set('Asia/Shanghai'); //设置为东八区上海时间
+            return date($format, strtotime($time));
+        }
     }
 
     /**
@@ -326,58 +328,58 @@ class Common
         return $rt;
     }
 
-				/**
-					 * 获取页面html
-					 * @param {Object} $url 地址
-					 **/
-					public function getHtmlByFile($url)
-					{
-						$html=file_get_contents($url);
-						return $html;
-					}
+    /**
+     * 获取页面html
+     * @param {Object} $url 地址
+     **/
+    public function getHtmlByFile($url)
+    {
+        $html = file_get_contents($url);
+        return $html;
+    }
 
 
-					/**
-					 * 获取页面html
-					 *
-					 * @param {Object} $url 地址
-					 * @return {Object} false 页面不存在（可判断远程文件是否存在，如果代码做过404处理就检测不出来） string html代码
-					 */
-					public function getHtmlByCurl($url)
-					{
-					    $ch = curl_init();
-					    curl_setopt($ch, CURLOPT_URL, $url);
-						// 不下载
-					    curl_setopt($ch, CURLOPT_NOBODY, 1);
-					    curl_setopt($ch, CURLOPT_FAILONERROR, 1);
-						// 将 cURL 获取的内容作为字符串返回，而不是直接输出
-					    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    /**
+     * 获取页面html
+     *
+     * @param {Object} $url 地址
+     * @return {Object} false 页面不存在（可判断远程文件是否存在，如果代码做过404处理就检测不出来） string html代码
+     */
+    public function getHtmlByCurl($url)
+    {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        // 不下载
+        curl_setopt($ch, CURLOPT_NOBODY, 1);
+        curl_setopt($ch, CURLOPT_FAILONERROR, 1);
+        // 将 cURL 获取的内容作为字符串返回，而不是直接输出
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 
-						$html=curl_exec($ch);
+        $html = curl_exec($ch);
 
-					    if ($html !== false) {
-					        return true;
-					    } else {
-					        return $html;
-					    }
-					}
+        if ($html !== false) {
+            return true;
+        } else {
+            return $html;
+        }
+    }
 
-					/**
-					 * 下载文件，隐藏真实下载地址
-					 * 下载路径显示的是下载页面的url
-					 * 处在同步调用下，方能生效
-					 * @param {Object} $fileSrc 路径
-					 * @param {Object} $filename 文件名
-					 * @param {Object} $mimetype 文件格式
-					 */
-					public function downloadDocument($fileSrc,$filename, $mimetype = "application/octet-stream")
-					{
-					    header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
-					    header("Content-Disposition: attachment; filename = {$filename}");
-					    header("Content-Length: " . filesize($fileSrc));
-					    header("Content-Type: {$mimetype}");
-					    die(file_get_contents($fileSrc));
-					}
+    /**
+     * 下载文件，隐藏真实下载地址
+     * 下载路径显示的是下载页面的url
+     * 处在同步调用下，方能生效
+     * @param {Object} $fileSrc 路径
+     * @param {Object} $filename 文件名
+     * @param {Object} $mimetype 文件格式
+     */
+    public function downloadDocument($fileSrc, $filename, $mimetype = "application/octet-stream")
+    {
+        header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
+        header("Content-Disposition: attachment; filename = {$filename}");
+        header("Content-Length: " . filesize($fileSrc));
+        header("Content-Type: {$mimetype}");
+        die(file_get_contents($fileSrc));
+    }
 
 
 
@@ -730,22 +732,22 @@ class Common
         return date('t', strtotime("{$year}-{$month} -1"));
     }
 
-					/**
-					 * 获取上个月的日期
-					 * @param {Object} $var 变量
-					 **/
-					public function getLastMonth($year,$month)
-					{
-						// 使用strtotime获取上一个月的日期
-						$previousMonthDate = strtotime('-1 month', strtotime("{$year}-{$month}"));
-						// 使用date格式化上个月的年月
-						$previousYear = date('Y', $previousMonthDate);
-						$previousMonth = date('m', $previousMonthDate);
-						$obj = new \stdClass();
-						$obj->year = $previousYear;
-						$obj->month = $previousMonth;
-						return $obj;
-					}
+    /**
+     * 获取上个月的日期
+     * @param {Object} $var 变量
+     **/
+    public function getLastMonth($year, $month)
+    {
+        // 使用strtotime获取上一个月的日期
+        $previousMonthDate = strtotime('-1 month', strtotime("{$year}-{$month}"));
+        // 使用date格式化上个月的年月
+        $previousYear = date('Y', $previousMonthDate);
+        $previousMonth = date('m', $previousMonthDate);
+        $obj = new \stdClass();
+        $obj->year = $previousYear;
+        $obj->month = $previousMonth;
+        return $obj;
+    }
 
     /**
      * 判断是否是时间戳
@@ -1167,7 +1169,7 @@ class Common
             $search = "%s";
             // 在连续调用时会保留上次的查找坐标
             $position = strpos($string, $search);
-            if ($position !==false)
+            if ($position !== false)
                 $string = substr_replace($string, $value, $position, 2);
         }
         return $string;
@@ -1314,9 +1316,9 @@ class Common
         return mb_substr($string, $start, $length, 'UTF-8');
     }
 
-				protected static $snakeCache = [];
-				protected static $camelCache = [];
-				protected static $studlyCache = [];
+    protected static $snakeCache = [];
+    protected static $camelCache = [];
+    protected static $studlyCache = [];
     /**
      * 驼峰转下划线
      *
@@ -1386,15 +1388,15 @@ class Common
         return mb_convert_case($value, MB_CASE_TITLE, 'UTF-8');
     }
 
-					/**
-					 * 替换字符串
-					 * @param {Object} $str 原始字符串
-					 * @param {Object} $from 被替换的字符串
-					 * @param {Object} $to 替换之后的字符串
-					 */
-					public function strReplace($str,$from,$to)
-					{
-						$newString = str_replace($from, $to, $str);
-						return $newString;
-					}
+    /**
+     * 替换字符串
+     * @param {Object} $str 原始字符串
+     * @param {Object} $from 被替换的字符串
+     * @param {Object} $to 替换之后的字符串
+     */
+    public function strReplace($str, $from, $to)
+    {
+        $newString = str_replace($from, $to, $str);
+        return $newString;
+    }
 }

@@ -38,16 +38,16 @@ class Files extends Common
 {
 
 
-	//um单个文件上传
-	const UPLOAD_UMEDITOR_SINGLE = 0;
-	//um编辑框
-	const UPLOAD_UMEDITOR_EDITOR = 1;
-	//layui编辑器上传
-	const UPLOAD_LAYUI_EDITOR = 2;
-	//editormd编辑器上传
-	const UPLOAD_EDITORMD_EDITOR = 3;
-	//baidu组件上传
-	const UPLOAD_WEB_UPLOADER = 4;
+    //um单个文件上传
+    const UPLOAD_UMEDITOR_SINGLE = 0;
+    //um编辑框
+    const UPLOAD_UMEDITOR_EDITOR = 1;
+    //layui编辑器上传
+    const UPLOAD_LAYUI_EDITOR = 2;
+    //editormd编辑器上传
+    const UPLOAD_EDITORMD_EDITOR = 3;
+    //baidu组件上传
+    const UPLOAD_WEB_UPLOADER = 4;
 
 
     public function __construct()
@@ -406,11 +406,11 @@ class Files extends Common
         //以byte为单位
         if ($filesize > $fileSizeMax) {
             $msg = '文件超出尺寸';
-												$this->uploadFileJson(false,compact('msg'), $edit_tool);
+            $this->uploadFileJson(false, compact('msg'), $edit_tool);
         }
         if ($fileErr > 0) {
             $msg = '文件上传受限';
-												$this->uploadFileJson(false,compact('msg'), $edit_tool);
+            $this->uploadFileJson(false, compact('msg'), $edit_tool);
         }
 
 
@@ -445,9 +445,9 @@ class Files extends Common
                     $imgcompress = new ImgCompress($new_name, $percent);
                     $image = $imgcompress->compressImg($new_name);
                 }
-																$type='img';
+                $type = 'img';
                 $new_name = '/' . $new_name;
-																$this->uploadFileJson(true,compact('type','new_name'), $edit_tool);
+                $this->uploadFileJson(true, compact('type', 'new_name'), $edit_tool);
                 break;
             case 'audio/mp3':
             case 'audio/mpeg':
@@ -464,7 +464,7 @@ class Files extends Common
                 break;
             default:
                 $msg = "不支持的文件类型:{$filetype}";
-																$this->uploadFileJson(false,compact('msg'), $edit_tool);
+                $this->uploadFileJson(false, compact('msg'), $edit_tool);
                 break;
         }
 
@@ -490,9 +490,9 @@ class Files extends Common
         move_uploaded_file($filetmpname, $new_name);
         //header("Content-type: image/jpeg");
 
-								$type='file';
+        $type = 'file';
         $new_name = '/' . $new_name;
-								$this->uploadFileJson(true,compact('type','new_name'), $edit_tool);
+        $this->uploadFileJson(true, compact('type', 'new_name'), $edit_tool);
         return false;
     }
 
@@ -500,13 +500,13 @@ class Files extends Common
      * 不同组件的返回格式
      * @param {Object} $var 变量
      **/
-    public function uploadFileJson($status,$data, $edit_tool = self::UPLOAD_UMEDITOR_EDITOR)
+    public function uploadFileJson($status, $data, $edit_tool = self::UPLOAD_UMEDITOR_EDITOR)
     {
-								extract($data);
-								$msg=$msg??null;
+        extract($data);
+        $msg = $msg ?? null;
 
-								//header("Content-type: image/jpeg");
-								//js上传插件会接收所有的echo数据
+        //header("Content-type: image/jpeg");
+        //js上传插件会接收所有的echo数据
 
         switch ($edit_tool) {
             case self::UPLOAD_UMEDITOR_EDITOR:
@@ -519,51 +519,51 @@ class Files extends Common
                     "url" => $new_name,
                     "size" => null,
                     "type" => $type,
-                    "state" => $status?$stateMap[0]:$msg
+                    "state" => $status ? $stateMap[0] : $msg
                 );
                 $this->showJsonBase($return, false);
                 break;
-												case self::UPLOAD_WEB_UPLOADER:
-												    $json = ["type" => $type, "url" => $new_name];
-																$this->showJson($status, $json, $status?$msg:null,!$status?$msg:null);
-																break;
-												case self::UPLOAD_UMEDITOR_SINGLE:
-												    $this->showJsonBase($this->delSpace($new_name));
-												    break;
-												case self::UPLOAD_LAYUI_EDITOR:
-												    $json = array(code => 0, msg => $msg, 'data' => array('src' => $new_name, 'title' => $new_name));
-												    $this->showJsonBase($json);
-												    break;
-												case self::UPLOAD_EDITORMD_EDITOR:
-												    $json = ["success" => $status, "url" => $new_name, "state" => 'SUCCESS', "name" => "", "originalName" => '', "size" => '', "type" => ''];
-												    $this->showJsonBase($json);
-												    break;
+            case self::UPLOAD_WEB_UPLOADER:
+                $json = ["type" => $type, "url" => $new_name];
+                $this->showJson($status, $json, $status ? $msg : null, !$status ? $msg : null);
+                break;
+            case self::UPLOAD_UMEDITOR_SINGLE:
+                $this->showJsonBase($this->delSpace($new_name));
+                break;
+            case self::UPLOAD_LAYUI_EDITOR:
+                $json = array(code => 0, msg => $msg, 'data' => array('src' => $new_name, 'title' => $new_name));
+                $this->showJsonBase($json);
+                break;
+            case self::UPLOAD_EDITORMD_EDITOR:
+                $json = ["success" => $status, "url" => $new_name, "state" => 'SUCCESS', "name" => "", "originalName" => '', "size" => '', "type" => ''];
+                $this->showJsonBase($json);
+                break;
             default:
-																$this->showJson($status, $data, $status?$msg:null,!$status?$$msg:null);
+                $this->showJson($status, $data, $status ? $msg : null, !$status ? $$msg : null);
                 break;
         }
     }
 
-				/**
-					 * 获取目录中最新修改的文件名
-					 * @param {Object} $directory 你要读取的目录路径
-					 **/
-					public function getNewestFileName($directory = null)
-					{
-						$latestFile = '';
-						$latestTime = 0;
+    /**
+     * 获取目录中最新修改的文件名
+     * @param {Object} $directory 你要读取的目录路径
+     **/
+    public function getNewestFileName($directory = null)
+    {
+        $latestFile = '';
+        $latestTime = 0;
 
-						foreach (scandir($directory) as $file) {
-						    if (in_array($file, ['.', '..'])) {
-						        continue; // 跳过当前目录和上级目录
-						    }
-						    $filePath = $directory . '/' . $file;
-						    $mtime = filemtime($filePath);
-						    if ($mtime > $latestTime) {
-						        $latestTime = $mtime;
-						        $latestFile = $file;
-						    }
-						}
-						return $latestFile;
-					}
+        foreach (scandir($directory) as $file) {
+            if (in_array($file, ['.', '..'])) {
+                continue; // 跳过当前目录和上级目录
+            }
+            $filePath = $directory . '/' . $file;
+            $mtime = filemtime($filePath);
+            if ($mtime > $latestTime) {
+                $latestTime = $mtime;
+                $latestFile = $file;
+            }
+        }
+        return $latestFile;
+    }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Dfer\Tools\Staticss;
+namespace Dfer\Tools\Statics;
 
 /**
  * +----------------------------------------------------------------------
@@ -36,7 +36,9 @@ namespace Dfer\Tools\Staticss;
  */
 class Common extends Base
 {
-
+	const TIME_FULL=0;
+	const TIME_YMD=1;
+	
 	protected function originClass($var = null){
 		$class = str_replace("\Statics", "", __CLASS__);
 		return new $class;
