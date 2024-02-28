@@ -1,6 +1,6 @@
 <?php
 
-namespace Dfer\Tools\Static;
+namespace Dfer\Tools\Staticss;
 
 /**
  * +----------------------------------------------------------------------
@@ -38,7 +38,7 @@ class Common extends Base
 {
 
 	protected function originClass($var = null){
-		$class = str_replace("\Static", "", __CLASS__);
+		$class = str_replace("\Statics", "", __CLASS__);
 		return new $class;
 	}
 }

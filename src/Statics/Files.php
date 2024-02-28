@@ -1,6 +1,6 @@
 <?php
 
-namespace Dfer\Tools\Static;
+namespace Dfer\Tools\Statics;
 
 /**
  * +----------------------------------------------------------------------
@@ -34,14 +34,21 @@ namespace Dfer\Tools\Static;
  * +----------------------------------------------------------------------
  *
  */
-class Pdf extends Base
+class Files extends Base
 {
-	// 横向
-	const LANDSCAPE='landscape';
-	// 纵向
-	const PORTRAIT='portrait';
+    //um单个文件上传
+    const UPLOAD_UMEDITOR_SINGLE = 0;
+    //um编辑框
+    const UPLOAD_UMEDITOR_EDITOR = 1;
+    //layui编辑器上传
+    const UPLOAD_LAYUI_EDITOR = 2;
+    //editormd编辑器上传
+    const UPLOAD_EDITORMD_EDITOR = 3;
+    //baidu组件上传
+    const UPLOAD_WEB_UPLOADER = 4;
+
 	protected function originClass($var = null){
-		$class = str_replace("\Static", "", __CLASS__);
+		$class = str_replace("\Statics", "", __CLASS__);
 		return new $class;
 	}
 }

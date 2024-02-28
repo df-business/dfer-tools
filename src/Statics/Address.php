@@ -1,6 +1,6 @@
 <?php
 
-namespace Dfer\Tools\Static;
+namespace Dfer\Tools\Statics;
 
 /**
  * +----------------------------------------------------------------------
@@ -34,10 +34,10 @@ namespace Dfer\Tools\Static;
  * +----------------------------------------------------------------------
  *
  */
-class Office extends Base
+class Address extends Base
 {
 	protected function originClass($var = null){
-		$class = str_replace("\Static", "", __CLASS__);
+		$class = str_replace("\Statics", "", __CLASS__);
 		return new $class;
 	}
 }

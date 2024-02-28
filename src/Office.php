@@ -10,7 +10,7 @@ use PhpOffice\PhpSpreadsheet\Cell\DataType;
 /**
  * +----------------------------------------------------------------------
  * | 电子表格类
- * | composer require phpoffice/phpspreadsheet
+ * | composer require phpoffice/phpspreadsheet="^1.29"
  * +----------------------------------------------------------------------
  *                                            ...     .............
  *                                          ..   .:!o&*&&&&&ooooo&; .

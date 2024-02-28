@@ -143,48 +143,39 @@ class Common
 
 
     /**
-     * 将时间戳转化为正常的时间格式
-     *
+     * 将时间数据转化为正常的时间格式
      * eg:
-     * getTime($output["time"],"Y/m/d H:i:s")
-     *
+     * getTime(1709091401,"Y/m/d H:i:s")
+     * getTimeFromStr("2024-02-28 11:36:41","Y/m/d H:i:s")
+     * @param {Object} $time 时间数据。int 时间戳(1709091401) string 时间字符串(2024-02-28 11:36:41)
+     * @param {Object} $type 类型
+     * @return {Object} 正常时间格式(2024-02-28 11:36:41)
      */
-    public function getTime($time = '', $type = 0)
+    public function getTime($time = null, $type = self::TIME_FULL)
     {
-        if ($type == 0) {
-            $str = 'Y-m-d H:i:s';
-        } elseif ($type == 1) {
-            $str = 'Y-m-d';
-        } else {
-            $str = 'Y.m.d';
-        }
-        if (!empty($time)) {
-            return date($str, $time);
-        } else {
-            return date("Y-m-d H:i:s");
-        }
-    }
+    	switch($type){
+    		case self::TIME_FULL:
+    			$format = 'Y-m-d H:i:s';
+    			break;
+    		case self::TIME_YMD:
+    			$format = 'Y-m-d';
+    			break;
+    		default:
+    			$format = $type;
+    			break;
+    	}
+    	if (empty($time)) {
+    		return date("Y-m-d H:i:s");
+    	}
 
-    /**
-     * 将时间字符串转化为时间戳，格式化之后转化为正常的时间格式
-     *
-     * eg:
-     * getTimeFromStr($output["time"],"Y/m/d H:i:s")
-     *
-     */
-    public function getTimeFromStr($time, $type = 0)
-    {
-        if (is_numeric($type)) {
-            if ($type == 0) {
-                $str = 'Y-m-d H:i:s';
-            } elseif ($type == 1) {
-                $str = 'Y-m-d';
-            }
-        } else {
-            $str = $type;
-        }
-        //date_default_timezone_set('Asia/Shanghai'); //设置为东八区上海时间
-        return date($str, strtotime($time));
+    	if (is_numeric($time)) {
+    		// 将时间戳转化为正常的时间格式
+    		return date($format, $time);
+    	}else{
+    		// 将时间字符串转化为时间戳，格式化之后转化为正常的时间格式
+    		//date_default_timezone_set('Asia/Shanghai'); //设置为东八区上海时间
+    		return date($format, strtotime($time));
+    	}
     }
 
     /**
@@ -335,6 +326,60 @@ class Common
         return $rt;
     }
 
+				/**
+					 * 获取页面html
+					 * @param {Object} $url 地址
+					 **/
+					public function getHtmlByFile($url)
+					{
+						$html=file_get_contents($url);
+						return $html;
+					}
+
+
+					/**
+					 * 获取页面html
+					 *
+					 * @param {Object} $url 地址
+					 * @return {Object} false 页面不存在（可判断远程文件是否存在，如果代码做过404处理就检测不出来） string html代码
+					 */
+					public function getHtmlByCurl($url)
+					{
+					    $ch = curl_init();
+					    curl_setopt($ch, CURLOPT_URL, $url);
+						// 不下载
+					    curl_setopt($ch, CURLOPT_NOBODY, 1);
+					    curl_setopt($ch, CURLOPT_FAILONERROR, 1);
+						// 将 cURL 获取的内容作为字符串返回，而不是直接输出
+					    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+
+						$html=curl_exec($ch);
+
+					    if ($html !== false) {
+					        return true;
+					    } else {
+					        return $html;
+					    }
+					}
+
+					/**
+					 * 下载文件，隐藏真实下载地址
+					 * 下载路径显示的是下载页面的url
+					 * 处在同步调用下，方能生效
+					 * @param {Object} $fileSrc 路径
+					 * @param {Object} $filename 文件名
+					 * @param {Object} $mimetype 文件格式
+					 */
+					public function downloadDocument($fileSrc,$filename, $mimetype = "application/octet-stream")
+					{
+					    header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
+					    header("Content-Disposition: attachment; filename = {$filename}");
+					    header("Content-Length: " . filesize($fileSrc));
+					    header("Content-Type: {$mimetype}");
+					    die(file_get_contents($fileSrc));
+					}
+
+
 
     /**
      * 将get的参数字符串组装成数组
@@ -350,24 +395,6 @@ class Common
         return $rt;
     }
 
-    /**
-     * 判断远程文件是否存在
-     * 如果代码做过404处理就检测不出来
-     */
-    public function httpExist($url)
-    {
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_NOBODY, 1); // 不下载
-        curl_setopt($ch, CURLOPT_FAILONERROR, 1);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-
-        if (curl_exec($ch) !== false) {
-            return true;
-        } else {
-            return false;
-        }
-    }
 
     /**
      * 在字符串中查找指定字符串，从1开始计算
@@ -1123,21 +1150,6 @@ class Common
 
 
     /**
-     * 下载文件，隐藏真实下载地址
-     *下载路径显示的是下载页面的url
-     * 处在同步调用下，方能生效
-     *
-     */
-    public function downloadDocument($fileSrc, $mimetype = "application/octet-stream")
-    {
-        header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
-        header("Content-Disposition: attachment; filename = $filename");
-        header("Content-Length: " . filesize($fileSrc));
-        header("Content-Type: $mimetype");
-        echo file_get_contents($fileSrc);
-    }
-
-    /**
      * 格式化字符串
      * 非字符串的数据会自动被转化为字符串
      * eg:
@@ -1155,7 +1167,7 @@ class Common
             $search = "%s";
             // 在连续调用时会保留上次的查找坐标
             $position = strpos($string, $search);
-            if ($position > 0)
+            if ($position !==false)
                 $string = substr_replace($string, $value, $position, 2);
         }
         return $string;
@@ -1373,4 +1385,16 @@ class Common
     {
         return mb_convert_case($value, MB_CASE_TITLE, 'UTF-8');
     }
+
+					/**
+					 * 替换字符串
+					 * @param {Object} $str 原始字符串
+					 * @param {Object} $from 被替换的字符串
+					 * @param {Object} $to 替换之后的字符串
+					 */
+					public function strReplace($str,$from,$to)
+					{
+						$newString = str_replace($from, $to, $str);
+						return $newString;
+					}
 }
