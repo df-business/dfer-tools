@@ -165,9 +165,9 @@ class Office
 
     /**获取文件路径和名称
      * @param {Object} string $fileName	文件名
-					* @param {Object} string $path 保存路径	eg:$path = Env::get('excel.savePath', 'excel/');
+     * @param {Object} string $path 保存路径	eg:$path = Env::get('excel.savePath', 'excel/');
      */
-    protected function getFileName(string $fileName,string $path='excel/')
+    protected function getFileName(string $fileName, string $path = 'excel/')
     {
         if (!file_exists($path)) {
             mkdir($path, 0777, true);
@@ -438,9 +438,9 @@ class Office
      * @param {Object} string $fileName	文件名称
      * @param {Object} array $col_item 自定义列名	eg:['item1', 'item2']
      * @param {Object} int $row_index	读取的初始行编号
-     * @param {Object} array $format_item	需要格式化的列名	eg:['item1']
+     * @param {Object} array $origin_item	需要读取原始值的列名	eg:['item1']
      */
-    public function readFile(string $fileName = 'test.xlsx', array $col_item = [], int $row_index = 3, array $format_item = [])
+    public function readFile(string $fileName = 'test.xlsx', array $col_item = [], int $row_index = 3, array $origin_item = [])
     {
         //设置excel格式
         $format = 'xlsx';
@@ -460,17 +460,17 @@ class Office
         // 遍历列
         for ($col = 'A'; $col <= $col_num; $col++) {
             $col_val = isset($col_item[$col_index]) ? $col_item[$col_index] : '';
-            $need_format = in_array($col_val, $format_item);
+            $need_origin = in_array($col_val, $origin_item);
             // 遍历行
             for ($row = $row_index; $row <= $row_num; $row++) {
                 // 把每一行的数据保存到自定义列名
 
-                if ($need_format) {
-                    // 读取格式化之后的值(时间类型的原始值不是正常的时间格式)
-                    $list[$row - $row_index][$col_val] = $sheet->getCell($col . $row)->getFormattedValue();
-                } else {
+                if ($need_origin) {
                     // 读取原始值
                     $list[$row - $row_index][$col_val] = $sheet->getCell($col . $row)->getValue();
+                } else {
+                    // 读取格式化之后的值(时间类型的原始值不是正常的时间格式)
+                    $list[$row - $row_index][$col_val] = $sheet->getCell($col . $row)->getFormattedValue();
                 }
             }
             $col_index++;
