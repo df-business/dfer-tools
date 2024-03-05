@@ -4,7 +4,7 @@ namespace Dfer\Tools;
 
 /**
  * +----------------------------------------------------------------------
- * | 操作文件
+ * | 文件处理
  * +----------------------------------------------------------------------
  *                                            ...     .............
  *                                          ..   .:!o&*&&&&&ooooo&; .
@@ -34,25 +34,8 @@ namespace Dfer\Tools;
  * +----------------------------------------------------------------------
  *
  */
-class Files extends Common
+trait FilesTrait
 {
-
-
-    //um单个文件上传
-    const UPLOAD_UMEDITOR_SINGLE = 0;
-    //um编辑框
-    const UPLOAD_UMEDITOR_EDITOR = 1;
-    //layui编辑器上传
-    const UPLOAD_LAYUI_EDITOR = 2;
-    //editormd编辑器上传
-    const UPLOAD_EDITORMD_EDITOR = 3;
-    //baidu组件上传
-    const UPLOAD_WEB_UPLOADER = 4;
-
-
-    public function __construct()
-    {
-    }
 
     /**
      * 读取文件的所有字符串
@@ -566,4 +549,28 @@ class Files extends Common
         }
         return $latestFile;
     }
+	
+	/**
+	 * 输出调试信息到日志文件
+	 * @param {Object} 自动获取所有参数
+	 **/
+	public function debug()
+	{
+			$args = $this->str(func_get_args());
+			$time = $this->getTime(time());
+			// 项目根目录
+			$root=dirname(__DIR__, 4);
+			$tag=$_SERVER['REQUEST_URI']??'';
+			$str=$this->str(<<<STR
+			
+					********************** DEBUG{tag} START **********************
+					{0}
+					**********************  DEBUG{tag} END  **********************
+					
+					STR, [$args,'tag'=>"[{$tag} {$time}]"]);
+			$file_dir = $this->str("{root}/data/logs/{0}", [date('Ym'), "root" => $root]);
+			$this->mkDirs($file_dir);
+			$file_src= $this->str("{0}/{1}.log", [$file_dir, date('d')]);
+			$this->writeFile($str,$file_src, "a");
+	}
 }

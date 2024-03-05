@@ -37,11 +37,16 @@ namespace Dfer\Tools;
 class Common
 {
 
-    use ImgTrait;
+    use ImgTrait, FilesTrait;
 
-    const TIME_FULL = 0;
-    const TIME_YMD = 1;
+    const TIME_FULL = 0, TIME_YMD = 1;
 
+    const REQ_JSON = 0, REQ_GET = 1, REQ_POST = 2;
+
+    const OK = 200, MOVED_PERMANENTLY = 301, UNAUTHORIZED = 401, FORBIDDEN = 403, NOT_FOUND = 404;
+
+    //um单个文件上传;um编辑框;layui编辑器上传;editormd编辑器上传;baidu组件上传
+    const UPLOAD_UMEDITOR_SINGLE = 0, UPLOAD_UMEDITOR_EDITOR = 1, UPLOAD_LAYUI_EDITOR = 2, UPLOAD_EDITORMD_EDITOR = 3, UPLOAD_WEB_UPLOADER = 4;
 
     /**
      * 简介
@@ -193,6 +198,21 @@ class Common
     }
 
     /**
+     * 将时间戳转换为一个GMT时间字符串，
+     * @param {Object} $timestamp 时间戳
+     * @return {Object} 以“ISO 8601”格式表示的GMT（格林威治标准时间）字符串，例如 "2023-09-13T12:34:56Z"
+     */
+    public function gmtIso8601($time)
+    {
+        $dtStr = date("c", $time);
+        $mydatetime = new \DateTime($dtStr);
+        $expiration = $mydatetime->format(\DateTime::ISO8601);
+        $pos = strpos($expiration, '+');
+        $expiration = substr($expiration, 0, $pos);
+        return $expiration . "Z";
+    }
+
+    /**
      * unicode加密
      * @param {Object} $str
      */
@@ -232,7 +252,7 @@ class Common
     }
 
 
-    const REQ_JSON = 0, REQ_GET = 1, REQ_POST = 2;
+
     /**
      * HTTP请求（支持HTTP/HTTPS，支持GET/POST）
      *
@@ -315,17 +335,27 @@ class Common
         //禁止https协议验证域名，0就是禁止验证域名且兼容php5.6
         curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
 
-        //以字符串形式返回到浏览器当中
+        // 以字符串形式返回到浏览器当中
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        //让curl发起请求
-        $output = curl_exec($curl);
-        //关闭curl浏览器
-        curl_close($curl);
-        $rt = json_decode($output, true);
-        if (empty($rt)) {
-            $rt = $output;
+
+        // 让curl发起网络请求
+        $response = curl_exec($curl);
+
+        // 出错
+        if ($response === false) {
+            // 错误信息
+            $ret = curl_error($curl);
+        } else {
+            // 将 JSON 字符串转换为 JSON 对象
+            $ret = json_decode($response, true);
+            // 如果 JSON 字符串无效，则直接返回原始数据
+            if (empty($ret)) {
+                $ret = $response;
+            }
         }
-        return $rt;
+        // 关闭 cURL 句柄
+        curl_close($curl);
+        return $ret;
     }
 
     /**
@@ -340,27 +370,27 @@ class Common
 
 
     /**
-     * 获取页面html
+     * 获取页面状态
+     * 可判断远程文件是否存在(如果网站做过404处理，就检测不出来)
      *
      * @param {Object} $url 地址
-     * @return {Object} false 页面不存在（可判断远程文件是否存在，如果代码做过404处理就检测不出来） string html代码
+     * @return {Object} false 页面不存在 true 页面存在
      */
-    public function getHtmlByCurl($url)
+    public function getHtmlStatus($url)
     {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
-        // 不下载
+        // 在 cURL 请求中不包括响应体（即不包括实际的页面内容）
         curl_setopt($ch, CURLOPT_NOBODY, 1);
+        // 如果 HTTP 请求返回一个错误状态码（例如 404 Not Found），curl_exec 将返回 false
         curl_setopt($ch, CURLOPT_FAILONERROR, 1);
         // 将 cURL 获取的内容作为字符串返回，而不是直接输出
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-
-        $html = curl_exec($ch);
-
-        if ($html !== false) {
+        $status = curl_exec($ch);
+        if ($status !== false) {
             return true;
         } else {
-            return $html;
+            return false;
         }
     }
 
@@ -384,18 +414,27 @@ class Common
 
 
     /**
-     * 将get的参数字符串组装成数组
+     * 将查询字符串中的参数解析为变量
+     * eg:user_id=391&type=ueditor
      * @param {Object} $str
+     * @param {Object} $sys 1 内置算法 0 自定义算法
      */
-    public function getPara($str)
+    public function getPara($str, $sys = true)
     {
-        $str = explode("&", $str);
-        foreach ($str as $i) {
-            $i = explode("=", $i);
-            $rt[$i[0]] = $i[1];
+        if ($sys) {
+            parse_str($str, $ret);
+            return $ret;
+        } else {
+            $str = explode("&", $str);
+            foreach ($str as $i) {
+                $i = explode("=", $i);
+                $ret[$i[0]] = $i[1];
+            }
+            return $ret ?? [];
         }
-        return $rt;
     }
+
+
 
 
     /**
@@ -586,6 +625,28 @@ class Common
             header('HTTP/1.0 401 Unauthorized');
             echo '登录失败';
             return false;
+        }
+    }
+
+    /**
+     * 设置网页状态
+     * @param {Object} $var 变量
+     **/
+    public function setHttpStatus($var = self::OK)
+    {
+        http_response_code($var);
+        switch ($var) {
+            case self::MOVED_PERMANENTLY:
+                die("永久重定向");
+            case self::UNAUTHORIZED:
+                die("未经授权");
+            case self::FORBIDDEN:
+                die("禁止访问");
+            case self::NOT_FOUND:
+                die("页面没找到");
+            case self::OK:
+            default:
+                break;
         }
     }
 
@@ -1398,5 +1459,16 @@ class Common
     {
         $newString = str_replace($from, $to, $str);
         return $newString;
+    }
+
+
+    /**
+     * 将二进制数据转化为支持URL的base64字符串
+     * @param {Object} $data 二进制数据
+     */
+    public function base64UrlEncode($data)
+    {
+        // 转化base64字符串中的“+/”，去掉末尾的“=”
+        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
     }
 }

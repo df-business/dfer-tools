@@ -5,7 +5,7 @@ namespace Dfer\Tools;
 
 /**
  * +----------------------------------------------------------------------
- * | 发送电子邮件
+ * | 电子邮件类
  * +----------------------------------------------------------------------
  *                                            ...     .............          
  *                                          ..   .:!o&*&&&&&ooooo&; .        
@@ -39,16 +39,16 @@ class Mail
 {
 
 
-	var $debug = false; //调试开关。是否显示发送的调试信息	
-	var $relay_host='ssl://smtp.mxhichina.com'; //SMTP服务器。QQ 邮箱的服务器地址;;
-	var $smtp_port= 465; // SMTP服务器端口。smtp 服务器的远程服务器端口号
-	var $auth=true; //这里面的一个true是表示使用身份验证,否则不使用身份验证
-	var $user = 'df@df315.top'; // SMTP服务器的用户邮箱。SMTP服务器的用户帐号。授权登录的账号;
-	var $pass = 'Dbl159357'; // SMTP服务器的用户密码（我的163邮箱的授权码）jdmmfnrzwioucajb。授权登录的密码;
-	var $host_name = "localhost"; //is used in HELO command
-	var $log_file = "";
-	var $sock = FALSE;
-	var $time_out = 30; //is used in pfsockopen()
+	private $debug = false; //调试开关。是否显示发送的调试信息	
+	private $relay_host='ssl://smtp.mxhichina.com'; //SMTP服务器。QQ 邮箱的服务器地址;;
+	private $smtp_port= 465; // SMTP服务器端口。smtp 服务器的远程服务器端口号
+	private $auth=true; //这里面的一个true是表示使用身份验证,否则不使用身份验证
+	private $user = 'df@df315.top'; // SMTP服务器的用户邮箱。SMTP服务器的用户帐号。授权登录的账号;
+	private $pass = 'Dbl159357'; // SMTP服务器的用户密码（我的163邮箱的授权码）jdmmfnrzwioucajb。授权登录的密码;
+	private $host_name = "localhost"; //is used in HELO command
+	private $log_file = "";
+	private $sock = FALSE;
+	private $time_out = 30; //is used in pfsockopen()
 	
 	/**
 	 * 获取对象实例

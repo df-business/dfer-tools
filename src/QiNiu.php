@@ -6,7 +6,7 @@ use Qiniu\Storage\UploadManager;
 
 /**
  * +----------------------------------------------------------------------
- * | 七牛云服务
+ * | 七牛云类
  * | composer require qiniu/php-sdk
  * +----------------------------------------------------------------------
  *                                            ...     .............
@@ -37,7 +37,7 @@ use Qiniu\Storage\UploadManager;
  * +----------------------------------------------------------------------
  *
  */
-class QiNiuService
+class QiNiu
 {
     private static $_instance = null;
     private static $_accessKey;
