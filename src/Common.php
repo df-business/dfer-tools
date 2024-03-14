@@ -48,6 +48,8 @@ class Common
     //um单个文件上传;um编辑框;layui编辑器上传;editormd编辑器上传;baidu组件上传
     const UPLOAD_UMEDITOR_SINGLE = 0, UPLOAD_UMEDITOR_EDITOR = 1, UPLOAD_LAYUI_EDITOR = 2, UPLOAD_EDITORMD_EDITOR = 3, UPLOAD_WEB_UPLOADER = 4;
 
+	const NL_CRLF2BR= 0, NL_BR2CRLF = 1;
+	
     /**
      * 简介
      *
@@ -357,17 +359,25 @@ class Common
         curl_close($curl);
         return $ret;
     }
-
-    /**
-     * 获取页面html
-     * @param {Object} $url 地址
-     **/
-    public function getHtmlByFile($url)
-    {
-        $html = file_get_contents($url);
-        return $html;
-    }
-
+	
+	/**
+	 * 获取页面html
+	 * @param {Object} $url 地址
+	 **/
+	public function getHtmlByFile($url)
+	{
+		$arrContextOptions=array(
+			// 跳过https验证
+		    "ssl"=>array(
+		        "verify_peer"=>false,
+		        "verify_peer_name"=>false,
+		        "allow_self_signed"=>true,
+		    )
+		);		
+		
+	    $html = file_get_contents($url, 0, stream_context_create($arrContextOptions));
+	    return $html;
+	}
 
     /**
      * 获取页面状态
@@ -1471,4 +1481,28 @@ class Common
         // 转化base64字符串中的“+/”，去掉末尾的“=”
         return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
     }
+	
+	/**
+	 * 换行符转化
+	 * 文件换行符与html换行符相互转化
+	 * @param {Object} $str	字符串
+	 * @param {Object} $file2html	true 文件转html false html转文件
+	 */
+	public function newlineConversion($str,$type=self::NL_CRLF2BR)
+	{	
+		switch($type){
+			case self::NL_CRLF2BR:
+				$ret = str_replace(PHP_EOL, "<br />", $str);				
+				break;
+			case self::NL_BR2CRLF:
+				// 匹配任何形式的br标签，不区分大小写以及标签中的空格
+				$ret = preg_replace('/<br\\s*?\/??>/i',PHP_EOL,$str);
+				
+				break;
+			default:
+				$ret=$str;
+				break;
+		}
+		return $ret;
+	}
 }

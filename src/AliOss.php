@@ -46,6 +46,7 @@ class AliOss extends Common
 	private $access_key = '';
 	private $endpoint = 'http://oss-cn-chengdu.aliyuncs.com';
 	private $bucket = 'chanpinfabu';
+	private $ossClient = NULL;
 
 	// 域名 eg:http://res.tye3.com/
 	private $host = '';
@@ -53,9 +54,8 @@ class AliOss extends Common
 	private $callback_url = '';
 	// oss目录 eg:ktp_tye3/
 	private $dir = '';
-
-	private $ossClient = NULL;
-
+	// 调试模式
+	private $debug=false;
 
 	private function ossClient()
 	{
@@ -76,6 +76,8 @@ class AliOss extends Common
 		$this->host = $config['host'] ?? $this->host;
 		$this->callback_url = $config['callback_url'] ?? $this->callback_url;
 		$this->dir = $config['dir'] ?? $this->dir;
+		
+		$this->debug = $config['debug'] ?? $this->debug;
 	}
 
 	/**	
@@ -142,7 +144,7 @@ class AliOss extends Common
 			$authorizationBase64 = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
 			$pubKeyUrlBase64 = $_SERVER['HTTP_X_OSS_PUB_KEY_URL'] ?? null;
 			if (empty($authorizationBase64) || empty($pubKeyUrlBase64)) {
-				$this->setHttpStatus($this->FORBIDDEN);
+				$this->setHttpStatus(self::FORBIDDEN);
 			}
 			// 获取OSS的签名
 			$authorization = base64_decode($authorizationBase64);
@@ -152,7 +154,7 @@ class AliOss extends Common
 			$pubKey = $this->httpRequest($pubKeyUrl);
 			$this->debug($pubKey);
 			if (empty($pubKey)) {
-				$this->setHttpStatus($this->FORBIDDEN);
+				$this->setHttpStatus(self::FORBIDDEN);
 			}
 			// 获取回调body
 			$body = file_get_contents('php://input');
@@ -183,7 +185,7 @@ class AliOss extends Common
 
 				$this->returnData($post_arr, $callback_function);
 			} else {
-				$this->setHttpStatus($this->FORBIDDEN);
+				$this->setHttpStatus(self::FORBIDDEN);
 			}
 		} catch (OssException $exception) {
 			$err_msg = $exception->getMessage();
@@ -327,5 +329,14 @@ class AliOss extends Common
 		}
 
 		return $result;
+	}
+	
+	/**
+	 * 重写父级方法
+	 */
+	public function debug()
+	{
+		if($this->debug)
+			parent::debug(func_get_args());
 	}
 }
