@@ -1535,7 +1535,7 @@ class Common
 	/**
 	 * 获取错误验证信息
 	 * @param {Exception} $exception 验证对象
-	 * @param {String} 错误详情
+	 * @return {String} 错误详情
 	 **/
 	public function getException(\Exception $exception)
 	{
