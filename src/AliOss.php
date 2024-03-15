@@ -180,19 +180,19 @@ class AliOss extends Common
 				$post_arr['host'] =  $this->host;
 				$post_arr['fileName'] =  pathinfo($post_arr['filePath'], PATHINFO_BASENAME);
 				$this->processSave($post_arr);
-
 				$this->debug($body, urldecode($body), $post_arr);
-
 				$this->returnData($post_arr, $callback_function);
 			} else {
 				$this->setHttpStatus(self::FORBIDDEN);
 			}
 		} catch (OssException $exception) {
-			$err_msg = $exception->getMessage();
-			$this->debug($err_msg);
+			$err_msg = $this->getException($exception);			
+			$post_arr=['type'=>'error',"msg"=>$err_msg];
+			$this->returnData($post_arr, $callback_function);
 		} catch (Exception $exception) {
-			$err_msg = $exception->getMessage();
-			$this->debug($err_msg);
+			$err_msg = $this->getException($exception);		
+			$post_arr=['type'=>'error',"msg"=>$err_msg];
+			$this->returnData($post_arr, $callback_function);
 		}
 	}
 
@@ -200,6 +200,7 @@ class AliOss extends Common
 	 * 返回数据
 	 * @param {Object} $post_arr 
 	 * @param {Object} $callback_function	回调函数
+	 * @return {Json} 组件数据
 	 */
 	private function returnData($post_arr, $callback_function)
 	{
@@ -238,6 +239,9 @@ class AliOss extends Common
 					'title' => $post_arr['fileName'],
 					'original' => $post_arr['fileName']
 				];
+				break;
+			case 'error':
+				$return = $post_arr;
 				break;
 			default:
 				// 调用回调函数

@@ -1505,4 +1505,60 @@ class Common
 		}
 		return $ret;
 	}
+	
+	
+	/**
+	 * 执行php代码并捕获异常信息
+	 * 
+	 * @param {Object} $code 代码
+	 * eg:
+	 * $code = <<<'EOT'  
+	 * $data = [1, 2, 3];  
+	 * $result = $data['non_existent_key']; // 这将引发一个错误  
+	 * EOT;
+	 */
+	function executeCodeWithFaultTolerance($code) {  
+	    try {  
+	        // 执行传入的代码  
+	        eval($code);  
+	    } catch (Exception $e) {  
+	        // 处理异常  
+	        echo "捕获到异常: " . $e->getMessage() . "\n";  
+	        // 在这里可以进行一些容错处理，比如记录日志、回滚操作等  
+	    } catch (Error $e) {  
+	        // 处理错误  
+	        echo "捕获到错误: " . $e->getMessage() . "\n";  
+	        // 在这里可以进行一些容错处理，比如记录日志、回滚操作等  
+	    }  
+	}
+	
+	/**
+	 * 获取错误验证信息
+	 * @param {Exception} $exception 验证对象
+	 * @param {String} 错误详情
+	 **/
+	public function getException(\Exception $exception)
+	{
+		$trace_list=[];
+		$trace_list[]=$this->str("%s %s",[$exception->getFile(),$exception->getLine()]);
+		$trace_list[]="";
+		foreach($exception->getTrace() as $key=>$value){
+			if(empty($value['file']))
+				continue;
+			$trace_list[]=$this->str("%s %s",[$value['file'],$value['line']]);
+		}
+		
+		$err_msg=$this->str(<<<STR
+		////////////////////////////////////////////////// 出错 START //////////////////////////////////////////////////
+		{0}
+		
+		{1}
+		//////////////////////////////////////////////////  出错 END  //////////////////////////////////////////////////
+		
+		STR,[$exception->getMessage(),implode(PHP_EOL,$trace_list)]);
+		
+		return $err_msg;
+	}
+	
+	
 }
