@@ -155,7 +155,8 @@ class Common
      * 将时间数据转化为正常的时间格式
      * eg:
      * getTime(1709091401,"Y/m/d H:i:s")
-     * getTimeFromStr("2024-02-28 11:36:41","Y/m/d H:i:s")
+     * getTime("2024-02-28 11:36:41","Y/m/d H:i:s")
+	 * getTime(null,"Y/m/d H:i:s")
      * @param {Object} $time 时间数据。int 时间戳(1709091401) string 时间字符串(2024-02-28 11:36:41)
      * @param {Object} $type 类型
      * @return {Object} 正常时间格式(2024-02-28 11:36:41)
@@ -174,7 +175,7 @@ class Common
                 break;
         }
         if (empty($time)) {
-            return date("Y-m-d H:i:s");
+            return date($format);
         }
 
         if (is_numeric($time)) {

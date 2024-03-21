@@ -364,7 +364,148 @@ public function index()
 
 
 
+## AliOss
+
+**/public/static/js/ueditor/custom/dialogs/image/image.js**
+```
+// actionUrl = editor.getActionUrl(editor.getOpt('imageActionName'))
+var actionUrl = 'https://chanpinfabu.oss-cn-chengdu.aliyuncs.com';
+uploader = _this.uploader = WebUploader.create({
+	server: actionUrl
+});
+	
+uploader.on('uploadBeforeSend', function (file, data, header) {
+    //这里可以通过data对象添加POST参数
+    header['X_Requested_With'] = 'XMLHttpRequest';	
+	$.ajax({
+	    type:"post",
+		url:"/user/asset/getRequestParams/type/ueditor",
+	    data:{process_list:{'ktp_img_ueditor_m':null}},
+		success:function (res) {
+		    if(res){
+		        try{
+					console.log('getRequestParams',res);
+		            $.extend(data,{
+		                'key':res.dir + calculate_object_name(data.name),
+		                'policy':res.policy,
+		                'OSSAccessKeyId':res.OSSAccessKeyId,
+		                'success_action_status':'200',//让服务端返回200,不然默认会返回204
+		                'callback':res.callback,
+		                'signature':res.signature
+		            });
+		        }catch(e){
+		            console.error(e);
+		        }
+		    }else{
+		        console.log('出错');
+		    }
+		},				    
+	    error : function(XMLHttpRequest, textStatus, errorThrown) {
+	        alert("ajax error");
+	    },
+	    complete : function(XMLHttpRequest,status){ //请求完成后最终执行参数
+	        if(status == 'timeout'){
+	            alert('请求超时，请稍后再试！');
+	        }
+	    },
+	    async : false
+	});
+	console.log("data",data)
+	header['Access-Control-Allow-Origin'] = "*";
+});
+```
+
+**/app/user/controller/AssetController.php**
+```
+namespace app\user\controller;
+use cmf\controller\AdminBaseController;
+use Dfer\Tools\AliOss;
+class AssetController extends AdminBaseController{
+	public function getRequestParams(){		
+		$type = $this->request->param('type','ueditor');
+		$process_list = $this->request->param('process_list',[]);
+		$access_id =  config('oss.access_id');
+		$access_key =  config('oss.access_key');		
+		$callback_url =  config('oss.callback_url');
+		$dir =  config('oss.dir');
+		$user_id=$this->userId;
+		$oss=new AliOss(compact('access_id','access_key','dir','callback_url'));
+		$oss->getRequestParams(compact('user_id','type','process_list'));
+	}
+}
+```
+
+**/data/config/oss.php**
+```
+<?php
+return [
+    'access_id'=>'*************',
+    'access_key'=>'*************',
+	'callback_url'=>'https://ktp.tye3.com/callback/Oss/uploadCallback',
+	'dir'=>'ktp_tye3/',
+	'host'=>'http://res.tye3.com/',
+];
+```
+
+**/app/callback/controller/OssController.php**
+```
+namespace app\callback\controller;
+use think\Controller;
+use Dfer\Tools\AliOss;
+
+class OssController extends Controller
+{	
+	public function uploadCallback($var = null)
+	{
+		$access_id =  config('oss.access_id');
+		$access_key =  config('oss.access_key');
+		$host =  config('oss.host');
+		$debug=0;
+		$oss=new AliOss(compact('access_id','access_key','host','debug'));
+		$oss->uploadCallback();
+	}
+
+}
+```
+
+```
+namespace app\callback\controller;
+use think\Controller;
+use Dfer\Tools\AliOss;
+use app\common\model\KtpUserImgRecordModel;
+
+class OssController extends Controller
+{	
+	public function uploadCallback($var = null)
+	{
+		$access_id =  config('oss.access_id');
+		$access_key =  config('oss.access_key');
+		$host =  config('oss.host');
+		$debug=0;
+		$oss=new AliOss(compact('access_id','access_key','host','debug'));
+		$oss->uploadCallback(function($data){return $this->callback($data);});
+	}
+	
+	
+	/**
+	 * 上传回调
+	 * 可用来添加上传记录
+	 * @param {Object} $post_arr 上传参数
+	 **/
+	public function callback($post_arr = null)
+	{
+		 if(intval($post_arr['user_id'])>0){
+			KtpUserImgRecordModel::create([
+				'user_id'=>$post_arr['user_id'],
+				'img_url'=>$post_arr['host'].$post_arr['filePath']
+			]);
+		}
+	}
+
+}
+```
+
 
 
 ---
-©2022-2023 Dfer.Site
+©2022-2024 Dfer.Site

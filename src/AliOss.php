@@ -241,13 +241,12 @@ class AliOss extends Common
 				];
 				break;
 			case 'error':
-				$return = $post_arr;
-				break;
 			default:
-				// 调用回调函数
-				$return = $callback_function($post_arr);
+				$return = $post_arr;				
 				break;
 		}
+		// 调用回调函数
+		$callback_function($post_arr);
 		$this->debug($return);
 		$this->showJsonBase($return);
 	}
