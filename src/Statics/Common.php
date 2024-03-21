@@ -51,6 +51,6 @@ class Common extends Base
 	
 	protected function originClass($var = null){
 		$class = str_replace("\Statics", "", __CLASS__);
-		return new $class;
+		return $class::getInstance();
 	}
 }

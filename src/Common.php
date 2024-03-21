@@ -36,6 +36,8 @@ namespace Dfer\Tools;
  */
 class Common
 {
+    // 静态属性，保存单例实例  
+    private static $instance;
 
     use ImgTrait, FilesTrait;
 
@@ -48,8 +50,32 @@ class Common
     //um单个文件上传;um编辑框;layui编辑器上传;editormd编辑器上传;baidu组件上传
     const UPLOAD_UMEDITOR_SINGLE = 0, UPLOAD_UMEDITOR_EDITOR = 1, UPLOAD_LAYUI_EDITOR = 2, UPLOAD_EDITORMD_EDITOR = 3, UPLOAD_WEB_UPLOADER = 4;
 
-	const NL_CRLF2BR= 0, NL_BR2CRLF = 1;
-	
+    const NL_CRLF2BR = 0, NL_BR2CRLF = 1;
+
+    /**
+     * 防止外部实例化
+     */
+    private function __construct($config = [])
+    {
+    }
+    /**
+     * 防止外部克隆  
+     */
+    private function __clone()
+    {
+    }
+    /**
+     * 获取静态实例
+     * 对当前类实例化一次之后，可以在任意位置复用，不需要再次实例化
+     */
+    public static function getInstance()
+    {
+        if (is_null(self::$instance)) {
+            self::$instance = new self;
+        }
+        return self::$instance;
+    }
+
     /**
      * 简介
      *
@@ -156,7 +182,7 @@ class Common
      * eg:
      * getTime(1709091401,"Y/m/d H:i:s")
      * getTime("2024-02-28 11:36:41","Y/m/d H:i:s")
-	 * getTime(null,"Y/m/d H:i:s")
+     * getTime(null,"Y/m/d H:i:s")
      * @param {Object} $time 时间数据。int 时间戳(1709091401) string 时间字符串(2024-02-28 11:36:41)
      * @param {Object} $type 类型
      * @return {Object} 正常时间格式(2024-02-28 11:36:41)
@@ -360,25 +386,25 @@ class Common
         curl_close($curl);
         return $ret;
     }
-	
-	/**
-	 * 获取页面html
-	 * @param {Object} $url 地址
-	 **/
-	public function getHtmlByFile($url)
-	{
-		$arrContextOptions=array(
-			// 跳过https验证
-		    "ssl"=>array(
-		        "verify_peer"=>false,
-		        "verify_peer_name"=>false,
-		        "allow_self_signed"=>true,
-		    )
-		);		
-		
-	    $html = file_get_contents($url, 0, stream_context_create($arrContextOptions));
-	    return $html;
-	}
+
+    /**
+     * 获取页面html
+     * @param {Object} $url 地址
+     **/
+    public function getHtmlByFile($url)
+    {
+        $arrContextOptions = array(
+            // 跳过https验证
+            "ssl" => array(
+                "verify_peer" => false,
+                "verify_peer_name" => false,
+                "allow_self_signed" => true,
+            )
+        );
+
+        $html = file_get_contents($url, 0, stream_context_create($arrContextOptions));
+        return $html;
+    }
 
     /**
      * 获取页面状态
@@ -1482,84 +1508,83 @@ class Common
         // 转化base64字符串中的“+/”，去掉末尾的“=”
         return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
     }
-	
-	/**
-	 * 换行符转化
-	 * 文件换行符与html换行符相互转化
-	 * @param {Object} $str	字符串
-	 * @param {Object} $file2html	true 文件转html false html转文件
-	 */
-	public function newlineConversion($str,$type=self::NL_CRLF2BR)
-	{	
-		switch($type){
-			case self::NL_CRLF2BR:
-				$ret = str_replace(PHP_EOL, "<br />", $str);				
-				break;
-			case self::NL_BR2CRLF:
-				// 匹配任何形式的br标签，不区分大小写以及标签中的空格
-				$ret = preg_replace('/<br\\s*?\/??>/i',PHP_EOL,$str);
-				
-				break;
-			default:
-				$ret=$str;
-				break;
-		}
-		return $ret;
-	}
-	
-	
-	/**
-	 * 执行php代码并捕获异常信息
-	 * 
-	 * @param {Object} $code 代码
-	 * eg:
-	 * $code = <<<'EOT'  
-	 * $data = [1, 2, 3];  
-	 * $result = $data['non_existent_key']; // 这将引发一个错误  
-	 * EOT;
-	 */
-	function executeCodeWithFaultTolerance($code) {  
-	    try {  
-	        // 执行传入的代码  
-	        eval($code);  
-	    } catch (Exception $e) {  
-	        // 处理异常  
-	        echo "捕获到异常: " . $e->getMessage() . "\n";  
-	        // 在这里可以进行一些容错处理，比如记录日志、回滚操作等  
-	    } catch (Error $e) {  
-	        // 处理错误  
-	        echo "捕获到错误: " . $e->getMessage() . "\n";  
-	        // 在这里可以进行一些容错处理，比如记录日志、回滚操作等  
-	    }  
-	}
-	
-	/**
-	 * 获取错误验证信息
-	 * @param {Exception} $exception 验证对象
-	 * @return {String} 错误详情
-	 **/
-	public function getException(\Exception $exception)
-	{
-		$trace_list=[];
-		$trace_list[]=$this->str("%s %s",[$exception->getFile(),$exception->getLine()]);
-		$trace_list[]="";
-		foreach($exception->getTrace() as $key=>$value){
-			if(empty($value['file']))
-				continue;
-			$trace_list[]=$this->str("%s %s",[$value['file'],$value['line']]);
-		}
-		
-		$err_msg=$this->str(<<<STR
+
+    /**
+     * 换行符转化
+     * 文件换行符与html换行符相互转化
+     * @param {Object} $str	字符串
+     * @param {Object} $file2html	true 文件转html false html转文件
+     */
+    public function newlineConversion($str, $type = self::NL_CRLF2BR)
+    {
+        switch ($type) {
+            case self::NL_CRLF2BR:
+                $ret = str_replace(PHP_EOL, "<br />", $str);
+                break;
+            case self::NL_BR2CRLF:
+                // 匹配任何形式的br标签，不区分大小写以及标签中的空格
+                $ret = preg_replace('/<br\\s*?\/??>/i', PHP_EOL, $str);
+
+                break;
+            default:
+                $ret = $str;
+                break;
+        }
+        return $ret;
+    }
+
+
+    /**
+     * 执行php代码并捕获异常信息
+     * 
+     * @param {Object} $code 代码
+     * eg:
+     * $code = <<<'EOT'  
+     * $data = [1, 2, 3];  
+     * $result = $data['non_existent_key']; // 这将引发一个错误  
+     * EOT;
+     */
+    function executeCodeWithFaultTolerance($code)
+    {
+        try {
+            // 执行传入的代码  
+            eval($code);
+        } catch (Exception $e) {
+            // 处理异常  
+            echo "捕获到异常: " . $e->getMessage() . "\n";
+            // 在这里可以进行一些容错处理，比如记录日志、回滚操作等  
+        } catch (Error $e) {
+            // 处理错误  
+            echo "捕获到错误: " . $e->getMessage() . "\n";
+            // 在这里可以进行一些容错处理，比如记录日志、回滚操作等  
+        }
+    }
+
+    /**
+     * 获取错误验证信息
+     * @param {Exception} $exception 验证对象
+     * @return {String} 错误详情
+     **/
+    public function getException(\Exception $exception)
+    {
+        $trace_list = [];
+        $trace_list[] = $this->str("%s %s", [$exception->getFile(), $exception->getLine()]);
+        $trace_list[] = "";
+        foreach ($exception->getTrace() as $key => $value) {
+            if (empty($value['file']))
+                continue;
+            $trace_list[] = $this->str("%s %s", [$value['file'], $value['line']]);
+        }
+
+        $err_msg = $this->str(<<<STR
 		////////////////////////////////////////////////// 出错 START //////////////////////////////////////////////////
 		{0}
 		
 		{1}
 		//////////////////////////////////////////////////  出错 END  //////////////////////////////////////////////////
 		
-		STR,[$exception->getMessage(),implode(PHP_EOL,$trace_list)]);
-		
-		return $err_msg;
-	}
-	
-	
+		STR, [$exception->getMessage(), implode(PHP_EOL, $trace_list)]);
+
+        return $err_msg;
+    }
 }

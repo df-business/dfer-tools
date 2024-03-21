@@ -39,13 +39,35 @@ use Dompdf\{Dompdf,Options};
  */
 class Pdf extends Common
 {
+	private static $instance;
+	
 	// 横向
 	const LANDSCAPE='landscape';
 	// 纵向
 	const PORTRAIT='portrait';
 
-    public function __construct()
+    /**
+     * 防止外部实例化
+     */
+    private function __construct($config = [])
     {
+    }
+    /**
+     * 防止外部克隆  
+     */
+    private function __clone()
+    {
+    }
+    /**
+     * 获取静态实例
+     * 对当前类实例化一次之后，可以在任意位置复用，不需要再次实例化
+     */
+    public static function getInstance()
+    {
+        if (is_null(self::$instance)) {
+            self::$instance = new self;
+        }
+        return self::$instance;
     }
 
 

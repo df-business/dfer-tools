@@ -42,10 +42,9 @@ use PhpOffice\PhpSpreadsheet\Cell\DataType;
  */
 class Office
 {
-    /**
-     * 实例对象
-     */
-    protected static $instance;
+	private static $instance;	
+    
+    protected static $spreadsheetInstance;
 
     // 当前行
     protected $currentRow = 1;
@@ -66,18 +65,44 @@ class Office
     protected $headerStyle = [];
     // 主体样式
     protected $bodyStyle = [];
+	
+	
+	
+	/**
+	 * 防止外部实例化
+	 */
+	private function __construct($config = [])
+	{
+	}
+	/**
+	 * 防止外部克隆  
+	 */
+	private function __clone()
+	{
+	}
+	/**
+	 * 获取静态实例
+	 * 对当前类实例化一次之后，可以在任意位置复用，不需要再次实例化
+	 */
+	public static function getInstance()
+	{
+	    if (is_null(self::$instance)) {
+	        self::$instance = new self;
+	    }
+	    return self::$instance;
+	}
 
 
     /**
-     * 获取对象实例
+     * 获取Spreadsheet实例
      */
-    public static function instance()
+    private static function spreadsheetInstance()
     {
-        if (is_null(self::$instance)) {
-            self::$instance = new Spreadsheet();
+        if (is_null(self::$spreadsheetInstance)) {
+            self::$spreadsheetInstance = new Spreadsheet();
         }
 
-        return self::$instance;
+        return self::$spreadsheetInstance;
     }
 
     /**
@@ -157,7 +182,7 @@ class Office
      */
     protected function initBaseStyle()
     {
-        $sheet = self::instance()->getActiveSheet();
+        $sheet = self::spreadsheetInstance()->getActiveSheet();
         $sheet->getDefaultRowDimension()->setRowHeight($this->height);
         $sheet->getDefaultColumnDimension()->setWidth($this->width);
     }
@@ -186,11 +211,11 @@ class Office
         $this->hasContentTitle = $hasContentTitle;
 
         if ($index > 0) {
-            self::instance()->createSheet($index);
-            self::instance()->setActiveSheetIndex($index);
+            self::spreadsheetInstance()->createSheet($index);
+            self::spreadsheetInstance()->setActiveSheetIndex($index);
             $this->currentRow = 1;
         }
-        $sheet = self::instance()->getActiveSheet();
+        $sheet = self::spreadsheetInstance()->getActiveSheet();
         $sheet->setTitle($sheetTitle);
         $this->setTableTitle($sheetTitle);
 
@@ -207,7 +232,7 @@ class Office
     public function setTableTitle(string $tableTitle, int $height = 20)
     {
         if ($this->hasContentTitle) {
-            $sheet = self::instance()->getActiveSheet();
+            $sheet = self::spreadsheetInstance()->getActiveSheet();
             $sheet->setCellValue('A1', $tableTitle);
             // 设置行样式
             $sheet->getRowDimension($this->currentRow)->setRowHeight($height);
@@ -223,7 +248,7 @@ class Office
      */
     public function setExtTable(array $data)
     {
-        $sheet = self::instance()->getActiveSheet();
+        $sheet = self::spreadsheetInstance()->getActiveSheet();
         $count = count($data);
         $colEn = 'A';
         for ($i = 0; $i < $count; $i++) {
@@ -251,7 +276,7 @@ class Office
     public function setContent(array $header, array $data, array $width = [], bool $all_str = false)
     {
         $this->initBaseStyle();
-        $sheet = self::instance()->getActiveSheet();
+        $sheet = self::spreadsheetInstance()->getActiveSheet();
         // 总列数
         $count = count($header);
         // 开始的位置
@@ -317,7 +342,7 @@ class Office
     public function setVContent(array $header, array $data)
     {
         $this->initBaseStyle();
-        $sheet = self::instance()->getActiveSheet();
+        $sheet = self::spreadsheetInstance()->getActiveSheet();
         // 总行数
         $count = count($header);
         $offset = 1;
@@ -361,14 +386,14 @@ class Office
      */
     public function getFile(string $fileName = 'test.xlsx', int $max_age = 60)
     {
-        self::instance()->setActiveSheetIndex(0);
+        self::spreadsheetInstance()->setActiveSheetIndex(0);
         // 获取文件后缀
         $format = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
 
         header("Content-Disposition: attachment;filename={$fileName}");
         // 浏览器缓存（秒）
         header("Cache-Control:max-age={$max_age}");
-        $writer = IOFactory::createWriter(self::instance(), ucfirst($format));
+        $writer = IOFactory::createWriter(self::spreadsheetInstance(), ucfirst($format));
         $writer->save('php://output');
         exit;
     }
@@ -379,7 +404,7 @@ class Office
      */
     public function saveStream(string $fileName = 'test.xlsx')
     {
-        self::instance()->setActiveSheetIndex(0);
+        self::spreadsheetInstance()->setActiveSheetIndex(0);
         $format = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
         $contentType = '';
         switch ($format) {
@@ -396,7 +421,7 @@ class Office
                 return false;
                 break;
         }
-        $writer = IOFactory::createWriter(self::instance(), ucfirst($format));
+        $writer = IOFactory::createWriter(self::spreadsheetInstance(), ucfirst($format));
         ob_start();
         $writer->save('php://output');
         $xlsData = ob_get_contents();
@@ -415,13 +440,13 @@ class Office
      */
     public function saveFile(string $fileName = 'test.xlsx')
     {
-        self::instance()->setActiveSheetIndex(0);
+        self::spreadsheetInstance()->setActiveSheetIndex(0);
         $file = $this->getFileName($fileName);
         $format = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
         if (!in_array($format, ['xlsx', 'xls', 'csv'])) {
             return false;
         }
-        $writer = IOFactory::createWriter(self::instance(), ucfirst($format));
+        $writer = IOFactory::createWriter(self::spreadsheetInstance(), ucfirst($format));
         $writer->save($file);
         return '/' . $file;
     }
