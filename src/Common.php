@@ -53,30 +53,6 @@ class Common
     const NL_CRLF2BR = 0, NL_BR2CRLF = 1;
 
     /**
-     * 防止外部实例化
-     */
-    private function __construct($config = [])
-    {
-    }
-    /**
-     * 防止外部克隆  
-     */
-    private function __clone()
-    {
-    }
-    /**
-     * 获取静态实例
-     * 对当前类实例化一次之后，可以在任意位置复用，不需要再次实例化
-     */
-    public static function getInstance()
-    {
-        if (is_null(self::$instance)) {
-            self::$instance = new self;
-        }
-        return self::$instance;
-    }
-
-    /**
      * 简介
      *
      **/
@@ -1296,7 +1272,7 @@ class Common
         // 截取UTF-8编码的字符串
         $tn_text = mb_substr($text, 0, $length);
         // 获取UTF-8编码的字符串长度
-        if (mb_strlen($str) > $length) {
+        if (mb_strlen($text) > $length) {
             return $tn_text . '...';
         }
         return $tn_text;

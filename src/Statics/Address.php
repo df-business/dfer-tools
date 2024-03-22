@@ -36,8 +36,7 @@ namespace Dfer\Tools\Statics;
  */
 class Address extends Base
 {
-	protected function originClass($var = null){
-		$class = str_replace("\Statics", "", __CLASS__);
-		return $class::getInstance();
+	protected function className(){
+		return str_replace("\Statics", "", __CLASS__);
 	}
 }

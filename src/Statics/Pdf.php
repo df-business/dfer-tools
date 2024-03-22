@@ -40,8 +40,9 @@ class Pdf extends Base
 	const LANDSCAPE='landscape';
 	// 纵向
 	const PORTRAIT='portrait';
-	protected function originClass($var = null){
-		$class = str_replace("\Statics", "", __CLASS__);
-		return $class::getInstance();
+	
+	
+	protected function className(){
+		return str_replace("\Statics", "", __CLASS__);
 	}
 }

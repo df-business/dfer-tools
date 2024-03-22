@@ -37,7 +37,6 @@ namespace Dfer\Tools\Statics;
 class Common extends Base
 {
 
-
 	const TIME_FULL = 0,TIME_YMD = 1;
 
 	const REQ_JSON = 0, REQ_GET = 1, REQ_POST = 2;
@@ -49,8 +48,7 @@ class Common extends Base
 
 	const NL_CRLF2BR= 0, NL_BR2CRLF = 1;
 	
-	protected function originClass($var = null){
-		$class = str_replace("\Statics", "", __CLASS__);
-		return $class::getInstance();
+	protected function className(){
+		return str_replace("\Statics", "", __CLASS__);
 	}
 }
