@@ -43,7 +43,7 @@ abstract class Base
 	 */
 	protected static $instances = [];
 	
-	abstract protected function className($var = null);
+	abstract protected function className();
 
 
 	/**
