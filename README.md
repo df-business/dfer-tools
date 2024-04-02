@@ -365,6 +365,9 @@ public function index()
 
 
 ## AliOss
+```
+composer require aliyuncs/oss-sdk-php
+```
 
 **/public/static/js/ueditor/custom/dialogs/image/image.js**
 ```
@@ -386,7 +389,7 @@ uploader.on('uploadBeforeSend', function (file, data, header) {
 		        try{
 					console.log('getRequestParams',res);
 		            $.extend(data,{
-		                'key':res.dir + calculate_object_name(data.name),
+						'key':res.dir + df_tools_common.generateRandomFileName(data.name),
 		                'policy':res.policy,
 		                'OSSAccessKeyId':res.OSSAccessKeyId,
 		                'success_action_status':'200',//让服务端返回200,不然默认会返回204
@@ -413,6 +416,54 @@ uploader.on('uploadBeforeSend', function (file, data, header) {
 	console.log("data",data)
 	header['Access-Control-Allow-Origin'] = "*";
 });
+```
+
+**/public/themes/admin_v1/user/webuploader.html**
+```
+uploader = WebUploader.create({  
+    server: "https://chanpinfabu.oss-cn-chengdu.aliyuncs.com",
+});
+uploader.on('uploadBeforeSend', function (file, data, header) {
+    //这里可以通过data对象添加POST参数
+    header['X_Requested_With'] = 'XMLHttpRequest';	
+	$.ajax({
+	    type:"post",
+		url:"/user/asset/getRequestParams/type/webuploader",
+	    // data:{process_list:{'ktp_img_l':null,'ktp_img_m':"m",'ktp_img_s':"s"}},
+		data:{process_list:{'ktp_img_1200':null,'ktp_img_600':"600",'ktp_img_200':"280"}},
+		success:function (res) {
+		    if(res){
+		        try{
+					console.log('getRequestParams',res);
+		            $.extend(data,{					                
+						'key':res.dir + df_tools_common.generateRandomFileName(data.name),
+		                'policy':res.policy,
+		                'OSSAccessKeyId':res.OSSAccessKeyId,
+		                'success_action_status':'200',//让服务端返回200,不然默认会返回204
+		                'callback':res.callback,
+		                'signature':res.signature
+		            });
+		        }catch(e){
+		            console.error(e);
+		        }
+		    }else{
+		        console.log('出错');
+		    }
+		},				    
+	    error : function(XMLHttpRequest, textStatus, errorThrown) {
+	        alert("ajax error");
+	    },
+	    complete : function(XMLHttpRequest,status){ //请求完成后最终执行参数
+	        if(status == 'timeout'){
+	            alert('请求超时，请稍后再试！');
+	        }
+	    },
+	    async : false
+	});
+	console.log("data",data)
+	header['Access-Control-Allow-Origin'] = "*";
+});
+
 ```
 
 **/app/user/controller/AssetController.php**

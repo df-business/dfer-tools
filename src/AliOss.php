@@ -55,10 +55,13 @@ class AliOss extends Common
 	// oss目录 eg:ktp_tye3/
 	private $dir = '';
 	// 调试模式
-	private $debug=false;
+	private $debug = false;
 
 	private function ossClient()
 	{
+		if (!class_exists('OSS\OssClient')) {
+			$this->debug("缺少`OSS`组件");
+		}
 		if (is_null($this->ossClient)) {
 			$this->ossClient = new OssClient($this->access_id, $this->access_key, $this->endpoint);
 		}
@@ -76,7 +79,7 @@ class AliOss extends Common
 		$this->host = $config['host'] ?? $this->host;
 		$this->callback_url = $config['callback_url'] ?? $this->callback_url;
 		$this->dir = $config['dir'] ?? $this->dir;
-		
+
 		$this->debug = $config['debug'] ?? $this->debug;
 	}
 
@@ -186,12 +189,12 @@ class AliOss extends Common
 				$this->setHttpStatus(self::FORBIDDEN);
 			}
 		} catch (OssException $exception) {
-			$err_msg = $this->getException($exception);			
-			$post_arr=['type'=>'error',"msg"=>$err_msg];
+			$err_msg = $this->getException($exception);
+			$post_arr = ['type' => 'error', "msg" => $err_msg];
 			$this->returnData($post_arr, $callback_function);
 		} catch (Exception $exception) {
-			$err_msg = $this->getException($exception);		
-			$post_arr=['type'=>'error',"msg"=>$err_msg];
+			$err_msg = $this->getException($exception);
+			$post_arr = ['type' => 'error', "msg" => $err_msg];
 			$this->returnData($post_arr, $callback_function);
 		}
 	}
@@ -242,11 +245,18 @@ class AliOss extends Common
 				break;
 			case 'error':
 			default:
-				$return = $post_arr;				
+				$return = $post_arr;
 				break;
 		}
-		// 调用回调函数
-		$callback_function($post_arr);
+
+		try {
+			// 调用回调函数
+			$callback_function($post_arr);
+		} catch (\Exception $exception) {
+			$err_msg = $exception->getMessage();
+			$this->debug($err_msg);
+		}
+
 		$this->debug($return);
 		$this->showJsonBase($return);
 	}
@@ -333,13 +343,13 @@ class AliOss extends Common
 
 		return $result;
 	}
-	
+
 	/**
 	 * 重写父级方法
 	 */
 	public function debug()
 	{
-		if($this->debug)
+		if ($this->debug)
 			parent::debug(func_get_args());
 	}
 }

@@ -1563,4 +1563,20 @@ class Common
 
         return $err_msg;
     }
+	
+	
+	/**
+	 * 判断当前页面是否本地域名
+	 * @param {Object} $var 变量
+	 **/
+	public function isLocal($var = null)
+	{
+		$domain = $_SERVER['HTTP_HOST'];  
+		  
+		if (substr($domain, -6) === '.local') {  
+		    return true;
+		} else {  
+		    return false;
+		}  
+	}
 }
