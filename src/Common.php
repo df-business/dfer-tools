@@ -1579,4 +1579,82 @@ class Common
 		    return false;
 		}  
 	}
+	
+	/**
+	 * 通过菜单子级id获取所有的父级id
+	 * eg:
+	 * 	Common::buildParentTree($portalCategoryModel->field('id,parent_id,name')->select()->toArray(),$categories[0]['id'])
+	 * @param {Object} $categories
+	 * @param {Object} $parentId
+	 */
+	public function buildParentTree($categories, $parentId) {
+	    $tree = null;
+	    foreach ($categories as $category) {  
+	        if ($category['id'] == $parentId) {  
+	            $children = $this->buildParentTree($categories, $category['parent_id']);  
+	            if ($children) {  
+	                $category['parent'] = $children;  
+	            }  
+	            $tree = $category;  
+	        }  
+	    }  	  
+	    return $tree;  
+	}
+	
+	/**
+	 * 递归函数，遍历菜单子级id获取的所有的父级id，用数组表示从小到大的目录结构
+	 * @param {Object} $array
+	 * @param {Object} $list
+	 * @return {Array} 从小到大的目录结构
+	 */  
+	public function traverseParentTree($array,$list=[]) {  
+	    if (isset($array['id'])&&isset($array['name'])) {  
+			$list[$array['id']]=$array['name'];
+	    } 
+	    if (isset($array['parent']) && is_array($array['parent'])) {  
+	        $list=$this->traverseParentTree($array['parent'],$list);  
+	    }
+		// 通过key进行正序排列
+		ksort($list);
+		return $list;
+	}  
+	
+	/**
+	 * 通过菜单子级id获取所有的父级id，返回从小到大的目录数组
+	 * eg:
+	 * 	Common::buildParentTreeMenu($portalCategoryModel->field('id,parent_id,name')->select()->toArray(),$categories[0]['id'])
+	 * @param {Object} $categories
+	 * @param {Object} $parentId
+	 * @return {Array} 从小到大的目录结构 eg:[1=>"菜单一",5=>"菜单一(1)",7=>"菜单一(1)(1)"]
+	 */
+	public function buildParentTreeMenu($categories, $parentId) {
+	    $categories_tree=$this->buildParentTree($categories,$parentId);
+	    $list=$this->traverseParentTree($categories_tree);	    
+	    return $list;  
+	}
+	
+	
+	
+	/**
+	 * 通过菜单父级id获取所有的子级id
+	 * eg:
+	 * 	Common::buildChildTree($portalCategoryModel->field('id,parent_id,name')->select()->toArray(),$categories[0]['id'])
+	 * @param {Object} $categories
+	 * @param {Object} $childId
+	 */
+	public function buildChildTree($categories, $childId) {
+	    $tree = [];
+	  
+	    foreach ($categories as $category) {  
+	        if ($category['parent_id'] == $childId) {  
+	            $children = $this->buildChildTree($categories, $category['id']);  
+	            if ($children) {  
+	                $category['children'] = $children;  
+	            }  
+	            $tree[] = $category;  
+	        }  
+	    }  
+	  
+	    return $tree;  
+	}
 }
