@@ -48,6 +48,8 @@ class Common extends Base
 
 	const NL_CRLF2BR= 0, NL_BR2CRLF = 1;
 	
+	const OSS_SIZE_NORMAL="",OSS_SIZE_MIDDLE="m",OSS_SIZE_SMALL="s";
+	
 	protected function className(){
 		return str_replace("\Statics", "", __CLASS__);
 	}

@@ -51,6 +51,8 @@ class Common
     const UPLOAD_UMEDITOR_SINGLE = 0, UPLOAD_UMEDITOR_EDITOR = 1, UPLOAD_LAYUI_EDITOR = 2, UPLOAD_EDITORMD_EDITOR = 3, UPLOAD_WEB_UPLOADER = 4;
 
     const NL_CRLF2BR = 0, NL_BR2CRLF = 1;
+	
+	const OSS_SIZE_NORMAL="",OSS_SIZE_MIDDLE="m",OSS_SIZE_SMALL="s";
 
     /**
      * 简介
@@ -317,6 +319,8 @@ class Common
 
         //判断data是否有数据
         if (!empty($data)) {
+			// $data应该是数组
+			$data=is_array($data)?$data:json_decode($data);
             //设置POST请求方式
             curl_setopt($curl, CURLOPT_POST, true);
             //设置POST的数据包
@@ -1657,4 +1661,47 @@ class Common
 	  
 	    return $tree;  
 	}
+	
+	
+	/**
+	 * 从oss获取其余尺寸的图
+	 * eg:
+	 * 	http://res.tye3.com/kp_tye3/4QJRN5dMdNiey7EP.jpg
+	 * 	http://res.tye3.com/kp_tye3/4QJRN5dMdNiey7EP_m.jpg
+	 * 	http://res.tye3.com/kp_tye3/4QJRN5dMdNiey7EP_s.jpg
+	 * @param {Object} $file
+	 * @param {Object} $type	类型。Common::OSS_SIZE_NORMAL 原图 Common::OSS_SIZE_MIDDLE 中图 Common::OSS_SIZE_SMALL 小图
+	 */
+	function getOtherSizeFromOss($file_src,$type=self::OSS_SIZE_NORMAL){
+		// /path/to
+		$dirname =  pathinfo($file_src, PATHINFO_DIRNAME);
+		// file.txt
+		$basename =  pathinfo($file_src, PATHINFO_BASENAME);
+		// txt
+		$extension =  pathinfo($file_src, PATHINFO_EXTENSION);
+		
+		switch($type){
+			case self::OSS_SIZE_NORMAL:
+				return $file;
+				break;			
+			default:
+				return $dirname.DIRECTORY_SEPARATOR.$type.DIRECTORY_SEPARATOR.$basename;
+				break;
+		}
+	}
+	
+	
+	/**
+	 * 获取MIME_TYPE前缀
+	 * @param {Object} $mimeType
+	 */
+	function getMimeTypePrefix($mimeType) {  
+	    $slashPos = strpos($mimeType, '/');  
+	    if ($slashPos !== false) {  
+	        return substr($mimeType, 0, $slashPos);  
+	    }  
+		// 如果没有斜杠，返回完整的 MIME 类型  
+	    return $mimeType; 
+	}  
+	  
 }

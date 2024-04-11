@@ -52,7 +52,7 @@ class AliOss extends Common
 	private $host = '';
 	// 回调地址 eg:https://ktp.tye3.com/callback/Oss/ossUploadCallback
 	private $callback_url = '';
-	// oss目录 eg:ktp_tye3/
+	// oss目录 eg:ktp_tye3
 	private $dir = '';
 	// 调试模式
 	private $debug = false;
@@ -79,6 +79,7 @@ class AliOss extends Common
 		$this->host = $config['host'] ?? $this->host;
 		$this->callback_url = $config['callback_url'] ?? $this->callback_url;
 		$this->dir = $config['dir'] ?? $this->dir;
+		$this->dir = $this->dir.DIRECTORY_SEPARATOR.$this->getTime(null,"Y").DIRECTORY_SEPARATOR;
 
 		$this->debug = $config['debug'] ?? $this->debug;
 	}
@@ -137,7 +138,7 @@ class AliOss extends Common
 
 
 	/**
-	 * 上传回调
+	 * 上传成功之后的回调
 	 * @param {Object} $callback_function	回调函数 eg:function($data){return $this->callback($data);}
 	 * @param {Object} $this->host
 	 */
@@ -197,6 +198,70 @@ class AliOss extends Common
 			$post_arr = ['type' => 'error', "msg" => $err_msg];
 			$this->returnData($post_arr, $callback_function);
 		}
+	}
+	
+	/**
+	 * 图片处理,保存为新的图
+	 * 设置图片尺寸（大、中、小），添加水印
+	 * 
+	 * @param {Object} $file_src  
+	 * @param {Object} $process_list	
+	 * @param {Object} $this->bucket
+	 */
+	private function processSave(&$post_arr)
+	{
+		$this->debug($post_arr);
+		// 文件类型。text、image、video、application
+		$mime_type = $this->getMimeTypePrefix($post_arr['mimeType']);
+		// 文件在oss中的路径	
+		$file_src = $post_arr['filePath'];
+		
+		// /path/to
+		$dirname =  pathinfo($file_src, PATHINFO_DIRNAME);
+		// file.txt
+		$basename =  pathinfo($file_src, PATHINFO_BASENAME);
+		// txt
+		$extension =  pathinfo($file_src, PATHINFO_EXTENSION);
+		
+		// 转移上传的文件到指定目录
+		$file_src_new =  $dirname.DIRECTORY_SEPARATOR.$mime_type.DIRECTORY_SEPARATOR.$basename;
+		$process = $this->str("sys/saveas,o_%s,b_%s",[$this->base64UrlEncode($file_src_new),$this->base64UrlEncode($this->bucket)]);
+		$this->debug($process);
+		$result[] = $this->ossClient()->processObject($this->bucket, $file_src, $process);
+		// 删除原始文件
+		$this->delFileOss($file_src);
+		// 修改原始路径
+		$post_arr['filePath']=$file_src=$file_src_new;
+		
+		// 对文件进行加工和转存
+		// 处理列表 eg:['ktp_img_l'=>null,'ktp_img_m'=>"m"]
+		$process_list = $post_arr['process_list'] ?? [];	
+		if (empty($process_list)) {
+			$result = [];
+		} else {			
+			foreach ($process_list as $key => $value) {
+				// 新文件名
+				if (empty($value)) {
+					// 覆盖原文件
+					$file_src_new =  $file_src;
+				} else {		
+					// 保存到新路径
+					$file_src_new =  $dirname.DIRECTORY_SEPARATOR.$mime_type.DIRECTORY_SEPARATOR.$value.DIRECTORY_SEPARATOR.$basename;
+				}
+	
+				$style = "style/{$key}";
+				// 通过添加另存为参数（sys/saveas）的方式将阿里云SDK处理后的文件保存至指定Bucket
+				// https://help.aliyun.com/zh/oss/user-guide/sys-or-saveas?spm=5176.28426678.J_HeJR_wZokYt378dwP-lLl.19.211c5181AjnjwZ&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2326694.S_BB1@bl+RQW@ag0+BB2@ag0+os0.ID_2326694-RL_sys/saveas-LOC_search~UND~helpdoc~UND~item-OR_ser-V_3-P0_3
+				$process = $style .
+					'|sys/saveas' .
+					',o_' . $this->base64UrlEncode($file_src_new) .
+					',b_' . $this->base64UrlEncode($this->bucket);
+				$this->debug($file_src_new,$process);
+				$result[] = $this->ossClient()->processObject($this->bucket, $file_src, $process);
+			}
+		}
+	
+		return $result;
 	}
 
 	/**
@@ -262,9 +327,9 @@ class AliOss extends Common
 	}
 
 	/**
-	 * 上传文件到oss
-	 * @param {Object} $filePath 文件路径
-	 * @param {Object} $saveDir 保存目录
+	 * 通过路径上传文件到oss
+	 * @param {Object} $filePath 服务器上的文件路径
+	 * @param {Object} $saveDir oss保存目录
 	 */
 	public function uploadFileOss($filePath, $saveDir)
 	{
@@ -294,54 +359,6 @@ class AliOss extends Common
 			//删除object
 			$result = $this->ossClient()->deleteObject($this->bucket, $src);
 		}
-	}
-
-
-	/**
-	 * 图片处理,保存为新的图
-	 * 设置图片尺寸（大、中、小），添加水印
-	 * 
-	 * @param {Object} $file_src  
-	 * @param {Object} $process_list	
-	 * @param {Object} $this->bucket
-	 */
-	private function processSave($post_arr)
-	{
-		$this->debug($post_arr);
-		// 文件在oss中的路径	
-		$file_src = $post_arr['filePath'];
-		// 处理列表 eg:['ktp_img_l'=>null,'ktp_img_m'=>"m"]
-		$process_list = $post_arr['process_list'] ?? [];
-
-		if (empty($process_list)) {
-			$result = [];
-		} else {
-			$str_len = strlen($file_src);
-			// 后缀
-			$ext_name =  pathinfo($file_src, PATHINFO_EXTENSION);
-			$ext_len = strlen($ext_name) + 1;
-
-			foreach ($process_list as $key => $value) {
-				// 新文件名
-				if (empty($value)) {
-					$file_src_new =  $file_src;
-				} else {
-					$file_src_new =  substr($file_src, 0, $str_len - $ext_len) . "_{$value}." . $ext_name;
-				}
-
-				$style = "style/{$key}";
-				// 通过添加另存为参数（sys/saveas）的方式将阿里云SDK处理后的文件保存至指定Bucket
-				// https://help.aliyun.com/zh/oss/user-guide/sys-or-saveas?spm=5176.28426678.J_HeJR_wZokYt378dwP-lLl.19.211c5181AjnjwZ&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2326694.S_BB1@bl+RQW@ag0+BB2@ag0+os0.ID_2326694-RL_sys/saveas-LOC_search~UND~helpdoc~UND~item-OR_ser-V_3-P0_3
-				$process = $style .
-					'|sys/saveas' .
-					',o_' . $this->base64UrlEncode($file_src_new) .
-					',b_' . $this->base64UrlEncode($this->bucket);
-				$this->debug($process);
-				$result[] = $this->ossClient()->processObject($this->bucket, $file_src, $process);
-			}
-		}
-
-		return $result;
 	}
 
 	/**
