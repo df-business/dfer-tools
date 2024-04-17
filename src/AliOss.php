@@ -52,7 +52,8 @@ class AliOss extends Common
 	private $host = '';
 	// 回调地址 eg:https://ktp.tye3.com/callback/Oss/ossUploadCallback
 	private $callback_url = '';
-	// oss目录 eg:ktp_tye3
+	// oss目录。 eg:ktp_tye3
+	// 路径中的两条斜杠会自动添加同名目录。eg：`https://res.tye3.com/kp_tye3//2024/image/tYGKNP9trMWHR9EQ.jpg`实际对应路径为`oss根目录/kp_tye3/kp_tye3/2024/image/tYGKNP9trMWHR9EQ.jpg`
 	private $dir = '';
 	// 调试模式
 	private $debug = false;
@@ -79,7 +80,7 @@ class AliOss extends Common
 		$this->host = $config['host'] ?? $this->host;
 		$this->callback_url = $config['callback_url'] ?? $this->callback_url;
 		$this->dir = $config['dir'] ?? $this->dir;
-		$this->dir = $this->dir.DIRECTORY_SEPARATOR.$this->getTime(null,"Y").DIRECTORY_SEPARATOR;
+		$this->dir = $this->dir . DIRECTORY_SEPARATOR . $this->getTime(null, "Y") . DIRECTORY_SEPARATOR;
 
 		$this->debug = $config['debug'] ?? $this->debug;
 	}
@@ -181,8 +182,8 @@ class AliOss extends Common
 				// 将查询字符串中的参数解析为变量			
 				// parse_str($body,$post_arr);
 				$post_arr = $this->getPara($body);
-				$post_arr['host'] =  $this->host;
-				$post_arr['fileName'] =  pathinfo($post_arr['filePath'], PATHINFO_BASENAME);
+				$post_arr['host'] = $this->host;
+				$post_arr['fileName'] = pathinfo($post_arr['filePath'], PATHINFO_BASENAME);
 				$this->processSave($post_arr);
 				$this->debug($body, urldecode($body), $post_arr);
 				$this->returnData($post_arr, $callback_function);
@@ -199,7 +200,7 @@ class AliOss extends Common
 			$this->returnData($post_arr, $callback_function);
 		}
 	}
-	
+
 	/**
 	 * 图片处理,保存为新的图
 	 * 设置图片尺寸（大、中、小），添加水印
@@ -215,40 +216,52 @@ class AliOss extends Common
 		$mime_type = $this->getMimeTypePrefix($post_arr['mimeType']);
 		// 文件在oss中的路径	
 		$file_src = $post_arr['filePath'];
-		
+
 		// /path/to
-		$dirname =  pathinfo($file_src, PATHINFO_DIRNAME);
+		$dirname = pathinfo($file_src, PATHINFO_DIRNAME);
 		// file.txt
-		$basename =  pathinfo($file_src, PATHINFO_BASENAME);
+		$basename = pathinfo($file_src, PATHINFO_BASENAME);
 		// txt
-		$extension =  pathinfo($file_src, PATHINFO_EXTENSION);
-		
+		$extension = pathinfo($file_src, PATHINFO_EXTENSION);
+		// file
+		$filename = pathinfo($file_src, PATHINFO_FILENAME);
+
 		// 转移上传的文件到指定目录
-		$file_src_new =  $dirname.DIRECTORY_SEPARATOR.$mime_type.DIRECTORY_SEPARATOR.$basename;
-		$process = $this->str("sys/saveas,o_%s,b_%s",[$this->base64UrlEncode($file_src_new),$this->base64UrlEncode($this->bucket)]);
+		$file_src_new = $dirname . DIRECTORY_SEPARATOR . $mime_type . DIRECTORY_SEPARATOR . $basename;
+		$process = $this->str("sys/saveas,o_%s,b_%s", [$this->base64UrlEncode($file_src_new), $this->base64UrlEncode($this->bucket)]);
 		$this->debug($process);
 		$result[] = $this->ossClient()->processObject($this->bucket, $file_src, $process);
 		// 删除原始文件
 		$this->delFileOss($file_src);
 		// 修改原始路径
-		$post_arr['filePath']=$file_src=$file_src_new;
-		
+		$post_arr['filePath'] = $file_src = $file_src_new;
+
+		// 异步处理。图片处理默认使用`x-oss-process`，视频截帧默认使用`x-oss-async-process`
+		$is_async = false;
+
 		// 对文件进行加工和转存
 		// 处理列表 eg:['ktp_img_l'=>null,'ktp_img_m'=>"m"]
-		$process_list = $post_arr['process_list'] ?? [];	
+		$process_list = $post_arr['process_list'] ?? [];
 		if (empty($process_list)) {
 			$result = [];
-		} else {			
+		} else {
 			foreach ($process_list as $key => $value) {
+				if (is_array($value)) {
+					$basename = "{$filename}.{$value[1]}";
+					$value = $value[0];
+					$is_async = true;
+				}
 				// 新文件名
 				if (empty($value)) {
 					// 覆盖原文件
-					$file_src_new =  $file_src;
-				} else {		
+					$file_src_new = $file_src;
+				} else {
 					// 保存到新路径
-					$file_src_new =  $dirname.DIRECTORY_SEPARATOR.$mime_type.DIRECTORY_SEPARATOR.$value.DIRECTORY_SEPARATOR.$basename;
+					$file_src_new = $dirname . DIRECTORY_SEPARATOR . $mime_type . DIRECTORY_SEPARATOR . $value . DIRECTORY_SEPARATOR . $basename;
 				}
-	
+
+
+				// 样式名称。样式里包含了各种参数，比如：http://res.tye3.com/kp_tye3//2024/image/tYGKNP9trMWHR9EQ.jpg?x-oss-process=image/auto-orient,1/resize,m_pad,w_200,h_200
 				$style = "style/{$key}";
 				// 通过添加另存为参数（sys/saveas）的方式将阿里云SDK处理后的文件保存至指定Bucket
 				// https://help.aliyun.com/zh/oss/user-guide/sys-or-saveas?spm=5176.28426678.J_HeJR_wZokYt378dwP-lLl.19.211c5181AjnjwZ&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2326694.S_BB1@bl+RQW@ag0+BB2@ag0+os0.ID_2326694-RL_sys/saveas-LOC_search~UND~helpdoc~UND~item-OR_ser-V_3-P0_3
@@ -256,11 +269,14 @@ class AliOss extends Common
 					'|sys/saveas' .
 					',o_' . $this->base64UrlEncode($file_src_new) .
 					',b_' . $this->base64UrlEncode($this->bucket);
-				$this->debug($file_src_new,$process);
-				$result[] = $this->ossClient()->processObject($this->bucket, $file_src, $process);
+				$this->debug($file_src_new, $process);
+				if ($is_async)
+					$result[] = $this->ossClient()->asyncProcessObject($this->bucket, $file_src, $process);
+				else
+					$result[] = $this->ossClient()->processObject($this->bucket, $file_src, $process);
 			}
 		}
-	
+
 		return $result;
 	}
 
@@ -338,7 +354,7 @@ class AliOss extends Common
 			//创建虚拟目录
 			$this->ossClient()->createObjectDir($this->bucket, $saveDir);
 		}
-		$save_file_name =  pathinfo($filePath, PATHINFO_BASENAME);
+		$save_file_name = pathinfo($filePath, PATHINFO_BASENAME);
 		$this->ossClient()->uploadFile($this->bucket, $saveDir . DIRECTORY_SEPARATOR . $save_file_name, $filePath);
 		//删除原文件
 		if (is_file($filePath)) {

@@ -54,7 +54,7 @@ class TpCommon
             self::$db = new \think\Db();
         }
     }
-	
+    
      /**
       * 获取表的字段信息
       * @param {Object} $table 表名
@@ -69,75 +69,73 @@ class TpCommon
         foreach ($list as $key => $value) {
             $item[$value['Field']]=$value[$col_name];
         }
-    	
-    	if(is_array($keys)){			
-    		if(count($keys)==0){
-    			return $item;
-    		}
-    		
-    		foreach($keys as $key=>$value){			
-    		$data[]=$item[$value];
-    		}
-    	}
-    	else{
-    		$data=$item[$keys];
-    	}
-    	return $data;
+        
+        if(is_array($keys)){			
+            if(count($keys)==0){
+                return $item;
+            }
+            
+            foreach($keys as $key=>$value){			
+            $data[]=$item[$value];
+            }
+        }
+        else{
+            $data=$item[$keys];
+        }
+        return $data;
     }
-	
-	/**
-	 * 独立日志
-	 *
-	 * 'apart_level'=>['error','sql','debug','dfer']
-	 **/
-	public function log($data, $identification='dfer')
-	{
-	    if (class_exists("\\think\\facade\\Log")) {
-	        \think\facade\Log::write($data, $identification);
-	    } else {
-	        \think\Log::write($data, $identification);
-	    }
-	}
-	
-	
-	/**
-	 * 
-	 * 表单文件上传
-	 */
-	public function uploadForm()
-	{
-	    $files=request()->file();
-	    // dump($files);
-	    if (!empty($files)) {
-	        try {
-	            $validate = new \app\validate\upload;
-	            $result = $validate->check($files);
-	            if (!$result) {
-	                echo $validate->getError();
-	            }
-	            //           validate(['image'=>$vali_param])
-	            //                   ->check($files);
-	                            
-	            $files=$files['image'];
-	            // 多文件上传
-	            if (\is_array($files)) {
-	                $savename = [];
-	                foreach ($files as $file) {
-	                    $savename[] = \think\facade\Filesystem::putFile('e', $file);
-	                }
-	            }
-	            // 单文件
-	            else {
-	                // 上传到本地服务器
-	                $savename = \think\facade\Filesystem::putFile('e', $file);
-	            }
-	            // dump($savename);
-	            return $savename;
-	        } catch (\think\exception\ValidateException $e) {
-	            dump($e);
-	            return $e;
-	        }
-	    }
-	}
-	
+    
+    /**
+     * 独立日志
+     *
+     * 'apart_level'=>['error','sql','debug','dfer']
+     **/
+    public function log($data, $identification='dfer')
+    {
+        if (class_exists("\\think\\facade\\Log")) {
+            \think\facade\Log::write($data, $identification);
+        } else {
+            \think\Log::write($data, $identification);
+        }
+    }
+    
+    
+    /**
+     * 
+     * 表单文件上传
+     */
+    public function uploadForm()
+    {
+        $files=request()->file();
+        // dump($files);
+        if (!empty($files)) {
+            try {
+                $validate = new \app\validate\upload;
+                $result = $validate->check($files);
+                if (!$result) {
+                    echo $validate->getError();
+                }
+                                
+                $files=$files['image'];
+                // 多文件上传
+                if (\is_array($files)) {
+                    $savename = [];
+                    foreach ($files as $file) {
+                        $savename[] = \think\facade\Filesystem::putFile('e', $file);
+                    }
+                }
+                // 单文件
+                else {
+                    // 上传到本地服务器
+                    $savename = \think\facade\Filesystem::putFile('e', $file);
+                }
+                // dump($savename);
+                return $savename;
+            } catch (\think\exception\ValidateException $e) {
+                dump($e);
+                return $e;
+            }
+        }
+    }
+    
 }

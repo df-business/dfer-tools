@@ -50,7 +50,7 @@ class ImgCompress
      */
     public function __construct($src, $percent = 1)
     {
-    	   $this -> src = $src;
+           $this -> src = $src;
         $this -> percent = $percent;
     }
 
@@ -78,7 +78,7 @@ class ImgCompress
         $this -> imageinfo = array('width' => $width, 'height' => $height, 'type' => image_type_to_extension($type, false), 'attr' => $attr);
         $fun = "imagecreatefrom" . $this -> imageinfo['type'];
         $this -> image = $fun($this -> src);
-      	 $this -> _thumpImage();
+         $this -> _thumpImage();
     }
 
     /**
@@ -111,12 +111,12 @@ class ImgCompress
      */
     private function _saveImage($dstImgName)
     {
-    	   if (empty($dstImgName)) {
+           if (empty($dstImgName)) {
             return false;
         }
         $allowImgs = array('.jpg', '.jpeg', '.png', '.bmp', '.wbmp', '.gif');
         //如果目标图片名有后缀就用目标图片扩展名 后缀，如果没有，则用源图的扩展名
-      	 $dstExt = strrchr($dstImgName, ".");
+         $dstExt = strrchr($dstImgName, ".");
         $sourseExt = strrchr($this -> src, ".");
         if (!empty($dstExt)) {
             $dstExt = strtolower($dstExt);
@@ -142,6 +142,6 @@ class ImgCompress
      */
     public function __destruct()
     {
-    	   imagedestroy($this -> image);
+           imagedestroy($this -> image);
     }
 }

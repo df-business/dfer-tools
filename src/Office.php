@@ -42,7 +42,7 @@ use PhpOffice\PhpSpreadsheet\Cell\DataType;
  */
 class Office
 {
-    
+
     protected static $spreadsheetInstance;
 
     // 当前行
@@ -64,8 +64,8 @@ class Office
     protected $headerStyle = [];
     // 主体样式
     protected $bodyStyle = [];
-	
-	
+
+
     /**
      * 静态获取Spreadsheet实例
      */
@@ -399,7 +399,7 @@ class Office
         $writer->save('php://output');
         $xlsData = ob_get_contents();
         ob_end_clean();
-        $response =  [
+        $response = [
             'file' => $contentType . "base64," . base64_encode($xlsData),
             'title' => $fileName
         ];

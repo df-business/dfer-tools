@@ -2,6 +2,8 @@
 
 namespace Dfer\Tools;
 
+use DOMDocument;
+
 /**
  * +----------------------------------------------------------------------
  * | 常用的方法
@@ -41,7 +43,7 @@ class Common
 
     use ImgTrait, FilesTrait;
 
-    const TIME_FULL = 0, TIME_YMD = 1;
+    const TIME_FULL = 'Y-m-d H:i:s', TIME_YMD = 'Y-m-d';
 
     const REQ_JSON = 0, REQ_GET = 1, REQ_POST = 2;
 
@@ -51,8 +53,8 @@ class Common
     const UPLOAD_UMEDITOR_SINGLE = 0, UPLOAD_UMEDITOR_EDITOR = 1, UPLOAD_LAYUI_EDITOR = 2, UPLOAD_EDITORMD_EDITOR = 3, UPLOAD_WEB_UPLOADER = 4;
 
     const NL_CRLF2BR = 0, NL_BR2CRLF = 1;
-	
-	const OSS_SIZE_NORMAL="",OSS_SIZE_MIDDLE="m",OSS_SIZE_SMALL="s";
+
+    const OSS_SIZE_NORMAL = "", OSS_SIZE_MIDDLE = "m", OSS_SIZE_SMALL = "s";
 
     /**
      * 简介
@@ -158,6 +160,7 @@ class Common
     /**
      * 将时间数据转化为正常的时间格式
      * eg:
+     * getTime(1709091401,Common::TIME_FULL)
      * getTime(1709091401,"Y/m/d H:i:s")
      * getTime("2024-02-28 11:36:41","Y/m/d H:i:s")
      * getTime(null,"Y/m/d H:i:s")
@@ -167,17 +170,7 @@ class Common
      */
     public function getTime($time = null, $type = self::TIME_FULL)
     {
-        switch ($type) {
-            case self::TIME_FULL:
-                $format = 'Y-m-d H:i:s';
-                break;
-            case self::TIME_YMD:
-                $format = 'Y-m-d';
-                break;
-            default:
-                $format = $type;
-                break;
-        }
+        $format = $type;
         if (empty($time)) {
             return date($format);
         }
@@ -319,8 +312,8 @@ class Common
 
         //判断data是否有数据
         if (!empty($data)) {
-			// $data应该是数组
-			$data=is_array($data)?$data:json_decode($data);
+            // $data应该是数组
+            $data = is_array($data) ? $data : json_decode($data);
             //设置POST请求方式
             curl_setopt($curl, CURLOPT_POST, true);
             //设置POST的数据包
@@ -464,7 +457,7 @@ class Common
     {
         $pos = strpos($find, $str);
         //	echo $pos;
-        if ((bool)$pos) {
+        if ((bool) $pos) {
             $rt = $pos + 1;
         } else {
             $rt = 0;
@@ -599,7 +592,7 @@ class Common
         for ($i = 0; $i < strlen($hex) - 1; $i += 2) {
             $str .= chr(hexdec($hex[$i] . $hex[$i + 1]));
         }
-        return  $str;
+        return $str;
     }
 
 
@@ -633,7 +626,7 @@ class Common
         $strAuthPass = $_SERVER['PHP_AUTH_PW'];
 
         //验证成功
-        if ($strAuthUser == $account &&  $strAuthPass == $password) {
+        if ($strAuthUser == $account && $strAuthPass == $password) {
             return true;
         }
         //验证失败
@@ -1023,15 +1016,18 @@ class Common
      * 冒泡排序
      * 默认：从大到小
      * 数值相同，则原始数组前方的靠前
-     **/
-    public function bubbleSort(array $arr, $item_name, $is_asc = false)
+     * @param {Object} array $arr	原始数组
+     * @param {Object} $key_name	某个key
+     * @param {Object} $is_asc	排序方式。true 升序 false 降序
+     */
+    public function bubbleSort(array $arr, $key_name, $is_asc = false)
     {
         for ($i = 0; $i < count($arr); $i++) {
             $data = '';
             for ($j = $i + 1; $j < count($arr); $j++) {
-                if ($arr[$i][$item_name] < $arr[$j][$item_name]) {
-                    $data      = $arr[$i];
-                    $arr[$i]   = $arr[$j];
+                if ($arr[$i][$key_name] < $arr[$j][$key_name]) {
+                    $data = $arr[$i];
+                    $arr[$i] = $arr[$j];
                     $arr[$j] = $data;
                 }
             }
@@ -1040,6 +1036,19 @@ class Common
         return $arr;
     }
 
+    /**
+     * 对数组的某个值降序排列，并根据顺序添加一个排序字段
+     * @param {Object} array $arr	原始数组
+     * @param {Object} $key_name	某个key
+     */
+    public function setRankingByDesc(array $arr, $key_name)
+    {
+        $list = $this->bubbleSort($arr, $key_name);
+        foreach ($list as $key => &$value) {
+            $value["{$key_name}_ranking"] = $key + 1;
+        }
+        return $list;
+    }
 
     /**
      * 根据奖品概率，进行随机抽奖，返回中奖的编号
@@ -1084,47 +1093,195 @@ class Common
     {
         // 全角
         $dbc = array(
-            '０', '１', '２', '３', '４',
-            '５', '６', '７', '８', '９',
-            'Ａ', 'Ｂ', 'Ｃ', 'Ｄ', 'Ｅ',
-            'Ｆ', 'Ｇ', 'Ｈ', 'Ｉ', 'Ｊ',
-            'Ｋ', 'Ｌ', 'Ｍ', 'Ｎ', 'Ｏ',
-            'Ｐ', 'Ｑ', 'Ｒ', 'Ｓ', 'Ｔ',
-            'Ｕ', 'Ｖ', 'Ｗ', 'Ｘ', 'Ｙ',
-            'Ｚ', 'ａ', 'ｂ', 'ｃ', 'ｄ',
-            'ｅ', 'ｆ', 'ｇ', 'ｈ', 'ｉ',
-            'ｊ', 'ｋ', 'ｌ', 'ｍ', 'ｎ',
-            'ｏ', 'ｐ', 'ｑ', 'ｒ', 'ｓ',
-            'ｔ', 'ｕ', 'ｖ', 'ｗ', 'ｘ',
-            'ｙ', 'ｚ', '－', '　', '：',
-            '．', '，', '／', '％', '＃',
-            '！', '＠', '＆', '（', '）',
-            '＜', '＞', '＂', '＇', '？',
-            '［', '］', '｛', '｝', '＼',
-            '｜', '＋', '＝', '＿', '＾',
-            '￥', '￣', '｀'
+            '０',
+            '１',
+            '２',
+            '３',
+            '４',
+            '５',
+            '６',
+            '７',
+            '８',
+            '９',
+            'Ａ',
+            'Ｂ',
+            'Ｃ',
+            'Ｄ',
+            'Ｅ',
+            'Ｆ',
+            'Ｇ',
+            'Ｈ',
+            'Ｉ',
+            'Ｊ',
+            'Ｋ',
+            'Ｌ',
+            'Ｍ',
+            'Ｎ',
+            'Ｏ',
+            'Ｐ',
+            'Ｑ',
+            'Ｒ',
+            'Ｓ',
+            'Ｔ',
+            'Ｕ',
+            'Ｖ',
+            'Ｗ',
+            'Ｘ',
+            'Ｙ',
+            'Ｚ',
+            'ａ',
+            'ｂ',
+            'ｃ',
+            'ｄ',
+            'ｅ',
+            'ｆ',
+            'ｇ',
+            'ｈ',
+            'ｉ',
+            'ｊ',
+            'ｋ',
+            'ｌ',
+            'ｍ',
+            'ｎ',
+            'ｏ',
+            'ｐ',
+            'ｑ',
+            'ｒ',
+            'ｓ',
+            'ｔ',
+            'ｕ',
+            'ｖ',
+            'ｗ',
+            'ｘ',
+            'ｙ',
+            'ｚ',
+            '－',
+            '　',
+            '：',
+            '．',
+            '，',
+            '／',
+            '％',
+            '＃',
+            '！',
+            '＠',
+            '＆',
+            '（',
+            '）',
+            '＜',
+            '＞',
+            '＂',
+            '＇',
+            '？',
+            '［',
+            '］',
+            '｛',
+            '｝',
+            '＼',
+            '｜',
+            '＋',
+            '＝',
+            '＿',
+            '＾',
+            '￥',
+            '￣',
+            '｀'
         );
         //半角
         $sbc = array(
-            '0', '1', '2', '3', '4',
-            '5', '6', '7', '8', '9',
-            'A', 'B', 'C', 'D', 'E',
-            'F', 'G', 'H', 'I', 'J',
-            'K', 'L', 'M', 'N', 'O',
-            'P', 'Q', 'R', 'S', 'T',
-            'U', 'V', 'W', 'X', 'Y',
-            'Z', 'a', 'b', 'c', 'd',
-            'e', 'f', 'g', 'h', 'i',
-            'j', 'k', 'l', 'm', 'n',
-            'o', 'p', 'q', 'r', 's',
-            't', 'u', 'v', 'w', 'x',
-            'y', 'z', '-', ' ', ':',
-            '.', ',', '/', '%', ' #',
-            '!', '@', '&', '(', ')',
-            '<', '>', '"', '\'', '?',
-            '[', ']', '{', '}', '\\',
-            '|', '+', '=', '_', '^',
-            '￥', '~', '`'
+            '0',
+            '1',
+            '2',
+            '3',
+            '4',
+            '5',
+            '6',
+            '7',
+            '8',
+            '9',
+            'A',
+            'B',
+            'C',
+            'D',
+            'E',
+            'F',
+            'G',
+            'H',
+            'I',
+            'J',
+            'K',
+            'L',
+            'M',
+            'N',
+            'O',
+            'P',
+            'Q',
+            'R',
+            'S',
+            'T',
+            'U',
+            'V',
+            'W',
+            'X',
+            'Y',
+            'Z',
+            'a',
+            'b',
+            'c',
+            'd',
+            'e',
+            'f',
+            'g',
+            'h',
+            'i',
+            'j',
+            'k',
+            'l',
+            'm',
+            'n',
+            'o',
+            'p',
+            'q',
+            'r',
+            's',
+            't',
+            'u',
+            'v',
+            'w',
+            'x',
+            'y',
+            'z',
+            '-',
+            ' ',
+            ':',
+            '.',
+            ',',
+            '/',
+            '%',
+            ' #',
+            '!',
+            '@',
+            '&',
+            '(',
+            ')',
+            '<',
+            '>',
+            '"',
+            '\'',
+            '?',
+            '[',
+            ']',
+            '{',
+            '}',
+            '\\',
+            '|',
+            '+',
+            '=',
+            '_',
+            '^',
+            '￥',
+            '~',
+            '`'
         );
 
         if ($type == 'TODBC') {
@@ -1528,7 +1685,7 @@ class Common
     {
         try {
             // 执行传入的代码  
-            eval($code);
+            eval ($code);
         } catch (Exception $e) {
             // 处理异常  
             echo "捕获到异常: " . $e->getMessage() . "\n";
@@ -1567,141 +1724,201 @@ class Common
 
         return $err_msg;
     }
-	
-	
-	/**
-	 * 判断当前页面是否本地域名
-	 * @param {Object} $var 变量
-	 **/
-	public function isLocal($var = null)
-	{
-		$domain = $_SERVER['HTTP_HOST'];  
-		  
-		if (substr($domain, -6) === '.local') {  
-		    return true;
-		} else {  
-		    return false;
-		}  
-	}
-	
-	/**
-	 * 通过菜单子级id获取所有的父级id
-	 * eg:
-	 * 	Common::buildParentTree($portalCategoryModel->field('id,parent_id,name')->select()->toArray(),$categories[0]['id'])
-	 * @param {Object} $categories
-	 * @param {Object} $parentId
-	 */
-	public function buildParentTree($categories, $parentId) {
-	    $tree = null;
-	    foreach ($categories as $category) {  
-	        if ($category['id'] == $parentId) {  
-	            $children = $this->buildParentTree($categories, $category['parent_id']);  
-	            if ($children) {  
-	                $category['parent'] = $children;  
-	            }  
-	            $tree = $category;  
-	        }  
-	    }  	  
-	    return $tree;  
-	}
-	
-	/**
-	 * 递归函数，遍历菜单子级id获取的所有的父级id，用数组表示从小到大的目录结构
-	 * @param {Object} $array
-	 * @param {Object} $list
-	 * @return {Array} 从小到大的目录结构
-	 */  
-	public function traverseParentTree($array,$list=[]) {  
-	    if (isset($array['id'])&&isset($array['name'])) {  
-			$list[$array['id']]=$array['name'];
-	    } 
-	    if (isset($array['parent']) && is_array($array['parent'])) {  
-	        $list=$this->traverseParentTree($array['parent'],$list);  
-	    }
-		// 通过key进行正序排列
-		ksort($list);
-		return $list;
-	}  
-	
-	/**
-	 * 通过菜单子级id获取所有的父级id，返回从小到大的目录数组
-	 * eg:
-	 * 	Common::buildParentTreeMenu($portalCategoryModel->field('id,parent_id,name')->select()->toArray(),$categories[0]['id'])
-	 * @param {Object} $categories
-	 * @param {Object} $parentId
-	 * @return {Array} 从小到大的目录结构 eg:[1=>"菜单一",5=>"菜单一(1)",7=>"菜单一(1)(1)"]
-	 */
-	public function buildParentTreeMenu($categories, $parentId) {
-	    $categories_tree=$this->buildParentTree($categories,$parentId);
-	    $list=$this->traverseParentTree($categories_tree);	    
-	    return $list;  
-	}
-	
-	
-	
-	/**
-	 * 通过菜单父级id获取所有的子级id
-	 * eg:
-	 * 	Common::buildChildTree($portalCategoryModel->field('id,parent_id,name')->select()->toArray(),$categories[0]['id'])
-	 * @param {Object} $categories
-	 * @param {Object} $childId
-	 */
-	public function buildChildTree($categories, $childId) {
-	    $tree = [];
-	  
-	    foreach ($categories as $category) {  
-	        if ($category['parent_id'] == $childId) {  
-	            $children = $this->buildChildTree($categories, $category['id']);  
-	            if ($children) {  
-	                $category['children'] = $children;  
-	            }  
-	            $tree[] = $category;  
-	        }  
-	    }  
-	  
-	    return $tree;  
-	}
-	
-	
-	/**
-	 * 从oss获取其余尺寸的图
-	 * eg:
-	 * 	http://res.tye3.com/kp_tye3/4QJRN5dMdNiey7EP.jpg
-	 * 	http://res.tye3.com/kp_tye3/4QJRN5dMdNiey7EP_m.jpg
-	 * 	http://res.tye3.com/kp_tye3/4QJRN5dMdNiey7EP_s.jpg
-	 * @param {Object} $file
-	 * @param {Object} $type	类型。Common::OSS_SIZE_NORMAL 原图 Common::OSS_SIZE_MIDDLE 中图 Common::OSS_SIZE_SMALL 小图
-	 */
-	function getOtherSizeFromOss($file_src,$type=self::OSS_SIZE_NORMAL){
-		// /path/to
-		$dirname =  pathinfo($file_src, PATHINFO_DIRNAME);
-		// file.txt
-		$basename =  pathinfo($file_src, PATHINFO_BASENAME);
-		// txt
-		$extension =  pathinfo($file_src, PATHINFO_EXTENSION);
-		
-		switch($type){
-			case self::OSS_SIZE_NORMAL:
-				return $file;
-				break;			
-			default:
-				return $dirname.DIRECTORY_SEPARATOR.$type.DIRECTORY_SEPARATOR.$basename;
-				break;
-		}
-	}
-	
-	
-	/**
-	 * 获取MIME_TYPE前缀
-	 * @param {Object} $mimeType
-	 */
-	function getMimeTypePrefix($mimeType) {  
-	    $slashPos = strpos($mimeType, '/');  
-	    if ($slashPos !== false) {  
-	        return substr($mimeType, 0, $slashPos);  
-	    }  
-		// 如果没有斜杠，返回完整的 MIME 类型  
-	    return $mimeType; 
-	}  
-	  
+
+
+    /**
+     * 判断当前页面是否本地域名
+     * @param {Object} $var 变量
+     **/
+    public function isLocal($var = null)
+    {
+        $domain = $_SERVER['HTTP_HOST'];
+
+        if (substr($domain, -6) === '.local') {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * 通过菜单子级id获取所有的父级id
+     * eg:
+     * 	Common::buildParentTree($portalCategoryModel->field('id,parent_id,name')->select()->toArray(),$categories[0]['id'])
+     * @param {Object} $categories
+     * @param {Object} $parentId
+     */
+    public function buildParentTree($categories, $parentId)
+    {
+        $tree = null;
+        foreach ($categories as $category) {
+            if ($category['id'] == $parentId) {
+                $children = $this->buildParentTree($categories, $category['parent_id']);
+                if ($children) {
+                    $category['parent'] = $children;
+                }
+                $tree = $category;
+            }
+        }
+        return $tree;
+    }
+
+    /**
+     * 递归函数，遍历菜单子级id获取的所有的父级id，用数组表示从小到大的目录结构
+     * @param {Object} $array
+     * @param {Object} $list
+     * @return {Array} 从小到大的目录结构
+     */
+    public function traverseParentTree($array, $list = [])
+    {
+        if (isset($array['id']) && isset($array['name'])) {
+            $list[$array['id']] = $array['name'];
+        }
+        if (isset($array['parent']) && is_array($array['parent'])) {
+            $list = $this->traverseParentTree($array['parent'], $list);
+        }
+        // 通过key进行正序排列
+        ksort($list);
+        return $list;
+    }
+
+    /**
+     * 通过菜单子级id获取所有的父级id，返回从小到大的目录数组
+     * eg:
+     * 	Common::buildParentTreeMenu($portalCategoryModel->field('id,parent_id,name')->select()->toArray(),$categories[0]['id'])
+     * @param {Object} $categories
+     * @param {Object} $parentId
+     * @return {Array} 从小到大的目录结构 eg:[1=>"菜单一",5=>"菜单一(1)",7=>"菜单一(1)(1)"]
+     */
+    public function buildParentTreeMenu($categories, $parentId)
+    {
+        $categories_tree = $this->buildParentTree($categories, $parentId);
+        $list = $this->traverseParentTree($categories_tree);
+        return $list;
+    }
+
+
+
+    /**
+     * 通过菜单父级id获取所有的子级id
+     * eg:
+     * 	Common::buildChildTree($portalCategoryModel->field('id,parent_id,name')->select()->toArray(),$categories[0]['id'])
+     * @param {Object} $categories
+     * @param {Object} $childId
+     */
+    public function buildChildTree($categories, $childId)
+    {
+        $tree = [];
+
+        foreach ($categories as $category) {
+            if ($category['parent_id'] == $childId) {
+                $children = $this->buildChildTree($categories, $category['id']);
+                if ($children) {
+                    $category['children'] = $children;
+                }
+                $tree[] = $category;
+            }
+        }
+
+        return $tree;
+    }
+
+
+    /**
+     * 从oss获取其余尺寸的图
+     * eg:
+     * 	http://res.tye3.com/kp_tye3/4QJRN5dMdNiey7EP.jpg
+     * 	http://res.tye3.com/kp_tye3/4QJRN5dMdNiey7EP_m.jpg
+     * 	http://res.tye3.com/kp_tye3/4QJRN5dMdNiey7EP_s.jpg
+     * @param {Object} $file
+     * @param {Object} $type	类型。Common::OSS_SIZE_NORMAL 原图 Common::OSS_SIZE_MIDDLE 中图 Common::OSS_SIZE_SMALL 小图
+     */
+    function getOtherSizeFromOss($file_src, $type = self::OSS_SIZE_NORMAL)
+    {
+        // /path/to
+        $dirname = pathinfo($file_src, PATHINFO_DIRNAME);
+        // file.txt
+        $basename = pathinfo($file_src, PATHINFO_BASENAME);
+        // txt
+        $extension = pathinfo($file_src, PATHINFO_EXTENSION);
+
+        switch ($type) {
+            case self::OSS_SIZE_NORMAL:
+                return $file;
+                break;
+            default:
+                return $dirname . DIRECTORY_SEPARATOR . $type . DIRECTORY_SEPARATOR . $basename;
+                break;
+        }
+    }
+
+
+    /**
+     * 获取MIME_TYPE前缀
+     * @param {Object} $mimeType
+     */
+    function getMimeTypePrefix($mimeType)
+    {
+        $slashPos = strpos($mimeType, '/');
+        if ($slashPos !== false) {
+            return substr($mimeType, 0, $slashPos);
+        }
+        // 如果没有斜杠，返回完整的 MIME 类型  
+        return $mimeType;
+    }
+
+
+    /**
+     * 设置html中所有video的封面
+     * @param {Object} $htmlContent html代码。eg:<html><body><video src="http://res.tye3.com/ktp_tye3/16yHwX6GA1fkedAi.mp4"></video></body></html>
+     * @param {Object} $defaultCover 默认封面。eg:http://ktp.tye3.com/themes/ktp_v1/public/assets/images/temp/v_poster.jpg
+     **/
+    public function setHtmlVideoCover($htmlContent = null, $defaultCover = null)
+    {
+        if (empty($htmlContent)) {
+            return $htmlContent;
+        }
+        // 捕获html的格式错误
+        libxml_use_internal_errors(true);
+        // 创建一个 DOMDocument 对象  
+        $dom = new DOMDocument();
+        // 加载 HTML 内容。支持中文显示
+        $dom->loadHTML(mb_convert_encoding($htmlContent, 'HTML-ENTITIES', 'UTF-8'));
+        // 获取所有错误  
+        $errors = libxml_get_errors();
+        // 清除错误缓存
+        libxml_clear_errors();
+        // 获取所有的 <video> 标签  
+        $videos = $dom->getElementsByTagName('video');
+        // 遍历所有 <video> 标签  
+        foreach ($videos as $video) {
+            // 获取 src 属性  
+            $src = $video->getAttribute('src');
+            // /path/to
+            $dirname = pathinfo($src, PATHINFO_DIRNAME);
+            // file
+            $filename = pathinfo($src, PATHINFO_FILENAME);
+
+            // 构造 poster 的 URL（这里假设 poster 与视频文件在同一个目录下，并且文件名为 src 的同名图片，后缀为 .jpg）
+            $poster = $dirname . DIRECTORY_SEPARATOR . "c" . DIRECTORY_SEPARATOR . $filename . '.jpg'; // 假设视频是 .mp4 格式
+            if (!$this->imageExists($poster)) {
+                $poster = $defaultCover;
+            }
+            // 添加 poster 属性到 <video> 标签  
+            $video->setAttribute('poster', $poster);
+        }
+        // 保存修改后的 HTML。自动添加html和body标签
+        // $newHtml = $dom->saveHTML();		
+        // 获取 body 元素  
+        $body = $dom->getElementsByTagName('body')->item(0);
+        // 获取body元素内的所有子节点的HTML内容  
+        $bodyHtml = [];
+        foreach ($body->childNodes as $childNode) {
+            $bodyHtml[] = $dom->saveHTML($childNode);
+        }
+        $newHtml = implode("", $bodyHtml);
+        // 输出修改后的 HTML
+        return $newHtml;
+    }
+
 }

@@ -36,7 +36,7 @@ namespace Dfer\Tools\Statics;
  */
 class Address extends Base
 {
-	protected function className(){
-		return str_replace("\Statics", "", __CLASS__);
-	}
+    protected function className(){
+        return str_replace("\Statics", "", __CLASS__);
+    }
 }

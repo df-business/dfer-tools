@@ -36,13 +36,13 @@ namespace Dfer\Tools\Statics;
  */
 class Pdf extends Base
 {
-	// 横向
-	const LANDSCAPE='landscape';
-	// 纵向
-	const PORTRAIT='portrait';
-	
-	
-	protected function className(){
-		return str_replace("\Statics", "", __CLASS__);
-	}
+    // 横向
+    const LANDSCAPE='landscape';
+    // 纵向
+    const PORTRAIT='portrait';
+    
+    
+    protected function className(){
+        return str_replace("\Statics", "", __CLASS__);
+    }
 }

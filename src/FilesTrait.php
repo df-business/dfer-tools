@@ -124,12 +124,12 @@ trait FilesTrait
 
 
     /*
-	 * 创建目录
-	 *
-	 * 如果目录不存在就根据路径创建无限级目录
-	 *
-	 *
-	 */
+     * 创建目录
+     *
+     * 如果目录不存在就根据路径创建无限级目录
+     *
+     *
+     */
     public function mkDirs($path)
     {
         //检查指定的文件是否是目录
@@ -549,28 +549,28 @@ trait FilesTrait
         }
         return $latestFile;
     }
-	
-	/**
-	 * 输出调试信息到日志文件
-	 * @param {Object} 自动获取所有参数
-	 **/
-	public function debug()
-	{
-			$args = $this->str(func_get_args());
-			$time = $this->getTime(time());
-			// 项目根目录
-			$root=dirname(__DIR__, 4);
-			$tag=$_SERVER['REQUEST_URI']??'';
-			$str=$this->str(<<<STR
-			
-					********************** DEBUG{tag} START **********************
-					{0}
-					**********************  DEBUG{tag} END  **********************
-					
-					STR, [$args,'tag'=>"[{$tag} {$time}]"]);
-			$file_dir = $this->str("{root}/data/logs/{0}", [date('Ym'), "root" => $root]);
-			$this->mkDirs($file_dir);
-			$file_src= $this->str("{0}/{1}.log", [$file_dir, date('d')]);
-			$this->writeFile($str,$file_src, "a");
-	}
+    
+    /**
+     * 输出调试信息到日志文件
+     * @param {Object} 自动获取所有参数
+     **/
+    public function debug()
+    {
+            $args = $this->str(func_get_args());
+            $time = $this->getTime(time());
+            // 项目根目录
+            $root=dirname(__DIR__, 4);
+            $tag=$_SERVER['REQUEST_URI']??'';
+            $str=$this->str(<<<STR
+            
+                    ********************** DEBUG{tag} START **********************
+                    {0}
+                    **********************  DEBUG{tag} END  **********************
+                    
+                    STR, [$args,'tag'=>"[{$tag} {$time}]"]);
+            $file_dir = $this->str("{root}/data/logs/{0}", [date('Ym'), "root" => $root]);
+            $this->mkDirs($file_dir);
+            $file_src= $this->str("{0}/{1}.log", [$file_dir, date('d')]);
+            $this->writeFile($str,$file_src, "a");
+    }
 }

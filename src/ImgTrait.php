@@ -36,11 +36,11 @@ namespace Dfer\Tools;
 trait ImgTrait
 {
 
-	/**
-	 * 将图片对象保存到服务器
-	 * @param {Object} $base64_image_content	要保存的Base64
-	 * @param {Object} $path	要保存的路径
-	 */
+    /**
+     * 将图片对象保存到服务器
+     * @param {Object} $base64_image_content	要保存的Base64
+     * @param {Object} $path	要保存的路径
+     */
     public function base64ImageContent($base64_image_content, $path)
     {
         $dir = "data/upload/base64/";
@@ -75,10 +75,10 @@ trait ImgTrait
     public function getImgs($content, $order = 'ALL')
     {
         // var_dump($content);
-    	if(substr($content,0,5)=='http:'){
-    		//获取网页内容
-    		$content = file_get_contents($content);
-    	}
+        if (substr($content, 0, 5) == 'http:') {
+            //获取网页内容
+            $content = file_get_contents($content);
+        }
         $pattern = "/<img.*?src=[\'|\"](.*?(?:[\.gif|\.jpg\.png\.JPG]))[\'|\"].*?[\/]?>/";
         preg_match_all($pattern, $content, $match);
 
@@ -113,31 +113,30 @@ trait ImgTrait
 
 
 
-	/**
-	 * 改变图片大小
-	 * 依照像素进行转化
-	 * @param {Object} $imgsrc	原路径
-	 * @param {Object} $imgdst	目标路径
-	 * @param {Object} $imgWidth	要改变的宽度
-	 * @param {Object} $imgHeight	要改变的高度
-	 * @return None
-	 */
+    /**
+     * 改变图片大小
+     * 依照像素进行转化
+     * @param {Object} $imgsrc	原路径
+     * @param {Object} $imgdst	目标路径
+     * @param {Object} $imgWidth	要改变的宽度
+     * @param {Object} $imgHeight	要改变的高度
+     * @return None
+     */
     public function resizeJpg($imgsrc, $imgdst, $imgWidth, $imgHeight)
     {
-								//取得源图片的宽度、高度值
+        //取得源图片的宽度、高度值
         $arr = getimagesize($imgsrc);
         function_exists('exif_imagetype') or die('请安装exif拓展');
         $imgType = exif_imagetype($imgsrc);
 
         if ($imgType == 1) {
-									//gif
+            //gif
             $imgsrc = imagecreatefromgif($imgsrc);
-        //根据路径创建图片控件，需要安装gd拓展
+            //根据路径创建图片控件，需要安装gd拓展
         } elseif ($imgType == 2) {
             // header("Content-type: image/jpg");
             $imgsrc = imagecreatefromjpeg($imgsrc);
-        }
-        elseif ($imgType == 3) {
+        } elseif ($imgType == 3) {
             // header("Content-type: image/png");
             $imgsrc = imagecreatefrompng($imgsrc);
         } else {
@@ -163,8 +162,18 @@ trait ImgTrait
         elseif ($imgType == 3) {
             imagepng($image, $imgdst);
         }
-								//测试时必须另外定义一个文件路径才可以
+        //测试时必须另外定义一个文件路径才可以
         //imagejpeg($res,$file_name_dest, $quality);
         imagedestroy($image);
+    }
+
+    /**
+     * 判断网络图片是否存在
+     * @param {Object} $url	地址。eg:http://res.tye3.com/ktp_tye3/2024/video/c/x2BZYk3zz7h24dXR.jpg
+     */
+    public function imageExists($url)
+    {
+        $imageInfo = @getimagesize($url);
+        return $imageInfo !== false;
     }
 }

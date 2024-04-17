@@ -39,12 +39,12 @@ use Dompdf\{Dompdf,Options};
  */
 class Pdf extends Common
 {
-	private static $instance;
-	
-	// 横向
-	const LANDSCAPE='landscape';
-	// 纵向
-	const PORTRAIT='portrait';
+    private static $instance;
+    
+    // 横向
+    const LANDSCAPE='landscape';
+    // 纵向
+    const PORTRAIT='portrait';
 
     /**
      * 防止外部实例化
@@ -71,17 +71,17 @@ class Pdf extends Common
     }
 
 
-	/**
-	 * 将html转化为pdf
-	 * @param {Object} $var 变量
-	 **/
-	public function html2pdf($html,$filename="pdf",$direction = self::PORTRAIT)
-	{
-		$dompdf = new Dompdf();
-		$dompdf->loadHtml($html,'UTF-8');
-		$dompdf->setPaper('A4', $direction);
-		$dompdf->render();
-		$filename = $this->str("{0}_{1}.pdf",[$filename,date('YmdHis')]);
-		$dompdf->stream($filename);
-	}
+    /**
+     * 将html转化为pdf
+     * @param {Object} $var 变量
+     **/
+    public function html2pdf($html,$filename="pdf",$direction = self::PORTRAIT)
+    {
+        $dompdf = new Dompdf();
+        $dompdf->loadHtml($html,'UTF-8');
+        $dompdf->setPaper('A4', $direction);
+        $dompdf->render();
+        $filename = $this->str("{0}_{1}.pdf",[$filename,date('YmdHis')]);
+        $dompdf->stream($filename);
+    }
 }
