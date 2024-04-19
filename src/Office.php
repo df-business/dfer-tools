@@ -81,7 +81,7 @@ class Office
     /**
      * 设置公共宽度和高度
      * @param {Object} int $width
-     * @param {Object} int $height	高度 为空则使用默认值
+     * @param {Object} int $height    高度 为空则使用默认值
      */
     public function setWidthAndHeight(int $width, int $height = null)
     {
@@ -93,9 +93,9 @@ class Office
 
     /**
      * 设置表格的基本样式
-     * @param {Object} array $titleStyle	标题样式
-     * @param {Object} array $headerStyle	头部样式
-     * @param {Object} array $bodyStyle	主体样式
+     * @param {Object} array $titleStyle    标题样式
+     * @param {Object} array $headerStyle    头部样式
+     * @param {Object} array $bodyStyle    主体样式
      */
     public function setStyle(array $titleStyle = [], array $headerStyle = [], array $bodyStyle = [])
     {
@@ -162,8 +162,8 @@ class Office
 
 
     /**获取文件路径和名称
-     * @param {Object} string $fileName	文件名
-     * @param {Object} string $path 保存路径	eg:$path = Env::get('excel.savePath', 'excel/');
+     * @param {Object} string $fileName    文件名
+     * @param {Object} string $path 保存路径    eg:$path = Env::get('excel.savePath', 'excel/');
      */
     protected function getFileName(string $fileName, string $path = 'excel/')
     {
@@ -175,8 +175,8 @@ class Office
 
     /**
      * 设置标签标题
-     * @param {Object} string $sheetTitle	sheet栏目标题
-     * @param {Object} bool $hasContentTitle	是否开启内容标题
+     * @param {Object} string $sheetTitle    sheet栏目标题
+     * @param {Object} bool $hasContentTitle    是否开启内容标题
      */
     public function setTitle(string $sheetTitle, bool $hasContentTitle = false)
     {
@@ -199,8 +199,8 @@ class Office
 
     /**
      * 设置内容标题
-     * @param {Object} string $tableTitle	标题
-     * @param {Object} int $height	行高
+     * @param {Object} string $tableTitle    标题
+     * @param {Object} int $height    行高
      */
     public function setTableTitle(string $tableTitle, int $height = 20)
     {
@@ -241,10 +241,10 @@ class Office
 
     /**
      * 设置内容
-     * @param {Object} array $header	标题数据
-     * @param {Object} array $data	主体数据
-     * @param {Object} array $width	行宽
-     * @param {Object} bool $all_str	是否全部以字符串的格式显示
+     * @param {Object} array $header    标题数据
+     * @param {Object} array $data    主体数据
+     * @param {Object} array $width    行宽
+     * @param {Object} bool $all_str    是否全部以字符串的格式显示
      */
     public function setContent(array $header, array $data, array $width = [], bool $all_str = false)
     {
@@ -309,8 +309,8 @@ class Office
 
     /**
      * 纵向数据
-     * @param {Object} array $header	标题数据
-     * @param {Object} array $data	主体数据
+     * @param {Object} array $header    标题数据
+     * @param {Object} array $data    主体数据
      */
     public function setVContent(array $header, array $data)
     {
@@ -354,7 +354,7 @@ class Office
     /**
      * 直接获取文件，不保存
      * 必须以打开新页面的形式调用，比如：a标签的内部跳转或者外部跳转，js的`window.open`或者`location.href`
-     * @param {Object} string $fileName	保存的文件名
+     * @param {Object} string $fileName    保存的文件名
      * @param {Object} int $max_age 文件缓存时间（秒）
      */
     public function getFile(string $fileName = 'test.xlsx', int $max_age = 60)
@@ -409,7 +409,7 @@ class Office
 
     /**
      * 保存文件
-     * @param {Object} string $fileName	文件名称
+     * @param {Object} string $fileName    文件名称
      */
     public function saveFile(string $fileName = 'test.xlsx')
     {
@@ -433,10 +433,10 @@ class Office
      * $file = request()->file('file');
      * $filename = $file->getRealpath();
      *
-     * @param {Object} string $fileName	文件名称
-     * @param {Object} array $col_item 自定义列名	eg:['item1', 'item2']
-     * @param {Object} int $row_index	读取的初始行编号
-     * @param {Object} array $origin_item	需要读取原始值的列名	eg:['item1']
+     * @param {Object} string $fileName    文件名称
+     * @param {Object} array $col_item 自定义列名    eg:['item1', 'item2']
+     * @param {Object} int $row_index    读取的初始行编号
+     * @param {Object} array $origin_item    需要读取原始值的列名    eg:['item1']
      */
     public function readFile(string $fileName = 'test.xlsx', array $col_item = [], int $row_index = 3, array $origin_item = [])
     {
@@ -481,8 +481,8 @@ class Office
     /**
      * excel时间转换
      * exl时间是1900-01-01到当前的天数，php的10位时间戳是1970-01-01到当前的秒数，相差25569天
-     * @param {Object} $var	excel时间
-     * @param {Object} $format	时间格式。eg:Y-m-d
+     * @param {Object} $var    excel时间
+     * @param {Object} $format    时间格式。eg:Y-m-d
      **/
     public function convertExcelTime($var = null, $format = null)
     {

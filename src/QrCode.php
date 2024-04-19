@@ -73,11 +73,11 @@ class QrCode extends Common
 
     /**
      * 设置样式
-     * @param {Object} int $size	二维码内容区域大小
-     * @param {Object} int $margin	二维码外间距
-     * @param {Object} $mode	二维码内容尺寸模式
-     * @param {Object} Color $frontColor	前景颜色
-     * @param {Object} Color $bgColor	背景颜色
+     * @param {Object} int $size    二维码内容区域大小
+     * @param {Object} int $margin    二维码外间距
+     * @param {Object} $mode    二维码内容尺寸模式
+     * @param {Object} Color $frontColor    前景颜色
+     * @param {Object} Color $bgColor    背景颜色
      */
     public function setStyle(int $size = 300, int $margin = 10, Color $bgColor = null, $mode = null, Color $fgColor = null)
     {
@@ -92,7 +92,7 @@ class QrCode extends Common
 
     /**
      * 设置二维码内容
-     * @param {Object} string $data	文字或者网址
+     * @param {Object} string $data    文字或者网址
      */
     public function setData(string $data)
     {
@@ -105,8 +105,8 @@ class QrCode extends Common
      * 二维码下方文字
      * @param {Object} string $text
      * @param {Object} Color $color
-     * @param {Object} $font	字体样式
-     * @param {Object} $align	对齐方式
+     * @param {Object} $font    字体样式
+     * @param {Object} $align    对齐方式
      */
     public function setText(string $text, Color $color = null, $font = null, $align = null)
     {
@@ -120,7 +120,7 @@ class QrCode extends Common
 
     /**
      * 二维码中间区域logo图片
-     * @param {Object} string $path	本地图片或者网络图片
+     * @param {Object} string $path    本地图片或者网络图片
      * @param {Object} int $width
      * @param {Object} int $height
      */
@@ -151,7 +151,7 @@ class QrCode extends Common
 
     /**
      * 将二维码图片保存到本地服务器
-     * @param {Object} string $fileName	文件名称
+     * @param {Object} string $fileName    文件名称
      * @return {Object} string 保存路径
      */
     public function saveFile(string $fileName = 'qrcode.png')

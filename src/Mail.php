@@ -39,7 +39,7 @@ class Mail
 {
 
 
-    private $debug = false; //调试开关。是否显示发送的调试信息	
+    private $debug = false; //调试开关。是否显示发送的调试信息    
     private $relay_host = 'ssl://smtp.mxhichina.com'; //SMTP服务器。QQ 邮箱的服务器地址;;
     private $smtp_port = 465; // SMTP服务器端口。smtp 服务器的远程服务器端口号
     private $auth = true; //这里面的一个true是表示使用身份验证,否则不使用身份验证
@@ -72,10 +72,10 @@ class Mail
 
     /**
      * 发送邮件
-     * @param {Object} $smtpemailto	收件人邮箱
-     * @param {Object} $mailtitle	邮件主题
-     * @param {Object} $mailcontent	邮件内容
-     * @param {Object} $mailtype	邮件格式（HTML/TXT）,TXT为文本邮件
+     * @param {Object} $smtpemailto    收件人邮箱
+     * @param {Object} $mailtitle    邮件主题
+     * @param {Object} $mailcontent    邮件内容
+     * @param {Object} $mailtype    邮件格式（HTML/TXT）,TXT为文本邮件
      */
     public function send($smtpemailto, $mailtitle, $mailcontent, $mailtype = 'HTML')
     {

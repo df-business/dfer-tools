@@ -39,7 +39,7 @@ trait FilesTrait
 
     /**
      * 读取文件的所有字符串
-     * @param {Object} $fileN	物理路径
+     * @param {Object} $fileN    物理路径
      */
     public function readFileStr($fileN)
     {
@@ -82,7 +82,7 @@ trait FilesTrait
 
     /**
      * 删除目录和目录下的文件，成功则返回1
-     * @param {Object} $dir	目录的物理路径
+     * @param {Object} $dir    目录的物理路径
      */
     public function delDir($dir)
     {
@@ -143,8 +143,8 @@ trait FilesTrait
 
     /**
      * 覆盖文件夹的内容
-     * @param {Object} $strSrcDir	原始目录
-     * @param {Object} $strDstDir	目标目录
+     * @param {Object} $strSrcDir    原始目录
+     * @param {Object} $strDstDir    目标目录
      */
     public function copyDir($strSrcDir, $strDstDir, $quiet = false)
     {
@@ -176,7 +176,7 @@ trait FilesTrait
 
     /**
      * 清除文件夹
-     * @param {Object} $dir	文件夹路径
+     * @param {Object} $dir    文件夹路径
      */
     public function deleteDir($dir, $quiet = false)
     {
@@ -212,8 +212,8 @@ trait FilesTrait
 
     /**
      * 通用复制
-     * @param {Object} $strSrc	原始路径
-     * @param {Object} $strDst	目标路径
+     * @param {Object} $strSrc    原始路径
+     * @param {Object} $strDst    目标路径
      **/
     public function copy($strSrc, $strDst, $quiet = false)
     {
@@ -297,8 +297,8 @@ trait FilesTrait
      * 创建一个文件，写入字符串，存在则覆盖
      * 自动根据路径创建上级文件夹
      * @param {Object} $str
-     * @param {Object} $file_src	文件路径
-     * @param {Object} $type	写入类型 a 追加 w覆盖
+     * @param {Object} $file_src    文件路径
+     * @param {Object} $type    写入类型 a 追加 w覆盖
      */
     public function writeFile($str, $file_src, $type = "w")
     {
@@ -356,9 +356,9 @@ trait FilesTrait
      * 返回文件的上传路径
      *
      *
-     * @param {Object} $edit_tool	上传组件类型
-     * @param {Object} $option	特殊配置
-     * @param {Object} $upload_root	上传目录
+     * @param {Object} $edit_tool    上传组件类型
+     * @param {Object} $option    特殊配置
+     * @param {Object} $upload_root    上传目录
      */
     public function uploadFile($edit_tool = self::UPLOAD_UMEDITOR_SINGLE, $option = null, $upload_root = 'upload')
     {
@@ -453,16 +453,16 @@ trait FilesTrait
 
         // 特殊处理
         // switch($this->getExt($filename)){
-        // 	case 'mp3':
-        // 		break;
-        // 	case 'zip':
-        // 		break;
-        // 	case 'mp4':
-        // 		break;
-        // 	default:
-        // 		#不支持的文件类型
-        // 		return "-2";
-        // 		break;
+        //     case 'mp3':
+        //         break;
+        //     case 'zip':
+        //         break;
+        //     case 'mp4':
+        //         break;
+        //     default:
+        //         #不支持的文件类型
+        //         return "-2";
+        //         break;
         // }
         // var_dump($upload_root,$path);die;
         $this->mkDirs($path);

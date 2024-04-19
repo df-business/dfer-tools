@@ -128,8 +128,8 @@ class Spider extends Common
     /**
      * 从页面中截取一段html代码
      * eg:
-     * 	$a=new \Dfer\Tools\Spider;
-     * 	var_dump($a->cutHtml('http://yj.tye3.com.local/homepage/index/bgDetail.html?type=2&id=12&session_id=aed6c9eeaad3c42e1b192d9a5725433c'));die;
+     *     $a=new \Dfer\Tools\Spider;
+     *     var_dump($a->cutHtml('http://yj.tye3.com.local/homepage/index/bgDetail.html?type=2&id=12&session_id=aed6c9eeaad3c42e1b192d9a5725433c'));die;
      * @param {Object} $url 地址
      * @param {Object} $element 元素
      **/

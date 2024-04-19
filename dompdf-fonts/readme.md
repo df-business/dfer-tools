@@ -27,24 +27,24 @@ $html="你好";
 $html =
 <<<STR
 <html lang="zh-CN">
-	<head>
-		<meta charset="UTF-8">		
-			<style>			   
-			   * {
-			       font-family: simhei;				    
-			   }			  
-			</style>
-	</head>
-	<body>
-		{$html}
-	</body>
+    <head>
+        <meta charset="UTF-8">        
+            <style>               
+               * {
+                   font-family: simhei;                    
+               }              
+            </style>
+    </head>
+    <body>
+        {$html}
+    </body>
 </html>
 STR;
 
 $dompdf = new Dompdf();
-$dompdf->loadHtml($html,'UTF-8');	
-$dompdf->setPaper('A4', 'portrait');	
-$dompdf->render();	
+$dompdf->loadHtml($html,'UTF-8');    
+$dompdf->setPaper('A4', 'portrait');    
+$dompdf->render();    
 $filename = 'pdf_'. date('His') .'.pdf';
 $dompdf->stream($filename);
 ```

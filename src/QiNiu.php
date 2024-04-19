@@ -58,9 +58,9 @@ class QiNiu
 
     /**
      *
-     * @param {Object} string $file	文件路径
-     * @param {Object} string $newName	新文件名
-     * @param {Object} string $logRoot	日志根目录	eg:ROOT_PATH
+     * @param {Object} string $file    文件路径
+     * @param {Object} string $newName    新文件名
+     * @param {Object} string $logRoot    日志根目录    eg:ROOT_PATH
      */
     public function upload(string $file, string $newName, string $logRoot)
     {

@@ -111,8 +111,8 @@ class Common
     }
 
     /**
-     *	输出json数据
-     * @param {Object} $return	数据
+     *    输出json数据
+     * @param {Object} $return    数据
      * @param {Object} $to_json true:json对象 false:json字符串
      */
     public function showJsonBase($return = array(), $to_json = true)
@@ -188,7 +188,7 @@ class Common
     /**
      * 时间戳转UTC时间
      * UTC即国际时间，在UTC基础上加8小时即中国时间
-     * @param {Object} $time	时间戳
+     * @param {Object} $time    时间戳
      */
     function getUtcTime($time)
     {
@@ -456,7 +456,7 @@ class Common
     public function findStr($find, $str)
     {
         $pos = strpos($find, $str);
-        //	echo $pos;
+        //    echo $pos;
         if ((bool) $pos) {
             $rt = $pos + 1;
         } else {
@@ -899,7 +899,7 @@ class Common
      */
     public function runShell($shell)
     {
-        //	 echo exec('whoami');
+        //     echo exec('whoami');
         echo exec($shell);
     }
 
@@ -1016,9 +1016,9 @@ class Common
      * 冒泡排序
      * 默认：从大到小
      * 数值相同，则原始数组前方的靠前
-     * @param {Object} array $arr	原始数组
-     * @param {Object} $key_name	某个key
-     * @param {Object} $is_asc	排序方式。true 升序 false 降序
+     * @param {Object} array $arr    原始数组
+     * @param {Object} $key_name    某个key
+     * @param {Object} $is_asc    排序方式。true 升序 false 降序
      */
     public function bubbleSort(array $arr, $key_name, $is_asc = false)
     {
@@ -1038,8 +1038,8 @@ class Common
 
     /**
      * 对数组的某个值降序排列，并根据顺序添加一个排序字段
-     * @param {Object} array $arr	原始数组
-     * @param {Object} $key_name	某个key
+     * @param {Object} array $arr    原始数组
+     * @param {Object} $key_name    某个key
      */
     public function setRankingByDesc(array $arr, $key_name)
     {
@@ -1392,8 +1392,8 @@ class Common
      * eg:
      * str("admin/home/{0}/{dd}",[123,'dd'=>333])
      * str("admin/home/%s/%s",[123,333])
-     * @param {Object} $string	字符串
-     * @param {Object} $params	参数
+     * @param {Object} $string    字符串
+     * @param {Object} $params    参数
      */
     public function str($string, $params = [])
     {
@@ -1423,8 +1423,8 @@ class Common
 
     /**
      * 获取缩略文本
-     * @param {Object} $str	原始字符串
-     * @param {Object} $length	缩略文本长度
+     * @param {Object} $str    原始字符串
+     * @param {Object} $length    缩略文本长度
      */
     public function getThumbnailText($str, $length)
     {
@@ -1649,8 +1649,8 @@ class Common
     /**
      * 换行符转化
      * 文件换行符与html换行符相互转化
-     * @param {Object} $str	字符串
-     * @param {Object} $file2html	true 文件转html false html转文件
+     * @param {Object} $str    字符串
+     * @param {Object} $file2html    true 文件转html false html转文件
      */
     public function newlineConversion($str, $type = self::NL_CRLF2BR)
     {
@@ -1714,13 +1714,13 @@ class Common
         }
 
         $err_msg = $this->str(<<<STR
-		////////////////////////////////////////////////// 出错 START //////////////////////////////////////////////////
-		{0}
-		
-		{1}
-		//////////////////////////////////////////////////  出错 END  //////////////////////////////////////////////////
-		
-		STR, [$exception->getMessage(), implode(PHP_EOL, $trace_list)]);
+        ////////////////////////////////////////////////// 出错 START //////////////////////////////////////////////////
+        {0}
+        
+        {1}
+        //////////////////////////////////////////////////  出错 END  //////////////////////////////////////////////////
+        
+        STR, [$exception->getMessage(), implode(PHP_EOL, $trace_list)]);
 
         return $err_msg;
     }
@@ -1744,7 +1744,7 @@ class Common
     /**
      * 通过菜单子级id获取所有的父级id
      * eg:
-     * 	Common::buildParentTree($portalCategoryModel->field('id,parent_id,name')->select()->toArray(),$categories[0]['id'])
+     *     Common::buildParentTree($portalCategoryModel->field('id,parent_id,name')->select()->toArray(),$categories[0]['id'])
      * @param {Object} $categories
      * @param {Object} $parentId
      */
@@ -1785,7 +1785,7 @@ class Common
     /**
      * 通过菜单子级id获取所有的父级id，返回从小到大的目录数组
      * eg:
-     * 	Common::buildParentTreeMenu($portalCategoryModel->field('id,parent_id,name')->select()->toArray(),$categories[0]['id'])
+     *     Common::buildParentTreeMenu($portalCategoryModel->field('id,parent_id,name')->select()->toArray(),$categories[0]['id'])
      * @param {Object} $categories
      * @param {Object} $parentId
      * @return {Array} 从小到大的目录结构 eg:[1=>"菜单一",5=>"菜单一(1)",7=>"菜单一(1)(1)"]
@@ -1802,7 +1802,7 @@ class Common
     /**
      * 通过菜单父级id获取所有的子级id
      * eg:
-     * 	Common::buildChildTree($portalCategoryModel->field('id,parent_id,name')->select()->toArray(),$categories[0]['id'])
+     *     Common::buildChildTree($portalCategoryModel->field('id,parent_id,name')->select()->toArray(),$categories[0]['id'])
      * @param {Object} $categories
      * @param {Object} $childId
      */
@@ -1827,11 +1827,11 @@ class Common
     /**
      * 从oss获取其余尺寸的图
      * eg:
-     * 	http://res.tye3.com/kp_tye3/4QJRN5dMdNiey7EP.jpg
-     * 	http://res.tye3.com/kp_tye3/4QJRN5dMdNiey7EP_m.jpg
-     * 	http://res.tye3.com/kp_tye3/4QJRN5dMdNiey7EP_s.jpg
+     *     http://res.tye3.com/kp_tye3/4QJRN5dMdNiey7EP.jpg
+     *     http://res.tye3.com/kp_tye3/4QJRN5dMdNiey7EP_m.jpg
+     *     http://res.tye3.com/kp_tye3/4QJRN5dMdNiey7EP_s.jpg
      * @param {Object} $file
-     * @param {Object} $type	类型。Common::OSS_SIZE_NORMAL 原图 Common::OSS_SIZE_MIDDLE 中图 Common::OSS_SIZE_SMALL 小图
+     * @param {Object} $type    类型。Common::OSS_SIZE_NORMAL 原图 Common::OSS_SIZE_MIDDLE 中图 Common::OSS_SIZE_SMALL 小图
      */
     function getOtherSizeFromOss($file_src, $type = self::OSS_SIZE_NORMAL)
     {
@@ -1908,7 +1908,7 @@ class Common
             $video->setAttribute('poster', $poster);
         }
         // 保存修改后的 HTML。自动添加html和body标签
-        // $newHtml = $dom->saveHTML();		
+        // $newHtml = $dom->saveHTML();        
         // 获取 body 元素  
         $body = $dom->getElementsByTagName('body')->item(0);
         // 获取body元素内的所有子节点的HTML内容  

@@ -46,7 +46,7 @@ class DingTalk extends Common
     /**
      * 自动初始化
      *
-     *	Config::get('dingding.appkey', '')
+     *    Config::get('dingding.appkey', '')
      * @return mixed
      **/
     public function __construct($appkey, $appsecret, $agent_id, $user_id, $corp_id, $sso_secret)

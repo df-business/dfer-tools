@@ -80,7 +80,7 @@ class CommandBase extends Command
             
             STR,[$exception->getMessage(),implode(PHP_EOL,$trace_list)]);
             
-            echo $err_msg;			
+            echo $err_msg;            
         }
     }
 }

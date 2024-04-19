@@ -38,8 +38,8 @@ trait ImgTrait
 
     /**
      * 将图片对象保存到服务器
-     * @param {Object} $base64_image_content	要保存的Base64
-     * @param {Object} $path	要保存的路径
+     * @param {Object} $base64_image_content    要保存的Base64
+     * @param {Object} $path    要保存的路径
      */
     public function base64ImageContent($base64_image_content, $path)
     {
@@ -69,8 +69,8 @@ trait ImgTrait
     /**
      * 取得字符串中所有的图片地址
      *
-     * @param {Object} $content	内容或网址
-     * @param {Object} $order	All 所有图片 0 第一张图片
+     * @param {Object} $content    内容或网址
+     * @param {Object} $order    All 所有图片 0 第一张图片
      */
     public function getImgs($content, $order = 'ALL')
     {
@@ -116,10 +116,10 @@ trait ImgTrait
     /**
      * 改变图片大小
      * 依照像素进行转化
-     * @param {Object} $imgsrc	原路径
-     * @param {Object} $imgdst	目标路径
-     * @param {Object} $imgWidth	要改变的宽度
-     * @param {Object} $imgHeight	要改变的高度
+     * @param {Object} $imgsrc    原路径
+     * @param {Object} $imgdst    目标路径
+     * @param {Object} $imgWidth    要改变的宽度
+     * @param {Object} $imgHeight    要改变的高度
      * @return None
      */
     public function resizeJpg($imgsrc, $imgdst, $imgWidth, $imgHeight)
@@ -169,7 +169,7 @@ trait ImgTrait
 
     /**
      * 判断网络图片是否存在
-     * @param {Object} $url	地址。eg:http://res.tye3.com/ktp_tye3/2024/video/c/x2BZYk3zz7h24dXR.jpg
+     * @param {Object} $url    地址。eg:http://res.tye3.com/ktp_tye3/2024/video/c/x2BZYk3zz7h24dXR.jpg
      */
     public function imageExists($url)
     {

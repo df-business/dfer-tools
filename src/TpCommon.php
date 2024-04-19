@@ -59,7 +59,7 @@ class TpCommon
       * 获取表的字段信息
       * @param {Object} $table 表名
       * @param {Object} keys 返回的字段。支持数组，字符串，为空则返回所有字段
-      * @param {Object} $col_name	获取的字段属性，默认是备注
+      * @param {Object} $col_name    获取的字段属性，默认是备注
       */
     public function getColName($table,$keys=[], $col_name='Comment')
     {
@@ -70,12 +70,12 @@ class TpCommon
             $item[$value['Field']]=$value[$col_name];
         }
         
-        if(is_array($keys)){			
+        if(is_array($keys)){            
             if(count($keys)==0){
                 return $item;
             }
             
-            foreach($keys as $key=>$value){			
+            foreach($keys as $key=>$value){            
             $data[]=$item[$value];
             }
         }

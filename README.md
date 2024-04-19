@@ -6,7 +6,7 @@
 ### 发布
 - [package地址](https://packagist.org/packages/dfer/tools)
  
-	
+    
 
 ### 测试
 ```
@@ -107,7 +107,7 @@ $spService=new Office;
 
 // 下载
 $title=\sprintf('订单-%s', date("Ymd", time()));
-$header = ['姓名',	'电话',	'地址',	'随机数字（两位）'	,'省份（简称）',	'市（不要带市）',	'区县（不要带区县）'	,'随机数字（三位）'];
+$header = ['姓名',    '电话',    '地址',    '随机数字（两位）'    ,'省份（简称）',    '市（不要带市）',    '区县（不要带区县）'    ,'随机数字（三位）'];
 $data=Db::query("SELECT * FROM dd_shop_paybill GROUP BY receive_id");
 $file_src = $spService->setTableTitle($title)
 ->setStyle()
@@ -126,8 +126,8 @@ $item=array_merge($common_item,['乡镇', '所属产业','本月;工业总产值
 $lists = YjComQiyeBaseInfosReportModel::where(['year' => 2023, 'month' => 9])->order('xuhao asc')->field("xuhao,qiye_dm,qiye_mc,xiangzhen_mc,chanye,hangye_mc,s_zhongdian")->select()->toArray();
 $lists_type_1=[];
 foreach($lists as $key=>$v){
-	$v['s_zhongdian']=$v['s_zhongdian']==2 ? '是' : '';
-	$lists_type_1[]=[$v['xuhao'],$v['qiye_dm'],$v['qiye_mc'],$v['xiangzhen_mc'],$v['chanye'],null,null,null,null,$v['hangye_mc'],null,$v['s_zhongdian']];
+    $v['s_zhongdian']=$v['s_zhongdian']==2 ? '是' : '';
+    $lists_type_1[]=[$v['xuhao'],$v['qiye_dm'],$v['qiye_mc'],$v['xiangzhen_mc'],$v['chanye'],null,null,null,null,$v['hangye_mc'],null,$v['s_zhongdian']];
 }
 $spService->setStyle()->setWidthAndHeight(35)
 ->setTitle($title,true)->setContent($item, $lists_type_1,[10,20,50,15,20,null,null,null,null,50,null,25])->getFile($title . '.xlsx',0);
@@ -337,14 +337,14 @@ use Endroid\QrCode\Color\Color;
 ```
 public function index()
 {
-	
-	$qr=new \Dfer\Tools\QrCode;
-	$data=$qr->setStyle(500,30,new Color(255, 250, 232))
-	->setText("二维码测试",new Color(0, 0, 0))
-	->setData('http://www.baidu.com/')
-	->setLogo()
-	->getFile();
-	$this->success('请求成功!', $data);
+    
+    $qr=new \Dfer\Tools\QrCode;
+    $data=$qr->setStyle(500,30,new Color(255, 250, 232))
+    ->setText("二维码测试",new Color(0, 0, 0))
+    ->setData('http://www.baidu.com/')
+    ->setLogo()
+    ->getFile();
+    $this->success('请求成功!', $data);
 }
 ```
 
@@ -354,11 +354,11 @@ public function index()
 
 ```
 public function index()
-{	
-	$mail=new \Dfer\Tools\Mail;
-	$data=$mail->instance(['debug'=>true])	
-	->send('test@qq.com','邮件主题','邮件内容');
-	$this->success('请求成功!', $data);
+{    
+    $mail=new \Dfer\Tools\Mail;
+    $data=$mail->instance(['debug'=>true])    
+    ->send('test@qq.com','邮件主题','邮件内容');
+    $this->success('请求成功!', $data);
 }
 ```
 
@@ -374,47 +374,47 @@ composer require aliyuncs/oss-sdk-php
 // actionUrl = editor.getActionUrl(editor.getOpt('imageActionName'))
 var actionUrl = 'https://chanpinfabu.oss-cn-chengdu.aliyuncs.com';
 uploader = _this.uploader = WebUploader.create({
-	server: actionUrl
+    server: actionUrl
 });
-	
+    
 uploader.on('uploadBeforeSend', function (file, data, header) {
     //这里可以通过data对象添加POST参数
-    header['X_Requested_With'] = 'XMLHttpRequest';	
-	$.ajax({
-	    type:"post",
-		url:"/user/asset/getRequestParams/type/ueditor",
-	    data:{process_list:{'ktp_img_ueditor_m':null}},
-		success:function (res) {
-		    if(res){
-		        try{
-					console.log('getRequestParams',res);
-		            $.extend(data,{
-						'key':res.dir + df_tools_common.generateRandomFileName(data.name),
-		                'policy':res.policy,
-		                'OSSAccessKeyId':res.OSSAccessKeyId,
-		                'success_action_status':'200',//让服务端返回200,不然默认会返回204
-		                'callback':res.callback,
-		                'signature':res.signature
-		            });
-		        }catch(e){
-		            console.error(e);
-		        }
-		    }else{
-		        console.log('出错');
-		    }
-		},				    
-	    error : function(XMLHttpRequest, textStatus, errorThrown) {
-	        alert("ajax error");
-	    },
-	    complete : function(XMLHttpRequest,status){ //请求完成后最终执行参数
-	        if(status == 'timeout'){
-	            alert('请求超时，请稍后再试！');
-	        }
-	    },
-	    async : false
-	});
-	console.log("data",data)
-	header['Access-Control-Allow-Origin'] = "*";
+    header['X_Requested_With'] = 'XMLHttpRequest';    
+    $.ajax({
+        type:"post",
+        url:"/user/asset/getRequestParams/type/ueditor",
+        data:{process_list:{'ktp_img_ueditor_m':null}},
+        success:function (res) {
+            if(res){
+                try{
+                    console.log('getRequestParams',res);
+                    $.extend(data,{
+                        'key':res.dir + df_tools_common.generateRandomFileName(data.name),
+                        'policy':res.policy,
+                        'OSSAccessKeyId':res.OSSAccessKeyId,
+                        'success_action_status':'200',//让服务端返回200,不然默认会返回204
+                        'callback':res.callback,
+                        'signature':res.signature
+                    });
+                }catch(e){
+                    console.error(e);
+                }
+            }else{
+                console.log('出错');
+            }
+        },                    
+        error : function(XMLHttpRequest, textStatus, errorThrown) {
+            alert("ajax error");
+        },
+        complete : function(XMLHttpRequest,status){ //请求完成后最终执行参数
+            if(status == 'timeout'){
+                alert('请求超时，请稍后再试！');
+            }
+        },
+        async : false
+    });
+    console.log("data",data)
+    header['Access-Control-Allow-Origin'] = "*";
 });
 ```
 
@@ -425,43 +425,43 @@ uploader = WebUploader.create({
 });
 uploader.on('uploadBeforeSend', function (file, data, header) {
     //这里可以通过data对象添加POST参数
-    header['X_Requested_With'] = 'XMLHttpRequest';	
-	$.ajax({
-	    type:"post",
-		url:"/user/asset/getRequestParams/type/webuploader",
-	    // data:{process_list:{'ktp_img_l':null,'ktp_img_m':"m",'ktp_img_s':"s"}},
-		data:{process_list:{'ktp_img_1200':null,'ktp_img_600':"600",'ktp_img_200':"280"}},
-		success:function (res) {
-		    if(res){
-		        try{
-					console.log('getRequestParams',res);
-		            $.extend(data,{					                
-						'key':res.dir + df_tools_common.generateRandomFileName(data.name),
-		                'policy':res.policy,
-		                'OSSAccessKeyId':res.OSSAccessKeyId,
-		                'success_action_status':'200',//让服务端返回200,不然默认会返回204
-		                'callback':res.callback,
-		                'signature':res.signature
-		            });
-		        }catch(e){
-		            console.error(e);
-		        }
-		    }else{
-		        console.log('出错');
-		    }
-		},				    
-	    error : function(XMLHttpRequest, textStatus, errorThrown) {
-	        alert("ajax error");
-	    },
-	    complete : function(XMLHttpRequest,status){ //请求完成后最终执行参数
-	        if(status == 'timeout'){
-	            alert('请求超时，请稍后再试！');
-	        }
-	    },
-	    async : false
-	});
-	console.log("data",data)
-	header['Access-Control-Allow-Origin'] = "*";
+    header['X_Requested_With'] = 'XMLHttpRequest';    
+    $.ajax({
+        type:"post",
+        url:"/user/asset/getRequestParams/type/webuploader",
+        // data:{process_list:{'ktp_img_l':null,'ktp_img_m':"m",'ktp_img_s':"s"}},
+        data:{process_list:{'ktp_img_1200':null,'ktp_img_600':"600",'ktp_img_200':"280"}},
+        success:function (res) {
+            if(res){
+                try{
+                    console.log('getRequestParams',res);
+                    $.extend(data,{                                    
+                        'key':res.dir + df_tools_common.generateRandomFileName(data.name),
+                        'policy':res.policy,
+                        'OSSAccessKeyId':res.OSSAccessKeyId,
+                        'success_action_status':'200',//让服务端返回200,不然默认会返回204
+                        'callback':res.callback,
+                        'signature':res.signature
+                    });
+                }catch(e){
+                    console.error(e);
+                }
+            }else{
+                console.log('出错');
+            }
+        },                    
+        error : function(XMLHttpRequest, textStatus, errorThrown) {
+            alert("ajax error");
+        },
+        complete : function(XMLHttpRequest,status){ //请求完成后最终执行参数
+            if(status == 'timeout'){
+                alert('请求超时，请稍后再试！');
+            }
+        },
+        async : false
+    });
+    console.log("data",data)
+    header['Access-Control-Allow-Origin'] = "*";
 });
 
 ```
@@ -472,17 +472,17 @@ namespace app\user\controller;
 use cmf\controller\AdminBaseController;
 use Dfer\Tools\AliOss;
 class AssetController extends AdminBaseController{
-	public function getRequestParams(){		
-		$type = $this->request->param('type','ueditor');
-		$process_list = $this->request->param('process_list',[]);
-		$access_id =  config('oss.access_id');
-		$access_key =  config('oss.access_key');		
-		$callback_url =  config('oss.callback_url');
-		$dir =  config('oss.dir');
-		$user_id=$this->userId;
-		$oss=new AliOss(compact('access_id','access_key','dir','callback_url'));
-		$oss->getRequestParams(compact('user_id','type','process_list'));
-	}
+    public function getRequestParams(){        
+        $type = $this->request->param('type','ueditor');
+        $process_list = $this->request->param('process_list',[]);
+        $access_id =  config('oss.access_id');
+        $access_key =  config('oss.access_key');        
+        $callback_url =  config('oss.callback_url');
+        $dir =  config('oss.dir');
+        $user_id=$this->userId;
+        $oss=new AliOss(compact('access_id','access_key','dir','callback_url'));
+        $oss->getRequestParams(compact('user_id','type','process_list'));
+    }
 }
 ```
 
@@ -492,9 +492,9 @@ class AssetController extends AdminBaseController{
 return [
     'access_id'=>'*************',
     'access_key'=>'*************',
-	'callback_url'=>'https://ktp.tye3.com/callback/Oss/uploadCallback',
-	'dir'=>'ktp_tye3/',
-	'host'=>'http://res.tye3.com/',
+    'callback_url'=>'https://ktp.tye3.com/callback/Oss/uploadCallback',
+    'dir'=>'ktp_tye3/',
+    'host'=>'http://res.tye3.com/',
 ];
 ```
 
@@ -505,16 +505,16 @@ use think\Controller;
 use Dfer\Tools\AliOss;
 
 class OssController extends Controller
-{	
-	public function uploadCallback($var = null)
-	{
-		$access_id =  config('oss.access_id');
-		$access_key =  config('oss.access_key');
-		$host =  config('oss.host');
-		$debug=0;
-		$oss=new AliOss(compact('access_id','access_key','host','debug'));
-		$oss->uploadCallback();
-	}
+{    
+    public function uploadCallback($var = null)
+    {
+        $access_id =  config('oss.access_id');
+        $access_key =  config('oss.access_key');
+        $host =  config('oss.host');
+        $debug=0;
+        $oss=new AliOss(compact('access_id','access_key','host','debug'));
+        $oss->uploadCallback();
+    }
 
 }
 ```
@@ -526,32 +526,32 @@ use Dfer\Tools\AliOss;
 use app\common\model\KtpUserImgRecordModel;
 
 class OssController extends Controller
-{	
-	public function uploadCallback($var = null)
-	{
-		$access_id =  config('oss.access_id');
-		$access_key =  config('oss.access_key');
-		$host =  config('oss.host');
-		$debug=0;
-		$oss=new AliOss(compact('access_id','access_key','host','debug'));
-		$oss->uploadCallback(function($data){return $this->callback($data);});
-	}
-	
-	
-	/**
-	 * 上传回调
-	 * 可用来添加上传记录
-	 * @param {Object} $post_arr 上传参数
-	 **/
-	public function callback($post_arr = null)
-	{
-		 if(intval($post_arr['user_id'])>0){
-			KtpUserImgRecordModel::create([
-				'user_id'=>$post_arr['user_id'],
-				'img_url'=>$post_arr['host'].$post_arr['filePath']
-			]);
-		}
-	}
+{    
+    public function uploadCallback($var = null)
+    {
+        $access_id =  config('oss.access_id');
+        $access_key =  config('oss.access_key');
+        $host =  config('oss.host');
+        $debug=0;
+        $oss=new AliOss(compact('access_id','access_key','host','debug'));
+        $oss->uploadCallback(function($data){return $this->callback($data);});
+    }
+    
+    
+    /**
+     * 上传回调
+     * 可用来添加上传记录
+     * @param {Object} $post_arr 上传参数
+     **/
+    public function callback($post_arr = null)
+    {
+         if(intval($post_arr['user_id'])>0){
+            KtpUserImgRecordModel::create([
+                'user_id'=>$post_arr['user_id'],
+                'img_url'=>$post_arr['host'].$post_arr['filePath']
+            ]);
+        }
+    }
 
 }
 ```
