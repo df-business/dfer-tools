@@ -80,8 +80,9 @@ class AliOss extends Common
         $this->host = $config['host'] ?? $this->host;
         $this->callback_url = $config['callback_url'] ?? $this->callback_url;
         $this->dir = $config['dir'] ?? $this->dir;
-        $this->dir = $this->dir . DIRECTORY_SEPARATOR . $this->getTime(null, "Y") . DIRECTORY_SEPARATOR;
-
+        // 默认的上传目录
+        $this->dir = $this->dir . DIRECTORY_SEPARATOR;
+        
         $this->debug = $config['debug'] ?? $this->debug;
     }
 
@@ -226,8 +227,8 @@ class AliOss extends Common
         // file
         $filename = pathinfo($file_src, PATHINFO_FILENAME);
 
-        // 转移上传的文件到指定目录
-        $file_src_new = $dirname . DIRECTORY_SEPARATOR . $mime_type . DIRECTORY_SEPARATOR . $basename;
+        // 转移上传的文件到指定目录。根据类型、年、月设置上传目录
+        $file_src_new = $dirname . DIRECTORY_SEPARATOR . $mime_type . DIRECTORY_SEPARATOR . $this->getTime(null, "Y") . DIRECTORY_SEPARATOR . $this->getTime(null, "m") . DIRECTORY_SEPARATOR . $basename;
         $process = $this->str("sys/saveas,o_%s,b_%s", [$this->base64UrlEncode($file_src_new), $this->base64UrlEncode($this->bucket)]);
         $this->debug($process);
         $result[] = $this->ossClient()->processObject($this->bucket, $file_src, $process);
@@ -257,7 +258,7 @@ class AliOss extends Common
                     $file_src_new = $file_src;
                 } else {
                     // 保存到新路径
-                    $file_src_new = $dirname . DIRECTORY_SEPARATOR . $mime_type . DIRECTORY_SEPARATOR . $value . DIRECTORY_SEPARATOR . $basename;
+                    $file_src_new = $dirname . DIRECTORY_SEPARATOR . $mime_type . DIRECTORY_SEPARATOR . $this->getTime(null, "Y") . DIRECTORY_SEPARATOR . $this->getTime(null, "m") . DIRECTORY_SEPARATOR . $value . DIRECTORY_SEPARATOR . $basename;
                 }
 
 
