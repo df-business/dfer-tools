@@ -1,6 +1,6 @@
 <?php
 // 1. [Required] Point to the composer or dompdf autoloader
-require_once  dirname(__DIR__, 4)."vendor/autoload.php";
+require_once  dirname(__DIR__, 4).DIRECTORY_SEPARATOR."vendor/autoload.php";
 
 // 2. [Optional] Set the path to your font directory
 //    By default dompdf loads fonts to dompdf/lib/fonts

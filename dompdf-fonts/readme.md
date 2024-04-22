@@ -3,12 +3,26 @@
 
 ## 使用
 
-**更新统计数据**
+**生成字体文件到dompdf**
 ```
 php load_font.php simhei simhei.ttf
 ```
+- 生成`simhei`至`/vendor/dompdf/dompdf/lib/fonts/`，使pdf能够调用该字体
+
+
 
 **vendor/dompdf/dompdf/lib/fonts/installed-fonts.json**
+```
+{
+    "simhei": {
+        "normal": "F:\\Users\\dfer\\Documents\\dfer\\Project\\yj.tye3.com\\vendor\\dompdf\\dompdf\/lib\/fonts\/simhei",
+        "bold": "F:\\Users\\dfer\\Documents\\dfer\\Project\\yj.tye3.com\\vendor\\dompdf\\dompdf\/lib\/fonts\/simhei",
+        "italic": "F:\\Users\\dfer\\Documents\\dfer\\Project\\yj.tye3.com\\vendor\\dompdf\\dompdf\/lib\/fonts\/simhei",
+        "bold_italic": "F:\\Users\\dfer\\Documents\\dfer\\Project\\yj.tye3.com\\vendor\\dompdf\\dompdf\/lib\/fonts\/simhei"
+    }
+}
+```
+替换为
 ```
 {
     "simhei": {
@@ -19,6 +33,7 @@ php load_font.php simhei simhei.ttf
     }
 }
 ```
+- 需要手动替换此文件，否则会报错
 
 
 **IndexController.php**
@@ -48,3 +63,9 @@ $dompdf->render();
 $filename = 'pdf_'. date('His') .'.pdf';
 $dompdf->stream($filename);
 ```
+
+
+## html样式
+>不兼容所有的css样式，需要参照文档来添加样式
+
+[demo](https://eclecticgeek.com/dompdf/debug.php)
