@@ -45,7 +45,7 @@ class QiNiu
     private static $_secret;
     private static $_bucket;
 
-    public static function getInstance(): ?QINIUService
+    public static function instance(): ?QINIUService
     {
         self::$_secret = Env::get("qiniu.secret");
         self::$_accessKey = Env::get("qiniu.key");
@@ -115,7 +115,7 @@ class QiNiu
             $filePath = $fileObj->getRealPath();
             $oriName = $fileObj->getInfo('name');
             $name = 'cmbbs_' . md5(microtime()) . "." . explode('.', $oriName)[1];
-            $res = self::getInstance()->upload($filePath, $name);
+            $res = self::instance()->upload($filePath, $name);
             if ($res['status'] == 0) {
                 $result['code'] = 1;
                 $result['msg'] = "上传成功";
