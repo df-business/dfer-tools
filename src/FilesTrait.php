@@ -374,12 +374,12 @@ trait FilesTrait
         $size = $option['size'] ?? '';
 
         $fileSizeMax = FILE_SIZE_MAX;
-        //die(json_encode($_FILES));
 
         if ($_FILES == null) {
             $this->showJson(false, null, null, '没有找到文件');
         }
 
+        $file=$_FILES;
         $filename = $_FILES[$name]["name"];
         $filetype = $_FILES[$name]["type"];
         $filesize = $_FILES[$name]["size"] / 1024;
@@ -430,7 +430,7 @@ trait FilesTrait
                 }
                 $type = 'img';
                 $new_name = '/' . $new_name;
-                $this->uploadFileJson(true, compact('type', 'new_name'), $edit_tool);
+                $this->uploadFileJson(true, compact('type', 'new_name', 'file'), $edit_tool);
                 break;
             case 'audio/mp3':
             case 'audio/mpeg':
@@ -447,31 +447,16 @@ trait FilesTrait
                 break;
             default:
                 $msg = "不支持的文件类型:{$filetype}";
-                $this->uploadFileJson(false, compact('msg'), $edit_tool);
+                $this->uploadFileJson(false, compact('msg', 'file'), $edit_tool);
                 break;
         }
-
-        // 特殊处理
-        // switch($this->getExt($filename)){
-        //     case 'mp3':
-        //         break;
-        //     case 'zip':
-        //         break;
-        //     case 'mp4':
-        //         break;
-        //     default:
-        //         #不支持的文件类型
-        //         return "-2";
-        //         break;
-        // }
-        // var_dump($upload_root,$path);die;
+        
         $this->mkDirs($path);
         //新文件名
         $new_name = sprintf("%s/%s-%s.%s", $path, rand(10000, 99999), date("Ymdhis"), $this->getExt($filename));
 
         #将临时文件移动到网站目录
         move_uploaded_file($filetmpname, $new_name);
-        //header("Content-type: image/jpeg");
 
         $type = 'file';
         $new_name = '/' . $new_name;
@@ -488,9 +473,7 @@ trait FilesTrait
         extract($data);
         $msg = $msg ?? null;
 
-        //header("Content-type: image/jpeg");
         //js上传插件会接收所有的echo数据
-
         switch ($edit_tool) {
             case self::UPLOAD_UMEDITOR_EDITOR:
                 $stateMap = array(    //上传状态映射表，国际化用户需考虑此处数据的国际化
@@ -514,11 +497,12 @@ trait FilesTrait
                 $this->showJsonBase($this->delSpace($new_name));
                 break;
             case self::UPLOAD_LAYUI_EDITOR:
-                $json = array(code => 0, msg => $msg, 'data' => array('src' => $new_name, 'title' => $new_name));
+                $json = array('code' => 0, 'msg' => $msg, 'data' => array('src' => $new_name, 'title' => $new_name));
                 $this->showJsonBase($json);
                 break;
-            case self::UPLOAD_EDITORMD_EDITOR:
-                $json = ["success" => $status, "url" => $new_name, "state" => 'SUCCESS', "name" => "", "originalName" => '', "size" => '', "type" => ''];
+            case self::UPLOAD_EDITORMD_EDITOR:                
+                // http://editor.md.ipandao.com/examples/image-upload.html
+                $json = ["success" => $status?1:0, "url" => $new_name,"message" =>$msg,"debug"=>$data];
                 $this->showJsonBase($json);
                 break;
             default:
@@ -561,13 +545,14 @@ trait FilesTrait
             // 项目根目录
             $root=dirname(__DIR__, 4);
             $tag=$_SERVER['REQUEST_URI']??'';
-            $str=$this->str(<<<STR
+            $str=$this->str(
+            <<<STR
             
-                    ********************** DEBUG{tag} START **********************
-                    {0}
-                    **********************  DEBUG{tag} END  **********************
-                    
-                    STR, [$args,'tag'=>"[{$tag} {$time}]"]);
+            ********************** DEBUG{tag} START **********************
+            {0}
+            **********************  DEBUG{tag} END  **********************
+            
+            STR, [$args,'tag'=>"[{$tag} {$time}]"]);
             $file_dir = $this->str("{root}/data/logs/{0}", [date('Ym'), "root" => $root]);
             $this->mkDirs($file_dir);
             $file_src= $this->str("{0}/{1}.log", [$file_dir, date('d')]);
