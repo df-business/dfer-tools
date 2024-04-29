@@ -38,7 +38,7 @@ use DOMDocument;
  */
 class Common
 {
-    // 静态属性，保存单例实例  
+    // 静态属性，保存单例实例
     private static $instance;
 
     use ImgTrait, FilesTrait;
@@ -1673,27 +1673,27 @@ class Common
 
     /**
      * 执行php代码并捕获异常信息
-     * 
+     *
      * @param {Object} $code 代码
      * eg:
-     * $code = <<<'EOT'  
-     * $data = [1, 2, 3];  
-     * $result = $data['non_existent_key']; // 这将引发一个错误  
+     * $code = <<<'EOT'
+     * $data = [1, 2, 3];
+     * $result = $data['non_existent_key']; // 这将引发一个错误
      * EOT;
      */
     function executeCodeWithFaultTolerance($code)
     {
         try {
-            // 执行传入的代码  
+            // 执行传入的代码
             eval ($code);
         } catch (Exception $e) {
-            // 处理异常  
+            // 处理异常
             echo "捕获到异常: " . $e->getMessage() . "\n";
-            // 在这里可以进行一些容错处理，比如记录日志、回滚操作等  
+            // 在这里可以进行一些容错处理，比如记录日志、回滚操作等
         } catch (Error $e) {
-            // 处理错误  
+            // 处理错误
             echo "捕获到错误: " . $e->getMessage() . "\n";
-            // 在这里可以进行一些容错处理，比如记录日志、回滚操作等  
+            // 在这里可以进行一些容错处理，比如记录日志、回滚操作等
         }
     }
 
@@ -1716,10 +1716,10 @@ class Common
         $err_msg = $this->str(<<<STR
         ////////////////////////////////////////////////// 出错 START //////////////////////////////////////////////////
         {0}
-        
+
         {1}
         //////////////////////////////////////////////////  出错 END  //////////////////////////////////////////////////
-        
+
         STR, [$exception->getMessage(), implode(PHP_EOL, $trace_list)]);
 
         return $err_msg;
@@ -1827,11 +1827,11 @@ class Common
     /**
      * 从oss获取其余尺寸的图
      * eg:
-     *     http://res.tye3.com/kp_tye3/4QJRN5dMdNiey7EP.jpg
-     *     http://res.tye3.com/kp_tye3/4QJRN5dMdNiey7EP_m.jpg
-     *     http://res.tye3.com/kp_tye3/4QJRN5dMdNiey7EP_s.jpg
-     * @param {Object} $file
-     * @param {Object} $type    类型。Common::OSS_SIZE_NORMAL 原图 Common::OSS_SIZE_MIDDLE 中图 Common::OSS_SIZE_SMALL 小图
+     *     https://res.tye3.com/kp_tye3/image/2024/04/6nRFsXy6jXEJ63wJ.jpg
+     *     https://res.tye3.com/kp_tye3/image/2024/04/m/6nRFsXy6jXEJ63wJ.jpg
+     *     https://res.tye3.com/kp_tye3/image/2024/04/s/6nRFsXy6jXEJ63wJ.jpg
+     * @param {Object} $file_src    图片路径 eg:https://res.tye3.com/kp_tye3/image/2024/04/6nRFsXy6jXEJ63wJ.jpg
+     * @param {Object} $type    类型。Common::OSS_SIZE_NORMAL 原图   Common::OSS_SIZE_MIDDLE 中图  Common::OSS_SIZE_SMALL 小图
      */
     function getOtherSizeFromOss($file_src, $type = self::OSS_SIZE_NORMAL)
     {
@@ -1852,6 +1852,17 @@ class Common
         }
     }
 
+    /**
+     * 通过参数从oss获取其余尺寸的图
+     * @param {Object} $file_src    图片路径 eg:https://res.tye3.com/kp_tye3/image/2024/04/6nRFsXy6jXEJ63wJ.jpg
+     * @param {Object} $param    参数。style/kp_img_s 调用样式名    image/auto-orient,1/resize,m_pad,w_200,h_200 调用样式详情
+     */
+    function getOtherSizeFromOssByParam($file_src, $param)
+    {
+        $file_src ="{$file_src}?x-oss-process={$param}";
+        return $file_src;
+    }
+
 
     /**
      * 获取MIME_TYPE前缀
@@ -1863,7 +1874,7 @@ class Common
         if ($slashPos !== false) {
             return substr($mimeType, 0, $slashPos);
         }
-        // 如果没有斜杠，返回完整的 MIME 类型  
+        // 如果没有斜杠，返回完整的 MIME 类型
         return $mimeType;
     }
 
@@ -1880,19 +1891,19 @@ class Common
         }
         // 捕获html的格式错误
         libxml_use_internal_errors(true);
-        // 创建一个 DOMDocument 对象  
+        // 创建一个 DOMDocument 对象
         $dom = new DOMDocument();
         // 加载 HTML 内容。支持中文显示
         $dom->loadHTML(mb_convert_encoding($htmlContent, 'HTML-ENTITIES', 'UTF-8'));
-        // 获取所有错误  
+        // 获取所有错误
         $errors = libxml_get_errors();
         // 清除错误缓存
         libxml_clear_errors();
-        // 获取所有的 <video> 标签  
+        // 获取所有的 <video> 标签
         $videos = $dom->getElementsByTagName('video');
-        // 遍历所有 <video> 标签  
+        // 遍历所有 <video> 标签
         foreach ($videos as $video) {
-            // 获取 src 属性  
+            // 获取 src 属性
             $src = $video->getAttribute('src');
             // /path/to
             $dirname = pathinfo($src, PATHINFO_DIRNAME);
@@ -1904,14 +1915,14 @@ class Common
             if (!$this->imageExists($poster)) {
                 $poster = $defaultCover;
             }
-            // 添加 poster 属性到 <video> 标签  
+            // 添加 poster 属性到 <video> 标签
             $video->setAttribute('poster', $poster);
         }
         // 保存修改后的 HTML。自动添加html和body标签
-        // $newHtml = $dom->saveHTML();        
-        // 获取 body 元素  
+        // $newHtml = $dom->saveHTML();
+        // 获取 body 元素
         $body = $dom->getElementsByTagName('body')->item(0);
-        // 获取body元素内的所有子节点的HTML内容  
+        // 获取body元素内的所有子节点的HTML内容
         $bodyHtml = [];
         foreach ($body->childNodes as $childNode) {
             $bodyHtml[] = $dom->saveHTML($childNode);
