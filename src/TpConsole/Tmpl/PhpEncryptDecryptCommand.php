@@ -1,47 +1,56 @@
 <?php
-declare(strict_types = 1);
-namespace Dfer\Tools\Console\Modules;
-
-use Dfer\Tools\Console\Modules\Encipher;
+namespace Dfer\Tools\TpConsole\Tmpl;
+use Dfer\Tools\TpConsole\Command;
+use Dfer\Tools\TpConsole\Encipher;
+use Dfer\Tools\Statics\Common;
 
 /**
  * +----------------------------------------------------------------------
  * | 普通console类模板
  * +----------------------------------------------------------------------
- *                                            ...     .............          
- *                                          ..   .:!o&*&&&&&ooooo&; .        
- *                                        ..  .!*%*o!;.                      
- *                                      ..  !*%*!.      ...                  
- *                                     .  ;$$!.   .....                      
- *                          ........... .*#&   ...                           
- *                                     :$$: ...                              
- *                          .;;;;;;;:::#%      ...                           
- *                        . *@ooooo&&&#@***&&;.   .                          
- *                        . *@       .@%.::;&%$*!. . .                       
- *          ................!@;......$@:      :@@$.                          
- *                          .@!   ..!@&.:::::::*@@*.:..............          
- *        . :!!!!!!!!!!ooooo&@$*%%%*#@&*&&&&&&&*@@$&&&oooooooooooo.          
- *        . :!!!!!!!!;;!;;:::@#;::.;@*         *@@o                          
- *                           @$    &@!.....  .*@@&................           
- *          ................:@* .  ##.     .o#@%;                            
- *                        . &@%..:;@$:;!o&*$#*;  ..                          
- *                        . ;@@#$$$@#**&o!;:   ..                            
- *                           :;:: !@;        ..                              
- *                               ;@*........                                 
- *                       ....   !@* ..                                       
- *                 ......    .!%$! ..        | AUTHOR: dfer                             
- *         ......        .;o*%*!  .          | EMAIL: df_business@qq.com                             
- *                .:;;o&***o;.   .           | QQ: 3504725309                             
- *        .;;!o&****&&o;:.    ..        
+ *                                            ...     .............
+ *                                          ..   .:!o&*&&&&&ooooo&; .
+ *                                        ..  .!*%*o!;.
+ *                                      ..  !*%*!.      ...
+ *                                     .  ;$$!.   .....
+ *                          ........... .*#&   ...
+ *                                     :$$: ...
+ *                          .;;;;;;;:::#%      ...
+ *                        . *@ooooo&&&#@***&&;.   .
+ *                        . *@       .@%.::;&%$*!. . .
+ *          ................!@;......$@:      :@@$.
+ *                          .@!   ..!@&.:::::::*@@*.:..............
+ *        . :!!!!!!!!!!ooooo&@$*%%%*#@&*&&&&&&&*@@$&&&oooooooooooo.
+ *        . :!!!!!!!!;;!;;:::@#;::.;@*         *@@o
+ *                           @$    &@!.....  .*@@&................
+ *          ................:@* .  ##.     .o#@%;
+ *                        . &@%..:;@$:;!o&*$#*;  ..
+ *                        . ;@@#$$$@#**&o!;:   ..
+ *                           :;:: !@;        ..
+ *                               ;@*........
+ *                       ....   !@* ..
+ *                 ......    .!%$! ..     | AUTHOR: dfer
+ *         ......        .;o*%*!  .       | EMAIL: df_business@qq.com
+ *                .:;;o&***o;.   .        | QQ: 3504725309
+ *        .;;!o&****&&o;:.    ..          | WEBSITE: http://www.dfer.site
  * +----------------------------------------------------------------------
  *
  */
-class PlainModelPhpEncodeTmpl extends CommonTmpl
+class PhpEncryptDecryptCommand extends Command
 {
+    protected $items=[
+    'application/admin/controller',
+    'application/admin/model',
+    'application/api/controller',
+    'application/common/controller',
+    'application/common/model'
+    ];
+
     /**
      * 全量加密
      * 对特定目录加密，其余原样复制项目内容
-     **/
+     * @param {Object} $type
+     */
     public function fullEncode($type)
     {
         // 从项目根目录开始获取路径。不要以斜杠结尾，执行成功之后会在同级建立'e'后缀的加密目录或者'd'后缀的解密目录
@@ -63,19 +72,20 @@ class PlainModelPhpEncodeTmpl extends CommonTmpl
             break;
            case 3:
            // 清理
-            $files = new \Dfer\Tools\Files;
-            if ($files->delDir('.e/')) {
-                $rt[]=\sprintf("已删除加密目录\n");
+            if (Common::delDir('.e/')) {
+                $rt[]=sprintf("已删除加密目录\n");
             }
-            if ($files->delDir('.d/')) {
-                $rt[]=\sprintf("已删除解密目录\n");
+            if (Common::delDir('.d/')) {
+                $rt[]=sprintf("已删除解密目录\n");
             }
             break;
            default:
-            $common_base->debugPrint("类型错误");
+            $this->debugPrint("类型错误");
             break;
           }
-        echo "\n
+        echo PHP_EOL;
+        echo
+        <<<STR
            　　┏┓　　　┏┓+ +
            　┏┛┻━━━┛┻┓ + +
            　┃　　　　　　　┃ 　
@@ -88,8 +98,8 @@ class PlainModelPhpEncodeTmpl extends CommonTmpl
            　　　┃　　　┃　　　　　　　　　　　
            　　　┃　　　┃ + + + +
            　　　┃　　　┃
-           　　　┃　　　┃ +  
-           　　　┃　　　┃    
+           　　　┃　　　┃ +
+           　　　┃　　　┃
            　　　┃　　　┃　　+　　　　　　　　　
            　　　┃　 　　┗━━━┓ + +
            　　　┃ 　　　　　　　┣┓
@@ -97,20 +107,22 @@ class PlainModelPhpEncodeTmpl extends CommonTmpl
            　　　┗┓┓┏━┳┓┏┛ + + + +
            　　　　┃┫┫　┃┫┫
            　　　　┗┻┛　┗┻┛+ + + +
-          \n";
+        STR;
+        echo PHP_EOL;
         foreach ($rt as $key => $value) {
-            echo $value;
+            Common::colorEcho("$value",37,44);
         }
     }
- 
-    /**
-     * 局部加密
-     * 针对特定文件夹的php文件加密，在同级目录生成加密目录
-     **/
+
+   /**
+    * 局部加密
+    * 针对特定文件夹的php文件加密，在同级目录生成加密目录
+    * @param {Object} $type
+    */
     public function partEncode($type)
     {
         // 从项目根目录开始获取路径。不要以斜杠结尾，执行成功之后会在同级建立'e'后缀的加密目录或者'd'后缀的解密目录
-        $items=self::$items;
+        $items=$this->items;
         $rt=[];
         switch ($type) {
            case 1:
@@ -137,26 +149,28 @@ class PlainModelPhpEncodeTmpl extends CommonTmpl
             foreach ($items as $key => $value) {
                 $path_e = '.e/'.$value;
                 $path_d = '.d/'.$value;
-                
-                if ($files->delDir($path_e)) {
-                    $rt[]=\sprintf("已删除{$value}的加密文件\n");
+
+                if (Common::delDir($path_e)) {
+                    $rt[]=sprintf("已删除{$value}的加密文件\n");
                 }
-                if ($files->delDir($path_d)) {
-                    $rt[]=\sprintf("已删除{$value}的解密文件\n");
+                if (Common::delDir($path_d)) {
+                    $rt[]=sprintf("已删除{$value}的解密文件\n");
                 }
             }
-            if ($files->delDir('.e/')) {
-                $rt[]=\sprintf("已删除加密目录\n");
+            if (Common::delDir('.e/')) {
+                $rt[]=sprintf("已删除加密目录\n");
             }
-            if ($files->delDir('.d/')) {
-                $rt[]=\sprintf("已删除解密目录\n");
+            if (Common::delDir('.d/')) {
+                $rt[]=sprintf("已删除解密目录\n");
             }
             break;
            default:
-            $common_base->debugPrint("类型错误");
+            $this->debugPrint("类型错误");
             break;
           }
-        echo "\n
+        echo PHP_EOL;
+        echo
+        <<<STR
            　　┏┓　　　┏┓+ +
            　┏┛┻━━━┛┻┓ + +
            　┃　　　　　　　┃ 　
@@ -169,8 +183,8 @@ class PlainModelPhpEncodeTmpl extends CommonTmpl
            　　　┃　　　┃　　　　　　　　　　　
            　　　┃　　　┃ + + + +
            　　　┃　　　┃
-           　　　┃　　　┃ +  
-           　　　┃　　　┃    
+           　　　┃　　　┃ +
+           　　　┃　　　┃
            　　　┃　　　┃　　+　　　　　　　　　
            　　　┃　 　　┗━━━┓ + +
            　　　┃ 　　　　　　　┣┓
@@ -178,9 +192,10 @@ class PlainModelPhpEncodeTmpl extends CommonTmpl
            　　　┗┓┓┏━┳┓┏┛ + + + +
            　　　　┃┫┫　┃┫┫
            　　　　┗┻┛　┗┻┛+ + + +
-          \n";
+        STR;
+        echo PHP_EOL;
         foreach ($rt as $key => $value) {
-            echo $value;
+            Common::colorEcho("$value",37,44);
         }
     }
 }

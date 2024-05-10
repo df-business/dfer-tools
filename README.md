@@ -5,8 +5,8 @@
 
 ### 发布
 - [package地址](https://packagist.org/packages/dfer/tools)
- 
-    
+
+
 
 ### 测试
 ```
@@ -151,8 +151,8 @@ foreach($xls_data as $key=>&$v){
 **多个栏目**
 ```
 $db=Db::connect('db_cat_factory_dfer');
-   
-// -- 当天激活人数        
+
+// -- 当天激活人数
 $data1=$db->query("select * from cat_ems where DATE_FORMAT(FROM_UNIXTIME(createtime),'%Y-%m-%d') = DATE_FORMAT(NOW(),'%Y-%m-%d') GROUP BY email;");
 // -- 当天登录人数
 $data2=$db->query("select * from cat_user where DATE_FORMAT(FROM_UNIXTIME(logintime),'%Y-%m-%d') = DATE_FORMAT(NOW(),'%Y-%m-%d');");
@@ -165,7 +165,7 @@ $data4=$db->query("select * from cat_like where DATE_FORMAT(FROM_UNIXTIME(create
 $data5=$db->query("select * from cat_publish_info_comment where DATE_FORMAT(FROM_UNIXTIME(comment_time),'%Y-%m-%d') = DATE_FORMAT(NOW(),'%Y-%m-%d');");
 
 
-$spService=new Office;     
+$spService=new Office;
 $title=\sprintf('统计-%s', date("Ymd", time()));
 $file_src = $spService->setStyle()
 ->setTitle('当天激活人数')->setContent($this->getColName("cat_ems"), $data1,[50,30,20])
@@ -191,7 +191,7 @@ $image = $imgcompress->compressImg($newname);
 
 $img_common=new Common;
 #将临时文件转变尺寸之后移动到网站目录
-$img_common->resizeJpg("1.jpg", "2.jpg", 150, 100);  
+$img_common->resizeJpg("1.jpg", "2.jpg", 150, 100);
 
 ```
 
@@ -207,9 +207,9 @@ $img_common->resizeJpg("1.jpg", "2.jpg", 150, 100);
 
 ```
 <!-- 帮助 -->
-php think dfer_console_create -h
+php think dfer:console_create -h
 <!-- 创建一个脚本 -->
-php think dfer_console_create Test
+php think dfer:console_create Test
 ```
 
 
@@ -223,8 +223,8 @@ php think dfer_console_create Test
 // 自定义指令
 return [
     // 指令定义
-    'commands' => [           
-           'dfer_console_create' => 'Dfer\Tools\Console\Create'
+    'commands' => [
+           'dfer:console_create' => 'Dfer\Tools\Console\Create'
     ]
 ];
 
@@ -248,7 +248,7 @@ return [
 // +----------------------------------------------------------------------
 
 return [
-    'Dfer\Tools\Console\Create'                
+    'Dfer\Tools\Console\Create'
 ];
 
 
@@ -286,7 +286,7 @@ public function dd_login()
     $accessToken=$service->getUserAccessToken($authCode);
     $users=$service->getContactUsers($accessToken);
     $this->common->log([$_GET,$_POST,$accessToken,$users]);
-    
+
     $account='jiangxiao@codemao.cn';
     $ret = $this->auth->dd_login($account);
     if ($ret) {
@@ -312,8 +312,8 @@ public function uploadQN()
 {
  $fileObj = $this->request->file('file');
  $result=\Dfer\Tools\QiNiuService::getInstance()->uploadFile($fileObj);
- 
- if($result['code']==0){      
+
+ if($result['code']==0){
   $this->error('缺少参数[file]',$result);
  }
  else{
@@ -337,7 +337,7 @@ use Endroid\QrCode\Color\Color;
 ```
 public function index()
 {
-    
+
     $qr=new \Dfer\Tools\QrCode;
     $data=$qr->setStyle(500,30,new Color(255, 250, 232))
     ->setText("二维码测试",new Color(0, 0, 0))
@@ -354,9 +354,9 @@ public function index()
 
 ```
 public function index()
-{    
+{
     $mail=new \Dfer\Tools\Mail;
-    $data=$mail->instance(['debug'=>true])    
+    $data=$mail->instance(['debug'=>true])
     ->send('test@qq.com','邮件主题','邮件内容');
     $this->success('请求成功!', $data);
 }
@@ -376,10 +376,10 @@ var actionUrl = 'https://chanpinfabu.oss-cn-chengdu.aliyuncs.com';
 uploader = _this.uploader = WebUploader.create({
     server: actionUrl
 });
-    
+
 uploader.on('uploadBeforeSend', function (file, data, header) {
     //这里可以通过data对象添加POST参数
-    header['X_Requested_With'] = 'XMLHttpRequest';    
+    header['X_Requested_With'] = 'XMLHttpRequest';
     $.ajax({
         type:"post",
         url:"/user/asset/getRequestParams/type/ueditor",
@@ -402,7 +402,7 @@ uploader.on('uploadBeforeSend', function (file, data, header) {
             }else{
                 console.log('出错');
             }
-        },                    
+        },
         error : function(XMLHttpRequest, textStatus, errorThrown) {
             alert("ajax error");
         },
@@ -420,12 +420,12 @@ uploader.on('uploadBeforeSend', function (file, data, header) {
 
 **/public/themes/admin_v1/user/webuploader.html**
 ```
-uploader = WebUploader.create({  
+uploader = WebUploader.create({
     server: "https://chanpinfabu.oss-cn-chengdu.aliyuncs.com",
 });
 uploader.on('uploadBeforeSend', function (file, data, header) {
     //这里可以通过data对象添加POST参数
-    header['X_Requested_With'] = 'XMLHttpRequest';    
+    header['X_Requested_With'] = 'XMLHttpRequest';
     $.ajax({
         type:"post",
         url:"/user/asset/getRequestParams/type/webuploader",
@@ -435,7 +435,7 @@ uploader.on('uploadBeforeSend', function (file, data, header) {
             if(res){
                 try{
                     console.log('getRequestParams',res);
-                    $.extend(data,{                                    
+                    $.extend(data,{
                         'key':res.dir + df_tools_common.generateRandomFileName(data.name),
                         'policy':res.policy,
                         'OSSAccessKeyId':res.OSSAccessKeyId,
@@ -449,7 +449,7 @@ uploader.on('uploadBeforeSend', function (file, data, header) {
             }else{
                 console.log('出错');
             }
-        },                    
+        },
         error : function(XMLHttpRequest, textStatus, errorThrown) {
             alert("ajax error");
         },
@@ -472,11 +472,11 @@ namespace app\user\controller;
 use cmf\controller\AdminBaseController;
 use Dfer\Tools\AliOss;
 class AssetController extends AdminBaseController{
-    public function getRequestParams(){        
+    public function getRequestParams(){
         $type = $this->request->param('type','ueditor');
         $process_list = $this->request->param('process_list',[]);
         $access_id =  config('oss.access_id');
-        $access_key =  config('oss.access_key');        
+        $access_key =  config('oss.access_key');
         $callback_url =  config('oss.callback_url');
         $dir =  config('oss.dir');
         $user_id=$this->userId;
@@ -505,7 +505,7 @@ use think\Controller;
 use Dfer\Tools\AliOss;
 
 class OssController extends Controller
-{    
+{
     public function uploadCallback($var = null)
     {
         $access_id =  config('oss.access_id');
@@ -526,7 +526,7 @@ use Dfer\Tools\AliOss;
 use app\common\model\KtpUserImgRecordModel;
 
 class OssController extends Controller
-{    
+{
     public function uploadCallback($var = null)
     {
         $access_id =  config('oss.access_id');
@@ -536,8 +536,8 @@ class OssController extends Controller
         $oss=new AliOss(compact('access_id','access_key','host','debug'));
         $oss->uploadCallback(function($data){return $this->callback($data);});
     }
-    
-    
+
+
     /**
      * 上传回调
      * 可用来添加上传记录

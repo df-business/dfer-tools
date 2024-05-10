@@ -27,10 +27,10 @@ namespace Dfer\Tools;
  *                           :;:: !@;        ..
  *                               ;@*........
  *                       ....   !@* ..
- *                 ......    .!%$! ..        | AUTHOR: dfer
- *         ......        .;o*%*!  .          | EMAIL: df_business@qq.com
- *                .:;;o&***o;.   .           | QQ: 3504725309
- *        .;;!o&****&&o;:.    ..
+ *                 ......    .!%$! ..     | AUTHOR: dfer
+ *         ......        .;o*%*!  .       | EMAIL: df_business@qq.com
+ *                .:;;o&***o;.   .        | QQ: 3504725309
+ *        .;;!o&****&&o;:.    ..          | WEBSITE: http://www.dfer.site
  * +----------------------------------------------------------------------
  *
  */
@@ -450,7 +450,7 @@ trait FilesTrait
                 $this->uploadFileJson(false, compact('msg', 'file'), $edit_tool);
                 break;
         }
-        
+
         $this->mkDirs($path);
         //新文件名
         $new_name = sprintf("%s/%s-%s.%s", $path, rand(10000, 99999), date("Ymdhis"), $this->getExt($filename));
@@ -500,7 +500,7 @@ trait FilesTrait
                 $json = array('code' => 0, 'msg' => $msg, 'data' => array('src' => $new_name, 'title' => $new_name));
                 $this->showJsonBase($json);
                 break;
-            case self::UPLOAD_EDITORMD_EDITOR:                
+            case self::UPLOAD_EDITORMD_EDITOR:
                 // http://editor.md.ipandao.com/examples/image-upload.html
                 $json = ["success" => $status?1:0, "url" => $new_name,"message" =>$msg,"debug"=>$data];
                 $this->showJsonBase($json);
@@ -533,7 +533,7 @@ trait FilesTrait
         }
         return $latestFile;
     }
-    
+
     /**
      * 输出调试信息到日志文件
      * @param {Object} 自动获取所有参数
@@ -545,13 +545,18 @@ trait FilesTrait
             // 项目根目录
             $root=dirname(__DIR__, 4);
             $tag=$_SERVER['REQUEST_URI']??'';
+            // 当前代码的运行堆栈跟踪信息
+            $trace = debug_backtrace();
             $str=$this->str(
             <<<STR
-            
+
             ********************** DEBUG{tag} START **********************
+            {$trace[1]['file']}:{$trace[1]['line']}
+            {$trace[0]['file']}:{$trace[0]['line']}
+
             {0}
             **********************  DEBUG{tag} END  **********************
-            
+
             STR, [$args,'tag'=>"[{$tag} {$time}]"]);
             $file_dir = $this->str("{root}/data/logs/{0}", [date('Ym'), "root" => $root]);
             $this->mkDirs($file_dir);

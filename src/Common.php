@@ -29,10 +29,10 @@ use DOMDocument;
  *                           :;:: !@;        ..
  *                               ;@*........
  *                       ....   !@* ..
- *                 ......    .!%$! ..        | AUTHOR: dfer
- *         ......        .;o*%*!  .          | EMAIL: df_business@qq.com
- *                .:;;o&***o;.   .           | QQ: 3504725309
- *        .;;!o&****&&o;:.    ..
+ *                 ......    .!%$! ..     | AUTHOR: dfer
+ *         ......        .;o*%*!  .       | EMAIL: df_business@qq.com
+ *                .:;;o&***o;.   .        | QQ: 3504725309
+ *        .;;!o&****&&o;:.    ..          | WEBSITE: http://www.dfer.site
  * +----------------------------------------------------------------------
  *
  */
@@ -1714,9 +1714,9 @@ class Common
         }
 
         $err_msg = $this->str(<<<STR
+
         ////////////////////////////////////////////////// 出错 START //////////////////////////////////////////////////
         {0}
-
         {1}
         //////////////////////////////////////////////////  出错 END  //////////////////////////////////////////////////
 
@@ -1930,6 +1930,41 @@ class Common
         $newHtml = implode("", $bodyHtml);
         // 输出修改后的 HTML
         return $newHtml;
+    }
+
+    /**
+     * 规范目录分隔符
+     * @param {Object} $var 变量
+     **/
+    public function formatDirectorySeparator($var = null)
+    {
+        $var = str_replace(['/','\\'], [DIRECTORY_SEPARATOR,DIRECTORY_SEPARATOR], $var);
+        return $var;
+    }
+
+    /**
+     * 在命令行输出带颜色的字符串
+     * @param {Object} $textColor ANSI转义序列文字颜色。30=黑色, 31=红色, 32=绿色, 33=黄色, 34=蓝色, 35=洋红（紫色）, 36=青色（深绿）, 37=白色, 90=明亮的黑色, 91=明亮的红色, 92=明亮的绿色, 93=明亮的黄色, 94=明亮的蓝色, 95=明亮的洋红（紫色）, 96=明亮的青色（深绿）, 97=明亮的白色
+     * @param {Object} $textColor ANSI转义序列文字颜色。40=黑色背景, 41=红色背景, 42=绿色背景, 43=黄色背景, 44=蓝色背景, 45=洋红（紫色）背景, 46=青色（深绿）背景, 47=白色背景,100=明亮的黑色背景, 101=明亮的红色背景, 102=明亮的绿色背景, 103=明亮的黄色背景, 104=明亮的蓝色背景, 105=明亮的洋红（紫色）背景, 106=明亮的青色（深绿）背景, 107=明亮的白色背景
+     **/
+    public function colorEcho($message,$textColor=37,$bgColor=45)
+    {
+        // 构建ANSI转义序列
+        $startColor = "\033[" . $bgColor . ";" . $textColor . "m";
+        // 重置颜色到默认
+        $resetColor = "\033[0m";
+        // 输出带有颜色和背景颜色的字符串
+        echo $startColor . $message . $resetColor;
+    }
+
+    /**
+     * 获取最后一个斜杠后的字符串
+     * @param {Object} $str
+     */
+    public function getLastSlashStr($str)
+    {
+        $arr = explode("\\", $str);
+        return $arr[count($arr) - 1];
     }
 
 }

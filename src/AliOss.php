@@ -4,6 +4,8 @@ namespace Dfer\Tools;
 
 use OSS\OssClient;
 use OSS\Core\OssException;
+use Exception;
+use Closure;
 
 /**
  * +----------------------------------------------------------------------
@@ -57,6 +59,8 @@ class AliOss extends Common
     private $dir = '';
     // 调试模式
     private $debug = false;
+    // 回调返回的参数
+    private $post_arr = [];
 
     private function ossClient()
     {
@@ -82,11 +86,11 @@ class AliOss extends Common
         $this->dir = $config['dir'] ?? $this->dir;
         // 默认的上传目录
         $this->dir = $this->dir . DIRECTORY_SEPARATOR;
-        
+
         $this->debug = $config['debug'] ?? $this->debug;
     }
 
-    /**    
+    /**
      * 向oss发起上传请求时的必要参数
      * @param {Object} $ext_param 附带的参数，会被解析为查询字符串中的参数 eg:['user_id'=123]
      * @param {Object} $this->callback_url
@@ -125,8 +129,6 @@ class AliOss extends Common
 
         $callback = base64_encode(json_encode($callback_param));
 
-        $this->debug($arr, $policy);
-
         $response = array();
         $response['OSSAccessKeyId'] = $this->access_id;
         $response['callback'] = $callback;
@@ -141,10 +143,10 @@ class AliOss extends Common
 
     /**
      * 上传成功之后的回调
-     * @param {Object} $callback_function    回调函数 eg:function($data){return $this->callback($data);}
+     * @param {Object} $callback_function    回调匿名函数 eg:function($data){return $this->callback($data);}
      * @param {Object} $this->host
      */
-    public function uploadCallback($callback_function = null)
+    public function uploadCallback(Closure $callback_function = null)
     {
         try {
             $authorizationBase64 = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
@@ -179,44 +181,53 @@ class AliOss extends Common
             // 验证签名
             $status = openssl_verify($authStr, $authorization, $pubKey, OPENSSL_ALGO_MD5);
             $this->debug($status);
+            $this->post_arr = $this->getPara($body);
             if ($status == 1) {
-                // 将查询字符串中的参数解析为变量            
-                // parse_str($body,$post_arr);
-                $post_arr = $this->getPara($body);
-                $post_arr['host'] = $this->host;
-                $post_arr['fileName'] = pathinfo($post_arr['filePath'], PATHINFO_BASENAME);
-                $this->processSave($post_arr);
-                $this->debug($body, urldecode($body), $post_arr);
-                $this->returnData($post_arr, $callback_function);
+                // 将查询字符串中的参数解析为变量
+                // parse_str($body,$this->post_arr);
+                $this->post_arr['host'] = $this->host;
+                $this->post_arr['fileName'] = pathinfo($this->post_arr['filePath'], PATHINFO_BASENAME);
+                $this->processSave();
+                $this->returnData($callback_function);
             } else {
                 $this->setHttpStatus(self::FORBIDDEN);
             }
         } catch (OssException $exception) {
-            $err_msg = $this->getException($exception);
-            $post_arr = ['type' => 'error', "msg" => $err_msg];
-            $this->returnData($post_arr, $callback_function);
+            if ($this->post_arr) {
+                $err_msg = $exception->getMessage();
+                $this->post_arr['error'] = $err_msg;
+            } else {
+                $err_msg = $this->getException($exception);
+                $this->post_arr = ['type' => 'error', "msg" => $err_msg];
+            }
+            $this->returnData($callback_function);
         } catch (Exception $exception) {
-            $err_msg = $this->getException($exception);
-            $post_arr = ['type' => 'error', "msg" => $err_msg];
-            $this->returnData($post_arr, $callback_function);
+            if ($this->post_arr) {
+                $err_msg = $exception->getMessage();
+                $this->post_arr['error'] = $err_msg;
+            } else {
+                $err_msg = $this->getException($exception);
+                $this->post_arr = ['type' => 'error', "msg" => $err_msg];
+            }
+            $this->returnData($callback_function);
         }
     }
 
     /**
      * 图片处理,保存为新的图
      * 设置图片尺寸（大、中、小），添加水印
-     * 
-     * @param {Object} $file_src  
-     * @param {Object} $process_list    
+     *
+     * @param {Object} $file_src
+     * @param {Object} $process_list
      * @param {Object} $this->bucket
      */
-    private function processSave(&$post_arr)
+    private function processSave()
     {
-        $this->debug($post_arr);
+        $this->debug($this->post_arr);
         // 文件类型。text、image、video、application
-        $mime_type = $this->getMimeTypePrefix($post_arr['mimeType']);
-        // 文件在oss中的路径    
-        $file_src = $post_arr['filePath'];
+        $mime_type = $this->getMimeTypePrefix($this->post_arr['mimeType']);
+        // 文件在oss中的路径
+        $file_src = $this->post_arr['filePath'];
 
         // /path/to
         $dirname = pathinfo($file_src, PATHINFO_DIRNAME);
@@ -235,14 +246,14 @@ class AliOss extends Common
         // 删除原始文件
         $this->delFileOss($file_src);
         // 修改原始路径
-        $post_arr['filePath'] = $file_src = $file_src_new;
+        $this->post_arr['filePath'] = $file_src = $file_src_new;
 
         // 异步处理。图片处理默认使用`x-oss-process`，视频截帧默认使用`x-oss-async-process`
         $is_async = false;
 
         // 对文件进行加工和转存
         // 处理列表 eg:['ktp_img_l'=>null,'ktp_img_m'=>"m"]
-        $process_list = $post_arr['process_list'] ?? [];
+        $process_list = $this->post_arr['process_list'] ?? [];
         if (empty($process_list)) {
             $result = [];
         } else {
@@ -283,13 +294,14 @@ class AliOss extends Common
 
     /**
      * 返回数据
-     * @param {Object} $post_arr 
-     * @param {Object} $callback_function    回调函数
-     * @return {Json} 组件数据
+     * @param {Object} $callback_function
+     * @return {Json} 前端组件需要的数据
      */
-    private function returnData($post_arr, $callback_function)
+    private function returnData(Closure $callback_function)
     {
-        $type = $post_arr['type'];
+        $type = $this->post_arr['type'];
+        // 运行状态。true 成功 false 失败
+        $status = isset($this->post_arr['error']) ? false : true;
 
         if ($callback_function === null) {
             $callback_function = function ($post_arr) {
@@ -304,14 +316,14 @@ class AliOss extends Common
         switch ($type) {
             case 'webuploader':
                 $return = [
-                    'code' => 1,
-                    'msg' => '上传成功!',
+                    'code' => $status ? 1 : 0,
+                    'msg' => $status ? '上传成功!' : '上传失败!',
                     'data' => [
-                        'filepath' => $post_arr['host'] . $post_arr['filePath'],
-                        'name' => $post_arr['fileName'],
+                        'filepath' => $this->post_arr['host'] . $this->post_arr['filePath'],
+                        'name' => $this->post_arr['fileName'],
                         'id' => 0,
-                        'preview_url' => $post_arr['host'] . $post_arr['filePath'],
-                        'url' => $post_arr['host'] . $post_arr['filePath']
+                        'preview_url' => $this->post_arr['host'] . $this->post_arr['filePath'],
+                        'url' => $this->post_arr['host'] . $this->post_arr['filePath']
                     ],
                     'url' => '',
                     'wait' => 3
@@ -319,27 +331,35 @@ class AliOss extends Common
                 break;
             case 'ueditor':
                 $return = [
-                    'state' => 'SUCCESS',
-                    'url' => $post_arr['host'] . $post_arr['filePath'],
-                    'title' => $post_arr['fileName'],
-                    'original' => $post_arr['fileName']
+                    'state' => $status ? 'SUCCESS' : 'FAIL',
+                    'url' => $this->post_arr['host'] . $this->post_arr['filePath'],
+                    'title' => $this->post_arr['fileName'],
+                    'original' => $this->post_arr['fileName']
                 ];
                 break;
             case 'error':
+                $return = $this->post_arr;
+                break;
             default:
-                $return = $post_arr;
+                $return = [
+                    'status' => $status,
+                    'url' => $this->post_arr['host'] . $this->post_arr['filePath'],
+                    'title' => $this->post_arr['fileName']
+                ];
                 break;
         }
 
+        if (!$status) {
+            $return['error'] = $this->post_arr['error'];
+        }
+        // throw new Exception('人为创造一个错误');
         try {
             // 调用回调函数
-            $callback_function($post_arr);
-        } catch (\Exception $exception) {
-            $err_msg = $exception->getMessage();
+            $callback_function($this->post_arr);
+        } catch (Exception $exception) {
+            $err_msg = $this->getException($exception);
             $this->debug($err_msg);
         }
-
-        $this->debug($return);
         $this->showJsonBase($return);
     }
 
