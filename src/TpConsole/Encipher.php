@@ -49,7 +49,7 @@ class Encipher extends Common
 
     private $files = array();
 
-    public function __construct($sourceSrc, $targetSrc, $comments = array())
+    public function __construct($sourceSrc, $targetSrc, $comments = "")
     {
         if (defined('ROOT_PATH')) {
             $root = ROOT_PATH;
@@ -64,12 +64,37 @@ class Encipher extends Common
         $this->colorEcho("$this->sourceSrc >>> $this->targetSrc",37,44);
         echo PHP_EOL;
 
-        $this->comments=$comments?:array(
-        '| AUTHOR: dfer',
-        '| EMAIL: df_business@qq.com',
-        '| QQ: 3504725309',
-        '| WEBSITE: http://www.dfer.site',
-    );
+        $this->comments=$comments?:<<<STR
+        /**
+         * +----------------------------------------------------------------------
+         *                                            ...     .............
+         *                                          ..   .:!o&*&&&&&ooooo&; .
+         *                                        ..  .!*%*o!;.
+         *                                      ..  !*%*!.      ...
+         *                                     .  ;$$!.   .....
+         *                          ........... .*#&   ...
+         *                                     :$$: ...
+         *                          .;;;;;;;:::#%      ...
+         *                        . *@ooooo&&&#@***&&;.   .
+         *                        . *@       .@%.::;&%$*!. . .
+         *          ................!@;......$@:      :@@$.
+         *                          .@!   ..!@&.:::::::*@@*.:..............
+         *        . :!!!!!!!!!!ooooo&@$*%%%*#@&*&&&&&&&*@@$&&&oooooooooooo.
+         *        . :!!!!!!!!;;!;;:::@#;::.;@*         *@@o
+         *                           @$    &@!.....  .*@@&................
+         *          ................:@* .  ##.     .o#@%;
+         *                        . &@%..:;@$:;!o&*$#*;  ..
+         *                        . ;@@#$$$@#**&o!;:   ..
+         *                           :;:: !@;        ..
+         *                               ;@*........
+         *                       ....   !@* ..
+         *                 ......    .!%$! ..     | AUTHOR: dfer
+         *         ......        .;o*%*!  .       | EMAIL: df_business@qq.com
+         *                .:;;o&***o;.   .        | QQ: 3504725309
+         *        .;;!o&****&&o;:.    ..          | WEBSITE: http://www.dfer.site
+         * +----------------------------------------------------------------------
+         */
+        STR;
 
         if (empty($this->sourceSrc) || !file_exists($this->sourceSrc)) {
             exit("源目录(文件)不存在");
@@ -183,8 +208,7 @@ class Encipher extends Common
     private function encodeTemplate()
     {
         $encodeContent = '$' . $this->q6 . '=urldecode("%6E1%7A%62%2F%6D%615%5C%76%740%6928%2D%70%78%75%71%79%2A6%6C%72%6B%64%679%5F%65%68%63%73%77%6F4%2B%6637%6A");$' . $this->q1 . '=$' . $this->q6 . '[3].$' . $this->q6 . '[6].$' . $this->q6 . '[33].$' . $this->q6 . '[30];$' . $this->q3 . '=$' . $this->q6 . '[33].$' . $this->q6 . '[10].$' . $this->q6 . '[24].$' . $this->q6 . '[10].$' . $this->q6 . '[24];$' . $this->q4 . '=$' . $this->q3 . '[0].$' . $this->q6 . '[18].$' . $this->q6 . '[3].$' . $this->q3 . '[0].$' . $this->q3 . '[1].$' . $this->q6 . '[24];$' . $this->q5 . '=$' . $this->q6 . '[7].$' . $this->q6 . '[13];$' . $this->q1 . '.=$' . $this->q6 . '[22].$' . $this->q6 . '[36].$' . $this->q6 . '[29].$' . $this->q6 . '[26].$' . $this->q6 . '[30].$' . $this->q6 . '[32].$' . $this->q6 . '[35].$' . $this->q6 . '[26].$' . $this->q6 . '[30];eval($' . $this->q1 . '("' . base64_encode('$' . $this->q2 . '="' . $this->c . '";eval(\'?>\'.$' . $this->q1 . '($' . $this->q3 . '($' . $this->q4 . '($' . $this->q2 . ',$' . $this->q5 . '*2),$' . $this->q4 . '($' . $this->q2 . ',$' . $this->q5 . ',$' . $this->q5 . '),$' . $this->q4 . '($' . $this->q2 . ',0,$' . $this->q5 . '))));') . '"));';
-        $headers = array_map('trim', array_merge(array('/*'), $this->comments, array('*/')));
-        $this->writeContent = "<?php" . "\r\n" . implode("\r\n", $headers) . "\r\n" . $encodeContent . "\r\n" . "?>";
+        $this->writeContent = "<?php" . PHP_EOL . $this->comments . PHP_EOL . $encodeContent . PHP_EOL . "?>";
         return $this;
     }
 
