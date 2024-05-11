@@ -140,7 +140,7 @@ STR
         if ($this->debug) {
             $str = substr(json_encode($str, JSON_UNESCAPED_UNICODE), 1, -1);
             $this->tpPrint($str);
-            $this->tpPrint($str, Consts::LOG_WRITE);
+            // $this->tpPrint($str, Consts::LOG_WRITE);
         }
     }
 
@@ -199,6 +199,47 @@ STR
         // \var_dump(stripos($from, $value), $str,$from);
         file_put_contents($from_src, $from);
     }
+
+    /**
+     * 生成json字符串
+     * @param {Object} $data
+     * @param {Object} $msg 信息
+     * @param {Object} $status 状态
+     */
+      public function showJson($data,$msg,$status=true)
+      {
+          $msg =$msg?:(boolval($status) ? '操作成功':'操作失败');
+
+          $return = array(
+              'status' => $status,
+              'msg' => $msg
+          );
+          if ($data) {
+              $return['data'] = $data;
+          }
+
+          return json_encode($return, JSON_UNESCAPED_UNICODE);
+      }
+
+      /**
+       * 成功
+       * @param {Object} $data
+       * @param {Object} $msg 信息
+       */
+        public function success($data,$msg="")
+        {
+            return $this->showJson($data,$msg,true);
+        }
+
+        /**
+         * 失败
+         * @param {Object} $data
+         * @param {Object} $msg 信息
+         */
+          public function fail($data,$msg="")
+          {
+              return $this->showJson($data,$msg,false);
+          }
 
 
 }

@@ -1966,4 +1966,18 @@ class Common
         return $arr[count($arr) - 1];
     }
 
+    /**
+     * 是否为windows环境
+     * @param {Object} $var 变量
+     **/
+    public function isWindows($var = null)
+    {
+        if (DIRECTORY_SEPARATOR === '\\') {
+            return true;
+        }
+        else
+            return false;
+    }
+
+
 }

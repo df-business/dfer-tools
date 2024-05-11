@@ -1,7 +1,8 @@
 <?php
+
 namespace Dfer\Tools\TpConsole\Tmpl;
 
-use think\console\input\{Argument,Option};
+use think\console\input\{Argument, Option};
 use think\exception\ErrorException;
 
 /**
@@ -47,11 +48,11 @@ class Plain extends PlainCommand
     {
         // 指令配置
         $this->setName('plain')
-        ->addArgument('param1', Argument::OPTIONAL, "参数一", '')
-        ->addOption('type', 't', Option::VALUE_OPTIONAL, '类型。a：选项一；b：选项二', 'a')
-        ->addOption('about', 'a', Option::VALUE_NONE, '简介')
-        ->addOption('debug', 'd', Option::VALUE_REQUIRED, '调试模式。1:开启;0:关闭', true)
-        ->setDescription('控制台脚本。输入`php think plain -h`查看说明');
+            ->addArgument('param1', Argument::OPTIONAL, "参数一", '')
+            ->addOption('type', 't', Option::VALUE_OPTIONAL, '类型。a：选项一；b：选项二', 'a')
+            ->addOption('about', 'a', Option::VALUE_NONE, '简介')
+            ->addOption('debug', 'd', Option::VALUE_REQUIRED, '调试模式。1:开启;0:关闭', true)
+            ->setDescription('控制台脚本。输入`php think plain -h`查看说明');
     }
 
     public function init()
@@ -66,14 +67,14 @@ class Plain extends PlainCommand
             }
             $this->tpPrint("输入:{$param1}");
             switch ($type) {
-          case 'a':
-           break;
-          case 'b':
-           break;
-          default:
-           $this->debugPrint("类型错误");
-           break;
-         }
+                case 'a':
+                    break;
+                case 'b':
+                    break;
+                default:
+                    $this->debugPrint("类型错误");
+                    break;
+            }
         } catch (ErrorException $e) {
             $this->tpPrint(sprintf("\n%s\n\n%s %s", $e->getMessage(), $e->getFile(), $e->getLine()));
         }

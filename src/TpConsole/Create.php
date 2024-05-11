@@ -132,7 +132,9 @@ class Create extends Command
                   // main
                   $this->fileCreate("{$cur_dir}\Tmpl\PhpEncryptDecrypt.php", "{$root}/app/command/{$name_studly}.php", [
                    'namespace Dfer\Tools\TpConsole\Tmpl;'=> "namespace app\command;",
+                   'think php_encrypt_decrypt'                            => "think {$name_snake}",
                    'class PhpEncryptDecrypt extends PhpEncryptDecryptCommand'=> "class {$name_studly} extends {$name_studly}Command",
+                   'setName(\'php_encrypt_decrypt\')'                     => "setName('{$name_snake}')"
                   ]);
                   break;
                  default:

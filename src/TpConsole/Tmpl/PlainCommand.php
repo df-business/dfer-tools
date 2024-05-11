@@ -1,5 +1,7 @@
 <?php
+
 namespace Dfer\Tools\TpConsole\Tmpl;
+
 use Dfer\Tools\TpConsole\Command;
 
 /**

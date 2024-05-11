@@ -1,18 +1,12 @@
 <?php
-declare(strict_types = 1);
+
 namespace Dfer\Tools\TpConsole\Tmpl;
 
-use think\console\input\{Argument,Option};
-
-use Workerman\Worker;
-use Workerman\Lib\Timer;
+use think\console\input\{Argument, Option};
 use think\exception\ErrorException;
-
+use Workerman\Worker;
 use Dfer\Tools\TpConsole\FileMonitor;
-
-defined("HEARTBEAT_TIME")||define('HEARTBEAT_TIME', 55);
-defined("MAX_REQUEST")||define('MAX_REQUEST', 1000);
-
+use Dfer\Tools\Statics\Common;
 
 /**
  * +----------------------------------------------------------------------
@@ -56,15 +50,16 @@ class WebSocket extends WebSocketCommand
 {
 
     private $count;
+
     protected function configure()
     {
         $this->setName('ws')
-          ->addArgument('action', Argument::REQUIRED, "start|stop|restart|reload|status|connections", 'start')
-          ->addOption('mode', 'm', Option::VALUE_OPTIONAL, '后台运行workerman服务')
-          ->addOption('debug', 'd', Option::VALUE_REQUIRED, '调试模式。1:开启;0:关闭', true)
-          ->addOption('port', 'p', Option::VALUE_REQUIRED, '监听端口', 99)
-          ->addOption('count', 'c', Option::VALUE_REQUIRED, '开启的线程数', 3)
-          ->setDescription('workerman脚本。输入`php think game -h`查看说明');
+            ->addArgument('action', Argument::OPTIONAL, "start|stop|restart|reload|status|connections", 'start')
+            ->addOption('mode', 'm', Option::VALUE_OPTIONAL, '后台运行workerman服务')
+            ->addOption('debug', 'd', Option::VALUE_REQUIRED, '调试模式。1:开启;0:关闭', true)
+            ->addOption('port', 'p', Option::VALUE_REQUIRED, '监听端口', 99)
+            ->addOption('count', 'c', Option::VALUE_REQUIRED, '开启的线程数。windows操作系统下只支持1个线程', 3)
+            ->setDescription('workerman脚本。输入`php think ws -h`查看说明');
     }
 
 
@@ -72,11 +67,16 @@ class WebSocket extends WebSocketCommand
     {
         global $argv;
         try {
-            if ($this->debug) {
+            if ($this->debug && !Common::isWindows()) {
+                // windows操作系统下无法在一个php文件里初始化多个Worker
+                // https://www.workerman.net/doc/workerman/faq/multi-woker-for-windows.html
                 new FileMonitor();
             }
             $port = $this->input->getOption('port');
-            $this->host="websocket://0.0.0.0:{$port}";
+
+            // 应用层通信协议和侦听地址
+            $this->host = "websocket://0.0.0.0:{$port}";
+
             $this->count = $this->input->getOption('count');
 
             $argv = [];
@@ -99,31 +99,25 @@ class WebSocket extends WebSocketCommand
     {
         $this->worker = new Worker($this->host);
         $this->worker->name = 'WS服务';
+        // 工作进程的数量。
         $this->worker->count = $this->count;
-        $this->worker->list = array();
+        // 客户端列表
+        $this->worker->client_list = array();
 
-        $this->worker->onWorkerStart = function (Worker $worker) {
-            $this->debugPrint("服务 {$worker->id} 已开启");
-            $this->onWorkerStart($worker);
-            $worker->onConnect    = array($this, 'onConnect');
-            $worker->onMessage    = array($this, 'onMessage');
 
-            if ($worker->id === 0) {
-                // 间歇性检测客户端状态
-                Timer::add(10, function () use ($worker) {
-                    $time_now = time();
-                    foreach ($worker->connections as $connection) {
-                        if (empty($connection->lastMessageTime)) {
-                            $connection->lastMessageTime = $time_now;
-                            continue;
-                        }
-                        if ($time_now - $connection->lastMessageTime > HEARTBEAT_TIME) {
-                            $connection->close();
-                        }
-                    }
-                });
-            }
-        };
+        // 绑定自定义方法
+        $this->worker->onWorkerStart = array($this, 'onWorkerStart');
+        $this->worker->onWorkerReload = array($this, 'onWorkerReload');
+        $this->worker->onWorkerStop = array($this, 'onWorkerStop');
+        $this->worker->onWorkerExit = array($this, 'onWorkerExit');
+        $this->worker->onConnect    = array($this, 'onConnect');
+        $this->worker->onMessage    = array($this, 'onMessage');
+        $this->worker->onClose    = array($this, 'onClose');
+        $this->worker->onError    = array($this, 'onError');
+        $this->worker->onBufferFull    = array($this, 'onBufferFull');
+        $this->worker->onBufferDrain    = array($this, 'onBufferDrain');
+        Worker::$onMasterReload    = array($this, 'onMasterReload');
+        Worker::$onMasterStop    = array($this, 'onMasterStop');
 
         Worker::runAll();
     }

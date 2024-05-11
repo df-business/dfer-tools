@@ -1,4 +1,5 @@
 <?php
+
 namespace Dfer\Tools;
 
 /**
@@ -378,7 +379,7 @@ trait FilesTrait
             $this->showJson(false, null, null, '没有找到文件');
         }
 
-        $file=$_FILES;
+        $file = $_FILES;
         $filename = $_FILES[$name]["name"];
         $filetype = $_FILES[$name]["type"];
         $filesize = $_FILES[$name]["size"] / 1024;
@@ -501,7 +502,7 @@ trait FilesTrait
                 break;
             case self::UPLOAD_EDITORMD_EDITOR:
                 // http://editor.md.ipandao.com/examples/image-upload.html
-                $json = ["success" => $status?1:0, "url" => $new_name,"message" =>$msg,"debug"=>$data];
+                $json = ["success" => $status ? 1 : 0, "url" => $new_name, "message" => $msg, "debug" => $data];
                 $this->showJsonBase($json);
                 break;
             default:
@@ -539,14 +540,14 @@ trait FilesTrait
      **/
     public function debug()
     {
-            $args = $this->str(func_get_args());
-            $time = $this->getTime(time());
-            // 项目根目录
-            $root=dirname(__DIR__, 4);
-            $tag=$_SERVER['REQUEST_URI']??'';
-            // 当前代码的运行堆栈跟踪信息
-            $trace = debug_backtrace();
-            $str=$this->str(
+        $args = $this->str(func_get_args());
+        $time = $this->getTime(time());
+        // 项目根目录
+        $root = dirname(__DIR__, 4);
+        $tag = $_SERVER['REQUEST_URI'] ?? '';
+        $trace = $this->filterBacktrace();
+        // var_dump($trace);
+        $str = $this->str(
             <<<STR
 
             ********************** DEBUG{tag} START **********************
@@ -556,10 +557,30 @@ trait FilesTrait
             {0}
             **********************  DEBUG{tag} END  **********************
 
-            STR, [$args,'tag'=>"[{$tag} {$time}]"]);
-            $file_dir = $this->str("{root}/data/logs/{0}", [date('Ym'), "root" => $root]);
-            $this->mkDirs($file_dir);
-            $file_src= $this->str("{0}/{1}.log", [$file_dir, date('d')]);
-            $this->writeFile($str,$file_src, "a");
+            STR,
+            [$args, 'tag' => "[{$tag} {$time}]"]
+        );
+        $file_dir = $this->str("{root}/data/logs/{0}", [date('Ym'), "root" => $root]);
+        $this->mkDirs($file_dir);
+        $file_src = $this->str("{0}/{1}.log", [$file_dir, date('d')]);
+        $this->writeFile($str, $file_src, "a");
+    }
+
+    /**
+     * 过滤debug_backtrace
+     * @return {Array} 存在file参数的堆栈数组
+     **/
+    public function filterBacktrace($var = null)
+    {
+        // 当前代码的运行堆栈跟踪信息
+        $trace = debug_backtrace();
+        $filteredBacktrace = [];
+        foreach ($trace as $index => $call) {
+            // 检查是否有 'file' 键
+            if (isset($call['file'])) {
+                $filteredBacktrace[] = $call;
+            }
+        }
+        return $filteredBacktrace;
     }
 }

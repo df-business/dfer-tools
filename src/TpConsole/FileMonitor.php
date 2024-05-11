@@ -1,9 +1,7 @@
 <?php
-
-declare(strict_types=1);
-
 namespace Dfer\Tools\TpConsole;
 
+use Dfer\Tools\Common;
 use Workerman\Worker;
 use Workerman\Lib\Timer;
 use RecursiveDirectoryIterator;
@@ -47,7 +45,7 @@ use RecursiveIteratorIterator;
  * +----------------------------------------------------------------------
  *
  */
-class FileMonitor
+class FileMonitor extends Common
 {
     private $last_mtime;
 
@@ -99,8 +97,8 @@ class FileMonitor
             if (pathinfo($file->getFilename(), PATHINFO_EXTENSION) != 'php') {
                 continue;
             }
-            // 排除部分文件
-            if (in_array($file->getBasename('.php'), [Common::getLastSlashStr(get_class())])) {
+            // 排除自身(FileMonitor.php)
+            if (in_array($file->getBasename('.php'), [$this->getLastSlashStr(get_class())])) {
                 continue;
             }
             // 检查时间
