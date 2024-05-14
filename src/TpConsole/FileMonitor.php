@@ -13,8 +13,10 @@ use RecursiveIteratorIterator;
  * |
  * | https://www.workerman.net/doc/workerman/components/file-monitor.html
  * | 只有在debug模式下才生效，daemon下不会执行文件监控（为何不支持daemon模式见下面说明）。
- * | 只有在Worker::runAll运行后加载的文件才能热更新，或者说只有在onXXX回调中加载的文件才能热更新。
- * | 如果开发者确实需要daemon模式开启文件监控及自动更新，可以自行更改代码，将Worker::$daemonize部分的判断去掉即可。
+ * | 只有在Worker::runAll运行后加载的文件才能热更新，或者说只有在onXXX回调中加载(比如:require_once)的文件才能热更新。
+ * |
+ * | 通过向主进程发送信号来触发主进程的relaod
+ * | https://www.workerman.net/doc/workerman/faq/reload-principle.html
  * |
  * +----------------------------------------------------------------------
  *                                            ...     .............

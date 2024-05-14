@@ -17,6 +17,10 @@ use Dfer\Tools\Statics\Common;
  * | eg:
  * | php think ws
  * | php think ws -m d
+ * |
+ * | 注意:
+ * | windows操作系统下无法在一个php文件里初始化多个Worker
+ * | https://www.workerman.net/doc/workerman/faq/multi-woker-for-windows.html
  * +----------------------------------------------------------------------
  *                                            ...     .............
  *                                          ..   .:!o&*&&&&&ooooo&; .
@@ -55,7 +59,7 @@ class WebSocket extends WebSocketCommand
     {
         $this->setName('ws')
             ->addArgument('action', Argument::OPTIONAL, "start|stop|restart|reload|status|connections", 'start')
-            ->addOption('mode', 'm', Option::VALUE_OPTIONAL, '后台运行workerman服务')
+            ->addOption('mode', 'm', Option::VALUE_OPTIONAL, '模式。d:后台运行;g:优雅地停止')
             ->addOption('debug', 'd', Option::VALUE_REQUIRED, '调试模式。1:开启;0:关闭', true)
             ->addOption('port', 'p', Option::VALUE_REQUIRED, '监听端口', 99)
             ->addOption('count', 'c', Option::VALUE_REQUIRED, '开启的线程数。windows操作系统下只支持1个线程', 3)
@@ -67,26 +71,36 @@ class WebSocket extends WebSocketCommand
     {
         global $argv;
         try {
-            if ($this->debug && !Common::isWindows()) {
-                // windows操作系统下无法在一个php文件里初始化多个Worker
-                // https://www.workerman.net/doc/workerman/faq/multi-woker-for-windows.html
-                new FileMonitor();
-            }
             $port = $this->input->getOption('port');
-
             // 应用层通信协议和侦听地址
             $this->host = "websocket://0.0.0.0:{$port}";
-
             $this->count = $this->input->getOption('count');
-
             $argv = [];
             $action = $this->input->getArgument('action');
             $mode = $this->input->getOption('mode');
             array_unshift($argv, 'think', $action);
-            if ($mode == 'd') {
-                $argv[] = '-d';
-            } elseif ($mode == 'g') {
-                $argv[] = '-g';
+            switch($mode){
+                case 'd':
+                    // 后台运行，关闭终端不受影响。eg:php think dfer:test -m d
+                    $argv[] = '-d';
+                    $this->debug=false;
+                    break;
+                case 'g':
+                    // 优雅地停止。eg:php think dfer:test stop -m g
+                    $argv[] = '-g';
+                    break;
+                default:
+                    break;
+            }
+
+            if ($this->debug) {
+                $root_log = Common::str("{0}/data/logs/{1}/ws",[Common::getRootPath(),date('Ym')]);
+                $this->mkDirs($root_log);
+                $time = $this->getTime(time());
+                // 以守护进程方式(-d启动)运行时，获取终端输出
+                Worker::$stdoutFile = "{$root_log}/stdout_{$time}.log";
+                // workerman日志文件
+                Worker::$logFile = "{$root_log}/workerman_{$time}.log";
             }
 
             $this->service();
@@ -103,7 +117,6 @@ class WebSocket extends WebSocketCommand
         $this->worker->count = $this->count;
         // 客户端列表
         $this->worker->client_list = array();
-
 
         // 绑定自定义方法
         $this->worker->onWorkerStart = array($this, 'onWorkerStart');

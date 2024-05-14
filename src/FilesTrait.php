@@ -543,7 +543,7 @@ trait FilesTrait
         $args = $this->str(func_get_args());
         $time = $this->getTime(time());
         // 项目根目录
-        $root = dirname(__DIR__, 4);
+        $root = $this->getRootPath();
         $tag = $_SERVER['REQUEST_URI'] ?? '';
         $trace = $this->filterBacktrace();
         // var_dump($trace);
@@ -582,5 +582,15 @@ trait FilesTrait
             }
         }
         return $filteredBacktrace;
+    }
+
+    /**
+     * 获取项目根目录
+     * @param {Object} $var 变量
+     **/
+    public function getRootPath($var = null)
+    {
+        $root = dirname(__DIR__, 4);
+        return $root;
     }
 }
