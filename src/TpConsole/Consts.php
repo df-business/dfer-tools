@@ -41,4 +41,6 @@ class Consts
     const LOG_WRITE = 1;
     // worker日志
     const STDOUT_WRITE = 2;
+    // 带颜色输出
+    const COLOR_ECHO = 3;
 }

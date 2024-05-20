@@ -1726,7 +1726,7 @@ class Common
 
 
     /**
-     * 判断当前页面是否本地域名
+     * 网页环境下判断当前页面是否本地域名
      * @param {Object} $var 变量
      **/
     public function isLocal($var = null)
@@ -1843,7 +1843,7 @@ class Common
 
         switch ($type) {
             case self::OSS_SIZE_NORMAL:
-                return $file;
+                return $file_src;
                 break;
             default:
                 return $dirname . DIRECTORY_SEPARATOR . $type . DIRECTORY_SEPARATOR . $basename;
@@ -1944,7 +1944,7 @@ class Common
     /**
      * 在命令行输出带颜色的字符串
      * @param {Object} $textColor ANSI转义序列文字颜色。30=黑色, 31=红色, 32=绿色, 33=黄色, 34=蓝色, 35=洋红（紫色）, 36=青色（深绿）, 37=白色, 90=明亮的黑色, 91=明亮的红色, 92=明亮的绿色, 93=明亮的黄色, 94=明亮的蓝色, 95=明亮的洋红（紫色）, 96=明亮的青色（深绿）, 97=明亮的白色
-     * @param {Object} $textColor ANSI转义序列文字颜色。40=黑色背景, 41=红色背景, 42=绿色背景, 43=黄色背景, 44=蓝色背景, 45=洋红（紫色）背景, 46=青色（深绿）背景, 47=白色背景,100=明亮的黑色背景, 101=明亮的红色背景, 102=明亮的绿色背景, 103=明亮的黄色背景, 104=明亮的蓝色背景, 105=明亮的洋红（紫色）背景, 106=明亮的青色（深绿）背景, 107=明亮的白色背景
+     * @param {Object} $bgColor ANSI转义序列文字颜色。40=黑色背景, 41=红色背景, 42=绿色背景, 43=黄色背景, 44=蓝色背景, 45=洋红（紫色）背景, 46=青色（深绿）背景, 47=白色背景,100=明亮的黑色背景, 101=明亮的红色背景, 102=明亮的绿色背景, 103=明亮的黄色背景, 104=明亮的蓝色背景, 105=明亮的洋红（紫色）背景, 106=明亮的青色（深绿）背景, 107=明亮的白色背景
      **/
     public function colorEcho($message,$textColor=37,$bgColor=45)
     {
@@ -1977,6 +1977,33 @@ class Common
         }
         else
             return false;
+    }
+
+    /**
+     * 去掉数组中最小的值
+     * @param {Object} $array 数组
+     **/
+    public function removeMinValue($list) {
+        $origin_list=$list;
+        if (empty($list)) {
+            return $list;
+        }
+
+        $minValue = min($list);
+        $key = array_search($minValue, $list);
+        if ($key !== false) {
+            unset($list[$key]);
+        }
+
+        $obj=new class($minValue,$origin_list,$list){
+            public $remove_value,$origin_list,$list;
+            public function __construct($remove_value,$origin_list, $list) {
+                    $this->remove_value = $remove_value;
+                    $this->origin_list = $origin_list;
+                    $this->list = $list;
+            }
+        };
+        return $obj;
     }
 
 

@@ -5,14 +5,16 @@ namespace Dfer\Tools\TpConsole\Tmpl;
 use think\console\input\{Argument, Option};
 use think\exception\ErrorException;
 use Workerman\Worker;
-use Dfer\Tools\TpConsole\FileMonitor;
-use Dfer\Tools\Statics\Common;
+use Channel\Server as ChannelServer;
+use GlobalData\Server as GlobalDataServer;
 
 /**
  * +----------------------------------------------------------------------
  * | WS后台服务
  * | composer require topthink/framework
  * | composer require workerman/workerman
+ * | composer require workerman/channel
+ * | composer require workerman/globaldata
  * |
  * | eg:
  * | php think ws
@@ -52,9 +54,6 @@ use Dfer\Tools\Statics\Common;
  */
 class WebSocket extends WebSocketCommand
 {
-
-    private $count;
-
     protected function configure()
     {
         $this->setName('ws')
@@ -79,11 +78,11 @@ class WebSocket extends WebSocketCommand
             $action = $this->input->getArgument('action');
             $mode = $this->input->getOption('mode');
             array_unshift($argv, 'think', $action);
-            switch($mode){
+            switch ($mode) {
                 case 'd':
                     // 后台运行，关闭终端不受影响。eg:php think dfer:test -m d
                     $argv[] = '-d';
-                    $this->debug=false;
+                    $this->debug = false;
                     break;
                 case 'g':
                     // 优雅地停止。eg:php think dfer:test stop -m g
@@ -92,17 +91,7 @@ class WebSocket extends WebSocketCommand
                 default:
                     break;
             }
-
-            if ($this->debug) {
-                $root_log = Common::str("{0}/data/logs/{1}/ws",[Common::getRootPath(),date('Ym')]);
-                $this->mkDirs($root_log);
-                $time = $this->getTime(time());
-                // 以守护进程方式(-d启动)运行时，获取终端输出
-                Worker::$stdoutFile = "{$root_log}/stdout_{$time}.log";
-                // workerman日志文件
-                Worker::$logFile = "{$root_log}/workerman_{$time}.log";
-            }
-
+            $this->logInit();
             $this->service();
         } catch (ErrorException $e) {
             $this->tpPrint(sprintf("\n%s\n\n%s %s", $e->getMessage(), $e->getFile(), $e->getLine()));
@@ -111,12 +100,18 @@ class WebSocket extends WebSocketCommand
 
     public function service()
     {
+
+        // ********************** 拓展服务 START **********************
+        // 初始化一个Channel服务端
+        $this->channel_server = new ChannelServer('0.0.0.0', 2206);
+        // 初始化一个GlobalData服务端
+        $this->global_data_server = new GlobalDataServer('0.0.0.0', 2207);
+        // **********************  拓展服务 END  **********************
+
         $this->worker = new Worker($this->host);
         $this->worker->name = 'WS服务';
-        // 工作进程的数量。
+        // 工作进程的数量。多进程模式下，一旦某个进程出现阻塞（比如：sleep），已连接该进程的会进入等待，新连接在阻塞期间不会被分配到这个进程
         $this->worker->count = $this->count;
-        // 客户端列表
-        $this->worker->client_list = array();
 
         // 绑定自定义方法
         $this->worker->onWorkerStart = array($this, 'onWorkerStart');

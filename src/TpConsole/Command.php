@@ -1,4 +1,5 @@
 <?php
+
 namespace Dfer\Tools\TpConsole;
 
 use think\console\{Command as BaseCommand, Input, Output};
@@ -70,11 +71,11 @@ STR
                 }
             }
 
-            Common::colorEcho(Common::str('////////////////////////////////////////////////// {0} 开始 //////////////////////////////////////////////////', [$class_name]));
+            $this->tpPrint(Common::str('////////////////////////////////////////////////// {0} 开始 //////////////////////////////////////////////////', [$class_name]),Consts::COLOR_ECHO);
             echo PHP_EOL;
             $this->init();
             echo PHP_EOL;
-            Common::colorEcho(Common::str('////////////////////////////////////////////////// {0} 结束 //////////////////////////////////////////////////', [$class_name]));
+            $this->tpPrint(Common::str('////////////////////////////////////////////////// {0} 结束 //////////////////////////////////////////////////', [$class_name]),Consts::COLOR_ECHO);
             echo PHP_EOL;
         } catch (Exception $exception) {
             $err_msg = Common::getException($exception);
@@ -103,7 +104,7 @@ STR
     /**
      * 控制台打印、日志记录
      */
-    public function tpPrint($str, $type = Consts::CONSOLE_WRITE)
+    public function tpPrint($str, $type = Consts::CONSOLE_WRITE,$textColor=37,$bgColor=45)
     {
         global $argv;
 
@@ -122,6 +123,12 @@ STR
                 // 写日志
                 Common::debug($str);
                 break;
+            case Consts::COLOR_ECHO:
+                // 带颜色输出
+                echo PHP_EOL;
+                Common::colorEcho(sprintf(">>>>>>>>>>>>%s", $str),$textColor,$bgColor);
+                echo PHP_EOL;
+                break;
             case Consts::STDOUT_WRITE:
             default:
                 // 普通输出
@@ -135,12 +142,11 @@ STR
     /**
      * 调试打印
      **/
-    public function debugPrint($str)
+    public function debugPrint($str,$textColor=null,$bgColor=null)
     {
         if ($this->debug) {
             $str = substr(json_encode($str, JSON_UNESCAPED_UNICODE), 1, -1);
-            $this->tpPrint($str);
-            // $this->tpPrint($str, Consts::LOG_WRITE);
+            $this->tpPrint($str,Consts::COLOR_ECHO,$textColor,$bgColor);
         }
     }
 
@@ -206,40 +212,38 @@ STR
      * @param {Object} $msg 信息
      * @param {Object} $status 状态
      */
-      public function showJson($data,$msg,$status=true)
-      {
-          $msg =$msg?:(boolval($status) ? '操作成功':'操作失败');
+    public function showJson($data, $msg, $status = true)
+    {
+        $msg = $msg ?: (boolval($status) ? '操作成功' : '操作失败');
 
-          $return = array(
-              'status' => $status,
-              'msg' => $msg
-          );
-          if ($data) {
-              $return['data'] = $data;
-          }
-
-          return json_encode($return, JSON_UNESCAPED_UNICODE);
-      }
-
-      /**
-       * 成功
-       * @param {Object} $data
-       * @param {Object} $msg 信息
-       */
-        public function success($data,$msg="")
-        {
-            return $this->showJson($data,$msg,true);
+        $return = array(
+            'status' => $status,
+            'msg' => $msg
+        );
+        if ($data) {
+            $return['data'] = $data;
         }
 
-        /**
-         * 失败
-         * @param {Object} $data
-         * @param {Object} $msg 信息
-         */
-          public function fail($data,$msg="")
-          {
-              return $this->showJson($data,$msg,false);
-          }
+        return json_encode($return, JSON_UNESCAPED_UNICODE);
+    }
 
+    /**
+     * 成功
+     * @param {Object} $data
+     * @param {Object} $msg 信息
+     */
+    public function success($data, $msg = "")
+    {
+        return $this->showJson($data, $msg, true);
+    }
 
+    /**
+     * 失败
+     * @param {Object} $data
+     * @param {Object} $msg 信息
+     */
+    public function fail($data, $msg = "")
+    {
+        return $this->showJson($data, $msg, false);
+    }
 }

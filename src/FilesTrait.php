@@ -551,6 +551,7 @@ trait FilesTrait
             <<<STR
 
             ********************** DEBUG{tag} START **********************
+            {$trace[2]['file']}:{$trace[2]['line']}
             {$trace[1]['file']}:{$trace[1]['line']}
             {$trace[0]['file']}:{$trace[0]['line']}
 
