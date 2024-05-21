@@ -1,17 +1,17 @@
 {
     "name": "dfer/tools",
     "type": "library",
-    "description": "php工具包",
     "license": "MIT",
+    "description": "php工具包",
     "authors": [{
         "name": "df",
         "email": "df_business@qq.com"
     }],
     "homepage": "http://www.dfer.site",
+    "keywords": ["df", "dfer.site"],
     "require": {
         "php": ">=7.0"
     },
-    "keywords": ["df", "dfer.site"],
     "autoload": {
         "psr-4": {
             "Dfer\\Tools\\": "src/"
