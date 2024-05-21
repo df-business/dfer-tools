@@ -46,7 +46,7 @@ class Plain extends PlainCommand
 
     protected function configure()
     {
-        // 指令配置
+        parent::configure();
         $this->setName('plain')
             ->addArgument('param1', Argument::OPTIONAL, "参数一", '')
             ->addOption('type', 't', Option::VALUE_OPTIONAL, '类型。a：选项一；b：选项二', 'a')
@@ -63,7 +63,8 @@ class Plain extends PlainCommand
 
             if (empty($param1)) {
                 $this->tpPrint("输入参数一");
-                exit();
+                $this->output->describe($this);
+                return;
             }
             $this->tpPrint("输入:{$param1}");
             switch ($type) {

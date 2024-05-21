@@ -41,9 +41,30 @@ use Exception;
  */
 class Command extends BaseCommand
 {
+    // 调试模式
     protected $debug;
-    protected $is_new_tp, $tp_ver, $db;
+    // >=tp6
+    protected $is_new_tp;
+    // tp版本详情
+    protected $tp_ver;
+    // 项目根目录
+    protected $root;
+    // 项目commond目录
+    protected $root_commond;
+    // 当前脚本运行目录
+    protected $cur_dir;
+    // tp控制台输入、输出对象
     protected $input, $output;
+    // 当前命令名称。比如：dfer:console_create
+    protected $command;
+
+    /**
+     * 默认选项
+     */
+    protected function configure()
+    {
+        $this->addOption('about', 'a', Option::VALUE_NONE, '简介');
+    }
 
 
     protected function execute(Input $input, Output $output)
@@ -53,29 +74,35 @@ class Command extends BaseCommand
             $class_name = get_class($this);
             $this->input = $input;
             $this->output = $output;
+            $this->cur_dir = realpath(__DIR__);
             $this->debug = Common::objToBool($input->getOption('debug'));
+            $debug = $this->debug ? '开' : '关';
+            $this->command = $input->getArgument('command');
             if ($this->input->hasOption('about')) {
                 $about = $this->input->getOption('about');
                 if ($about) {
-                    $this->tpPrint(
-                        <<<STR
+                    $this->tpPrint(<<<STR
 
-| AUTHOR: dfer
-| EMAIL: df_business@qq.com
-| QQ: 3504725309
-| ThinkPHP: v{$this->tp_ver}
+                    | AUTHOR: dfer
+                    | EMAIL: df_business@qq.com
+                    | QQ: 3504725309
+                    | ThinkPHP: v{$this->tp_ver}
+                    |
+                    | 项目: {$this->root}
+                    | 指令: {$this->root_commond}
+                    | 运行: {$this->cur_dir}
+                    | 调试: {$debug}
 
-STR
-                    );
+                    STR);
                     exit();
                 }
             }
 
-            $this->tpPrint(Common::str('////////////////////////////////////////////////// {0} 开始 //////////////////////////////////////////////////', [$class_name]),Consts::COLOR_ECHO);
+            $this->tpPrint(Common::str('////////////////////////////////////////////////// {0} 开始 //////////////////////////////////////////////////', [$class_name]), Consts::COLOR_ECHO);
             echo PHP_EOL;
             $this->init();
             echo PHP_EOL;
-            $this->tpPrint(Common::str('////////////////////////////////////////////////// {0} 结束 //////////////////////////////////////////////////', [$class_name]),Consts::COLOR_ECHO);
+            $this->tpPrint(Common::str('////////////////////////////////////////////////// {0} 结束 //////////////////////////////////////////////////', [$class_name]), Consts::COLOR_ECHO);
             echo PHP_EOL;
         } catch (Exception $exception) {
             $err_msg = Common::getException($exception);
@@ -89,14 +116,18 @@ STR
     public function checkTp()
     {
         if (defined('THINK_VERSION')) {
-            // 老版本
+            // <tp6
             $this->is_new_tp = false;
             $this->tp_ver = THINK_VERSION;
+            $this->root = ROOT_PATH;
+            $this->root_commond = "{$this->root}/application/api/command/";
             \think\Lang::load(APP_PATH . 'lang/zh-cn.php');
         } else {
-            // tp6以上
+            // >=tp6
             $this->is_new_tp = true;
             $this->tp_ver = app()->version();
+            $this->root = app()->getRootPath();
+            $this->root_commond = "{$this->root}app/command";
             \think\facade\Lang::load(APP_PATH . 'lang/zh-cn.php');
         }
     }
@@ -104,7 +135,7 @@ STR
     /**
      * 控制台打印、日志记录
      */
-    public function tpPrint($str, $type = Consts::CONSOLE_WRITE,$textColor=37,$bgColor=45)
+    public function tpPrint($str, $type = Consts::CONSOLE_WRITE, $textColor = 37, $bgColor = 45)
     {
         global $argv;
 
@@ -126,7 +157,7 @@ STR
             case Consts::COLOR_ECHO:
                 // 带颜色输出
                 echo PHP_EOL;
-                Common::colorEcho(sprintf(">>>>>>>>>>>>%s", $str),$textColor,$bgColor);
+                Common::colorEcho(sprintf("%s", $str), $textColor, $bgColor);
                 echo PHP_EOL;
                 break;
             case Consts::STDOUT_WRITE:
@@ -142,11 +173,11 @@ STR
     /**
      * 调试打印
      **/
-    public function debugPrint($str,$textColor=null,$bgColor=null)
+    public function debugPrint($str, $textColor = null, $bgColor = null)
     {
         if ($this->debug) {
             $str = substr(json_encode($str, JSON_UNESCAPED_UNICODE), 1, -1);
-            $this->tpPrint($str,Consts::COLOR_ECHO,$textColor,$bgColor);
+            $this->tpPrint($str, Consts::COLOR_ECHO, $textColor, $bgColor);
         }
     }
 

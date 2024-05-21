@@ -1,4 +1,5 @@
 <?php
+
 namespace Dfer\Tools\TpConsole;
 
 use Dfer\Tools\Common;

@@ -50,7 +50,7 @@ class PhpEncryptDecrypt extends PhpEncryptDecryptCommand
 
     protected function configure()
     {
-        // 指令配置
+        parent::configure();
         $this->setName('php_encrypt_decrypt')
             ->addOption('type', 't', Option::VALUE_REQUIRED, '类型。1 加密    2 解密    3 清理', 1)
             ->addOption('range', 'e', Option::VALUE_REQUIRED, '范围。1 全量    2 局部', 2)

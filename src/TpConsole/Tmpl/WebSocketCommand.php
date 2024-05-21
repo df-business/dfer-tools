@@ -82,8 +82,8 @@ class WebSocketCommand extends Command
         // ********************** 拓展服务 START **********************
         ChannelClient::connect();
         $this->global_data = new GlobalDataClient('127.0.0.1:2207');
-        if(!isset($this->global_data->client_list)){
-            $this->global_data->client_list=[];
+        if (!isset($this->global_data->client_list)) {
+            $this->global_data->client_list = [];
         }
 
         // **********************  拓展服务 END  **********************
@@ -122,10 +122,10 @@ class WebSocketCommand extends Command
          * 同一工作进程内依次执行程序（执行期间会堵塞该工作进程，无法进行其余操作，包括建立连接、发布事件，直到所有队列执行完毕），不同工作进程互不影响
          * 多进程模式下，发布事件会被随机分配到任一闲置工作进程，都被占用则排队等待，直到有进程闲置
          */
-        ChannelClient::watch('add_task', function($event_data) use ($worker) {
-            $this->debugPrint("[队列编号 {$event_data}][工作进程 {$worker->id}] 正在执行 ".Common::getTime(),37,40);
+        ChannelClient::watch('add_task', function ($event_data) use ($worker) {
+            $this->debugPrint("[队列编号 {$event_data}][工作进程 {$worker->id}] 正在执行 " . Common::getTime(), 37, 40);
             sleep(9);
-            $this->debugPrint("[队列编号 {$event_data}][工作进程 {$worker->id}] 执行完成 ".Common::getTime(),37,40);
+            $this->debugPrint("[队列编号 {$event_data}][工作进程 {$worker->id}] 执行完成 " . Common::getTime(), 37, 40);
         });
         // **********************  订阅事件 END  **********************
 
@@ -383,7 +383,7 @@ class WebSocketCommand extends Command
         // 当前进程的所有连接
         $this->client_list[$client_id] = $client_data;
         // 所有进程的所有连接
-        $this->global_data->client_list =array_merge($this->global_data->client_list,[$client_id=>$client_data]);
+        $this->global_data->client_list = array_merge($this->global_data->client_list, [$client_id => $client_data]);
 
         return $this->cSend("[客户端 {$client_id}] 已加入");
     }
@@ -399,7 +399,8 @@ class WebSocketCommand extends Command
         if (!$dataJson || !is_array($dataJson)) {
             return $this->send($connection, $this->fail($data, '数据格式不正确'));
         }
-        if (!$this->require($connection, $dataJson, 'cmd')) : return;endif;
+        if (!$this->require($connection, $dataJson, 'cmd')) : return;
+        endif;
 
         $client_id = $connection->client_id;
 
@@ -407,7 +408,8 @@ class WebSocketCommand extends Command
         switch ($cmd) {
             case "join_group":
                 // 加入组。一个连接可以同时加入多个组
-                if (!$this->require($connection, $dataJson, 'group_id')) : return;endif;
+                if (!$this->require($connection, $dataJson, 'group_id')) : return;
+                endif;
                 $group_id = $dataJson['group_id'];
                 $this->group_list[$group_id][$connection->id] = $connection;
                 $connection->group_ids = $connection->group_id ?? array();
@@ -418,15 +420,15 @@ class WebSocketCommand extends Command
                 // 跨进程发消息给单个用户、组或者所有人
                 if (!$this->require($connection, $dataJson, ['content'])) : return;
                 endif;
-                if(isset($dataJson['group_id']))
+                if (isset($dataJson['group_id']))
                     $this->cSend($dataJson['content'], $dataJson['group_id'], true);
                 else
-                    $this->cSend($dataJson['content'], $dataJson['client_id']??null);
+                    $this->cSend($dataJson['content'], $dataJson['client_id'] ?? null);
                 return $this->send($connection, $this->success($dataJson));
                 break;
             case "add_task":
                 // 添加队列
-                ChannelClient::enqueue('add_task', '测试 '.time());
+                ChannelClient::enqueue('add_task', '测试 ' . time());
                 return $this->send($connection, $this->success($dataJson));
                 break;
             default:
@@ -445,9 +447,9 @@ class WebSocketCommand extends Command
 
         // 清理客户端列表
         unset($this->client_list[$client_id]);
-        $client_list=$this->global_data->client_list;
+        $client_list = $this->global_data->client_list;
         unset($client_list[$client_id]);
-        $this->global_data->client_list=$client_list;
+        $this->global_data->client_list = $client_list;
 
         return $this->cSend("[客户端 {$client_id}] 已退出");
     }

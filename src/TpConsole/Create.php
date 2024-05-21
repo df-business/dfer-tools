@@ -1,10 +1,9 @@
 <?php
-declare(strict_types = 1);
 
 namespace Dfer\Tools\TpConsole;
 
 use think\helper\Str;
-use think\console\input\{Argument,Option};
+use think\console\input\{Argument, Option};
 use think\exception\ErrorException;
 use Exception;
 use Dfer\Tools\Statics\Common;
@@ -49,10 +48,10 @@ class Create extends Command
     protected function configure()
     {
         $this->setName('dfer:console_create')->addArgument('name', Argument::OPTIONAL, "脚本名称。命名采用大驼峰", '')
-                                      ->addOption('about', 'a', Option::VALUE_NONE, '简介')
-                                      ->addOption('type', 't', Option::VALUE_OPTIONAL, '类型。ws(websocket脚本) plain(控制台脚本) ped(php加密、解密)', 'plain')
-                                      ->addOption('debug', 'd', Option::VALUE_OPTIONAL, '调试模式', true)
-                                      ->setDescription('生成脚本。输入`php think dfer:console_create -h`查看说明');
+            ->addOption('type', 't', Option::VALUE_OPTIONAL, '类型。ws(websocket脚本) plain(控制台脚本) ped(php加密、解密) service(linux自启动服务)', 'plain')
+            ->addOption('debug', 'd', Option::VALUE_OPTIONAL, '调试模式', true)
+            ->addOption('code', 'c', Option::VALUE_OPTIONAL, 'service里的代码，不设置时调用默认的sh文件。例如：php think dfer:console_create upload -t service -c "php /www/wwwroot/www.dfer.site/think dfer:upload"')
+            ->setDescription('生成脚本。输入`php think dfer:console_create -h`查看说明');
     }
 
     public function init()
@@ -62,193 +61,153 @@ class Create extends Command
             $type = $this->input->getOption('type');
 
             if ($type == 'encode') {
-                $name="PhpEncode";
+                $name = "PhpEncode";
             }
             if (empty($name)) {
-                $this->tpPrint("输入类名");
+                // 获取所有参数
+                // var_dump($this->getNativeDefinition()->getArguments());
+                $this->output->describe($this);
                 return;
             }
             switch ($type) {
-                 case 'ws':
-                  $this->tpPrint("开始生成[websocket脚本]...");
-                  break;
-                 case 'plain':
-                  $this->tpPrint("开始生成[控制台脚本]...");
-                  break;
-                 case 'ped':
-                  $this->tpPrint("开始生成[php加密、解密脚本]...");
-                  break;
-                 default:
-                  $this->tpPrint("类型选择错误");
-                  return;
-                }
+                case 'ws':
+                    $this->tpPrint("生成[websocket脚本]");
+                    break;
+                case 'plain':
+                    $this->tpPrint("生成[控制台脚本]");
+                    break;
+                case 'ped':
+                    $this->tpPrint("生成[php加密、解密脚本]");
+                    break;
+                case 'service':
+                    $this->tpPrint("生成[linux服务脚本]");
+                    break;
+
+                default:
+                    $this->tpPrint("类型选择错误");
+                    return;
+            }
             $name = trim($name);
             // 下划线
-            $name_snake=Str::snake($name);
+            $name_snake = Str::snake($name);
             // 大驼峰
-            $name_studly=Str::studly($name);
+            $name_studly = Str::studly($name);
 
-            $cur_dir = realpath(__DIR__);
+            switch ($type) {
+                case 'plain':
+                    $this->fileCreate("{$this->cur_dir}\Tmpl\PlainCommand.php", "{$this->root_commond}/{$name_studly}Command.php", [
+                        'namespace Dfer\Tools\TpConsole\Tmpl;' => "namespace app\command;",
+                        'class PlainCommand'                  => "class {$name_studly}Command"
+                    ]);
+                    // main
+                    $this->fileCreate("{$this->cur_dir}\Tmpl\Plain.php", "{$this->root_commond}/{$name_studly}.php", [
+                        'namespace Dfer\Tools\TpConsole\Tmpl;' => "namespace app\command;",
+                        'think plain'                         => "think {$name_snake}",
+                        'class Plain extends PlainCommand'    => "class {$name_studly} extends {$name_studly}Command",
+                        'setName(\'plain\')'                  => "setName('{$name_snake}')"
+                    ]);
+                    break;
 
+                case 'ws':
+                    $this->fileCreate("{$this->cur_dir}\Tmpl\WebSocketCommand.php", "{$this->root_commond}/{$name_studly}Command.php", [
+                        'namespace Dfer\Tools\TpConsole\Tmpl;' => "namespace app\command;",
+                        'class WebSocketCommand'                  => "class {$name_studly}Command"
+                    ]);
+
+                    // main
+                    $this->fileCreate("{$this->cur_dir}\Tmpl\WebSocket.php", "{$this->root_commond}/{$name_studly}.php", [
+                        'namespace Dfer\Tools\TpConsole\Tmpl;' => "namespace app\command;",
+                        'think ws'                            => "think {$name_snake}",
+                        'class WebSocket extends WebSocketCommand' => "class {$name_studly} extends {$name_studly}Command",
+                        'setName(\'ws\')'                     => "setName('{$name_snake}')"
+                    ]);
+                    break;
+
+                case 'ped':
+                    $this->fileCreate("{$this->cur_dir}\Tmpl\PhpEncryptDecryptCommand.php", "{$this->root_commond}/{$name_studly}Command.php", [
+                        'namespace Dfer\Tools\TpConsole\Tmpl;' => "namespace app\command;",
+                        'class PhpEncryptDecryptCommand'                  => "class {$name_studly}Command"
+                    ]);
+                    // main
+                    $this->fileCreate("{$this->cur_dir}\Tmpl\PhpEncryptDecrypt.php", "{$this->root_commond}/{$name_studly}.php", [
+                        'namespace Dfer\Tools\TpConsole\Tmpl;' => "namespace app\command;",
+                        'think php_encrypt_decrypt'                            => "think {$name_snake}",
+                        'class PhpEncryptDecrypt extends PhpEncryptDecryptCommand' => "class {$name_studly} extends {$name_studly}Command",
+                        'setName(\'php_encrypt_decrypt\')'                     => "setName('{$name_snake}')"
+                    ]);
+                    break;
+                case 'service':
+                    $code = $this->input->getOption('code');
+                    $this->fileCreate("{$this->cur_dir}\Tmpl\autorun.service", "{$this->root_commond}/dfer_{$name_snake}.service", [
+                        '[Description]' => "{$name_snake}",
+                        '[ExecStart]' => $code ?: "{$this->root_commond}/dfer_{$name_snake}.sh",
+                    ]);
+                    if (!$code) {
+                        $this->fileCreate("{$this->cur_dir}\Tmpl\autorun.sh", "{$this->root_commond}/dfer_{$name_snake}.sh", []);
+                        chmod("{$this->root_commond}/dfer_{$name_snake}.sh", 0777);
+                    }
+                    return $this->tpPrint(
+                        <<<STR
+
+                          生成服务配置文件完成：{$this->root_commond}/dfer_{$name_snake}.service
+
+                          生成服务脚本文件完成：{$this->root_commond}/dfer_{$name_snake}.sh
+
+                          # 终端命令
+                          ```
+                          \cp {$this->root_commond}/dfer_{$name_snake}.service /usr/lib/systemd/system
+
+                          sudo systemctl disable dfer_{$name_snake}
+                          sudo systemctl enable dfer_{$name_snake}
+                          sudo systemctl daemon-reload
+                          sudo systemctl stop dfer_{$name_snake}
+                          sudo systemctl start dfer_{$name_snake}
+                          sudo systemctl status dfer_{$name_snake}
+                          ```
+                          - 在linux终端运行上述代码，添加、管理自定义服务
+                          - 建议保存上述命令，方便后续管理
+                        STR
+                    );
+                    break;
+                default:
+                    break;
+            }
             if ($this->is_new_tp) {
-                // >=tp6
-                $root=app()->getRootPath();
+                return $this->tpPrint(<<<STR
 
-                switch ($type) {
-                    case 'plain':
-                     $this->fileCreate("{$cur_dir}\Tmpl\PlainCommand.php", "{$root}/app/command/{$name_studly}Command.php", [
-                         'namespace Dfer\Tools\TpConsole\Tmpl;'=> "namespace app\command;",
-                         'class PlainCommand'                  => "class {$name_studly}Command"
-                     ]);
-                     // main
-                     $this->fileCreate("{$cur_dir}\Tmpl\Plain.php", "{$root}/app/command/{$name_studly}.php", [
-                         'namespace Dfer\Tools\TpConsole\Tmpl;'=> "namespace app\command;",
-                         'think plain'                         => "think {$name_snake}",
-                         'class Plain extends PlainCommand'    => "class {$name_studly} extends {$name_studly}Command",
-                         'setName(\'plain\')'                  => "setName('{$name_snake}')"
-                     ]);
-                     break;
+                    生成脚本完成：/app/command/{$name}.php
 
-                 case 'ws':
-                  $this->fileCreate("{$cur_dir}\Tmpl\WebSocketCommand.php", "{$root}/app/command/{$name_studly}Command.php", [
-                    'namespace Dfer\Tools\TpConsole\Tmpl;'=> "namespace app\command;",
-                    'class WebSocketCommand'                  => "class {$name_studly}Command"
-                  ]);
+                    # console.php
+                    ```
+                    <?php
+                    return [
+                        'dfer:{$name_snake}' => 'app\command\\{$name_studly}'
+                    ];
 
-                  // main
-                  $this->fileCreate("{$cur_dir}\Tmpl\WebSocket.php", "{$root}/app/command/{$name_studly}.php", [
-                    'namespace Dfer\Tools\TpConsole\Tmpl;'=> "namespace app\command;",
-                      'think ws'                            => "think {$name_snake}",
-                      'class WebSocket extends WebSocketCommand'=> "class {$name_studly} extends {$name_studly}Command",
-                      'setName(\'ws\')'                     => "setName('{$name_snake}')"
-                  ]);
-                  break;
+                    ```
+                    - 复制到框架里的console配置文件，比如：`/config/console.php`、`/data/config/console.php`、`/app/user/command.php`
 
-                 case 'ped':
-                  $this->fileCreate("{$cur_dir}\Tmpl\PhpEncryptDecryptCommand.php", "{$root}/app/command/{$name_studly}Command.php", [
-                   'namespace Dfer\Tools\TpConsole\Tmpl;'=> "namespace app\command;",
-                   'class PhpEncryptDecryptCommand'                  => "class {$name_studly}Command"
-                  ]);
-                  // main
-                  $this->fileCreate("{$cur_dir}\Tmpl\PhpEncryptDecrypt.php", "{$root}/app/command/{$name_studly}.php", [
-                   'namespace Dfer\Tools\TpConsole\Tmpl;'=> "namespace app\command;",
-                   'think php_encrypt_decrypt'                            => "think {$name_snake}",
-                   'class PhpEncryptDecrypt extends PhpEncryptDecryptCommand'=> "class {$name_studly} extends {$name_studly}Command",
-                   'setName(\'php_encrypt_decrypt\')'                     => "setName('{$name_snake}')"
-                  ]);
-                  break;
-                 default:
-                  break;
-                }
-                // config
-                $this->tpPrint(
-<<<STR
-生成脚本完成
-
-/app/command/{$name}.php
-
-# console.php
-```
-<?php
-return [
-    'dfer:{$name_snake}' => 'app\command\\{$name_studly}'
-];
-
-```
-- 复制到框架里的console配置文件，比如：`/config/console.php`、`/data/config/console.php`、`/app/user/command.php`
-STR);
+                    STR);
             } else {
-                // 老版本
-                $root=ROOT_PATH;
-                switch ($type) {
-                  case 'game':
-                   $this->fileCreate($cur_dir.'\Modules\CommonTmpl.php', $root."/application/api/command/{$module_name}/Common.php", [
-                    'namespace Dfer\Tools\Console\Modules;'=> "namespace app\api\command\\{$module_name};",
-                       'CommonTmpl'                           => "Common"
-                   ]);
-                   $this->fileCreate($cur_dir.'\Modules\GameModelTmpl.php', $root."/application/api/command/{$module_name}/GameModel.php", [
-                    'namespace Dfer\Tools\Console\Modules;'=> "namespace app\api\command\\{$module_name};",
-                       'CommonTmpl'                           => "Common",
-                       'GameModelTmpl'                        => "GameModel"
-                   ]);
-                   // main
-                   $this->fileCreate($cur_dir.'\Game.php', $root."/application/api/command/{$name_studly}.php", [
-                    'namespace Dfer\Tools\Console;'                => "namespace app\api\command;",
-                       'class Game'                                   => "class {$name_studly}",
-                       'think game'                                   => "think {$name_snake}",
-                       'setName(\'game\')'                            => "setName('{$name_snake}')",
-                       '游戏后台'                                         => "ws后台",
-                       'use Dfer\Tools\Console\Modules\GameModelTmpl;'=> "use app\api\command\\{$module_name}\GameModel;",
-                       'GameModelTmpl'                                => "GameModel"
-                   ]);
-                   break;
+                return $this->tpPrint(<<<STR
 
-                  case 'plain':
-                   $this->fileCreate($cur_dir.'\Modules\CommonTmpl.php', $root."/application/api/command/{$module_name}/Common.php", [
-                    'namespace Dfer\Tools\Console\Modules;'=> "namespace app\api\command\\{$module_name};",
-                       'CommonTmpl'                           => "Common"
-                   ]);
-                   $this->fileCreate($cur_dir.'\Modules\PlainModelTmpl.php', $root."/application/api/command/{$module_name}/PlainModel.php", [
-                    'namespace Dfer\Tools\Console\Modules;'=> "namespace app\api\command\\{$module_name};",
-                       'CommonTmpl'                           => "Common",
-                       'PlainModelTmpl'                       => "PlainModel"
-                   ]);
-                   // main
-                   $this->fileCreate($cur_dir.'\Plain.php', $root."/application/api/command/{$name_studly}.php", [
-                    'namespace Dfer\Tools\Console;'                 => "namespace app\api\command;",
-                       'class Plain'                                   => "class {$name_studly}",
-                       'think plain'                                   => "think {$name_snake}",
-                       'setName(\'plain\')'                            => "setName('{$name_snake}')",
-                       'use Dfer\Tools\Console\Modules\PlainModelTmpl;'=> "use app\api\command\\{$module_name}\PlainModel;",
-                       'PlainModelTmpl'                                => "PlainModel"
-                   ]);
-                   break;
+                    生成脚本完成：/application/api/command/{$name}.php
 
-                  case 'encode':
-                   $this->fileCreate($cur_dir.'\Modules\CommonTmpl.php', $root."/application/api/command/{$module_name}/Common.php", [
-                    'namespace Dfer\Tools\Console\Modules;'=> "namespace app\api\command\\{$module_name};",
-                       'CommonTmpl'                           => "Common",
-                       '// code'                              => "
-  static \$items=[
-           'application/admin/controller',
-           'application/admin/model',
-           'application/api/controller',
-           'application/common/controller',
-           'application/common/model'
-           ];
-"
-                   ]);
-                   $this->fileCreate($cur_dir.'\Modules\PlainModelPhpEncodeTmpl.php', $root."/application/api/command/{$module_name}/PlainModel.php", [
-                    'namespace Dfer\Tools\Console\Modules;'=> "namespace app\api\command\\{$module_name};",
-                       'CommonTmpl'                           => "Common",
-                       'PlainModelPhpEncodeTmpl'              => "PlainModel"
-                   ]);
-                   // main
-                   $this->fileCreate($cur_dir.'\PhpEncode.php', $root."/application/api/command/{$name_studly}.php", [
-                    'namespace Dfer\Tools\Console;'                 => "namespace app\api\command;",
-                       'use Dfer\Tools\Console\Modules\PlainModelTmpl;'=> "use app\api\command\\{$module_name}\PlainModel;",
-                       'PlainModelTmpl'                                => "PlainModel"
-                   ]);
-                   break;
-                  default:
-                   # code...
-                   break;
-                 }
-                // config
-                Common::configUpdate($root."/application/command.php", [
-"
-,'app\api\command\\{$name_studly}'
-]"
-                ]);
-                $this->tpPrint("
-                 | 生成脚本完成
-                 | /application/api/command/{$name_studly}.php
-                 | /application/command.php
-                 ");
+                    # console.php
+                    ```
+                    <?php
+                    return [
+                        'dfer:{$name_snake}' => 'app\api\command\\{$name_studly}'
+                    ];
+
+                    ```
+                    - 复制到框架里的console配置文件，比如：`/config/console.php`、`/data/config/console.php`、`/app/user/command.php`
+
+                    STR);
             }
         } catch (ErrorException $e) {
             $this->tpPrint(sprintf("\n%s\n\n%s %s", $e->getMessage(), $e->getFile(), $e->getLine()));
-        }catch (Exception $e) {
+        } catch (Exception $e) {
             $this->tpPrint(sprintf("\n%s\n\n%s %s", $e->getMessage(), $e->getFile(), $e->getLine()));
         }
     }

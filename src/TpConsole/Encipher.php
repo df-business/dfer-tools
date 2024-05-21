@@ -1,5 +1,7 @@
 <?php
+
 namespace Dfer\Tools\TpConsole;
+
 use Dfer\Tools\Common;
 
 /**
@@ -58,13 +60,13 @@ class Encipher extends Common
             $root = app()->getRootPath();
         }
 
-        $this->sourceSrc=$this->formatDirectorySeparator($root.($sourceSrc?:''));
-        $this->targetSrc=$this->formatDirectorySeparator($root.($targetSrc?:''));
+        $this->sourceSrc = $this->formatDirectorySeparator($root . ($sourceSrc ?: ''));
+        $this->targetSrc = $this->formatDirectorySeparator($root . ($targetSrc ?: ''));
 
-        $this->colorEcho("$this->sourceSrc >>> $this->targetSrc",37,44);
+        $this->colorEcho("$this->sourceSrc >>> $this->targetSrc", 37, 44);
         echo PHP_EOL;
 
-        $this->comments=$comments?:<<<STR
+        $this->comments = $comments ?: <<<STR
         /**
          * +----------------------------------------------------------------------
          *                                            ...     .............
@@ -123,12 +125,12 @@ class Encipher extends Common
 
     private function init()
     {
-        $this->q1 = "O00O0O";//base64_decode
-        $this->q2 = "O0O000";//$c(原文经过strtr置换后的密文，由 目标字符+替换字符+base64_encode('原文内容')构成)
-        $this->q3 = "O0OO00";//strtr
-        $this->q4 = "OO0O00";//substr
-        $this->q5 = "OO0000";//52
-        $this->q6 = "O00OO0";//urldecode解析过的字符串（n1zb/ma5\vt0i28-pxuqy*6%6Crkdg9_ehcswo4+f37j）
+        $this->q1 = "O00O0O"; //base64_decode
+        $this->q2 = "O0O000"; //$c(原文经过strtr置换后的密文，由 目标字符+替换字符+base64_encode('原文内容')构成)
+        $this->q3 = "O0OO00"; //strtr
+        $this->q4 = "OO0O00"; //substr
+        $this->q5 = "OO0000"; //52
+        $this->q6 = "O00OO0"; //urldecode解析过的字符串（n1zb/ma5\vt0i28-pxuqy*6%6Crkdg9_ehcswo4+f37j）
     }
 
     /**
@@ -145,11 +147,11 @@ class Encipher extends Common
             // \var_dump($files);
 
             foreach ($files as $k => $file) {
-                $file=$this->formatDirectorySeparator($file);
+                $file = $this->formatDirectorySeparator($file);
 
                 if (is_dir($file)) {
                     // 是文件夹的话，就创建对应文件夹
-                    $target = $this->targetSrc.str_replace($this->sourceSrc, '', $file);
+                    $target = $this->targetSrc . str_replace($this->sourceSrc, '', $file);
                     $this->mkDirs($target);
                     // 循环创建
                     $this->getSourceList($file);
@@ -246,7 +248,7 @@ class Encipher extends Common
             ${$this->q3}(
                 ${$this->q4}(
                     ${$this->q2},
-                    ${$this->q5}*2
+                    ${$this->q5} * 2
                 ),
                 ${$this->q4}(
                     ${$this->q2},
@@ -270,14 +272,14 @@ class Encipher extends Common
     {
         // 加密目录下所有文件
         if (is_dir($this->sourceSrc)) {
-            $total=0;
-            $copy=0;
-            $encode=0;
+            $total = 0;
+            $copy = 0;
+            $encode = 0;
             foreach ($this->sourceSrcList as $k => $source) {
-                $target = $this->targetSrc.str_replace($this->sourceSrc, '', $source);
+                $target = $this->targetSrc . str_replace($this->sourceSrc, '', $source);
                 // \var_dump($target, $this->targetSrc, $this->sourceSrc, $source);
-                $ext=$this->getExt($source);
-                if ($ext!='php') {
+                $ext = $this->getExt($source);
+                if ($ext != 'php') {
                     copy($source, $target);
                     echo sprintf("复制文件：{$source}\n{$target}\n-----------------\n");
                     $copy++;
@@ -288,19 +290,19 @@ class Encipher extends Common
                 }
                 $total++;
             }
-            $rt=sprintf("{$this->sourceSrc}:加密{$encode}个文件，复制{$copy}个文件，共处理{$total}个文件");
+            $rt = sprintf("{$this->sourceSrc}:加密{$encode}个文件，复制{$copy}个文件，共处理{$total}个文件");
             return $rt;
         }
         // 加密单个文件
         else {
-            $ext=$this->getExt($this->sourceSrc);
-            if ($ext!='php') {
+            $ext = $this->getExt($this->sourceSrc);
+            if ($ext != 'php') {
                 echo '不支持这种文件格式';
                 return;
             }
             // $this->delFile($this->targetSrc);
             $this->encodeText($this->sourceSrc)->encodeTemplate()->write($this->targetSrc);
-            $rt=sprintf("加密前文件：{$this->sourceSrc}\n加密后文件：{$this->targetSrc}\n-----------------\n");
+            $rt = sprintf("加密前文件：{$this->sourceSrc}\n加密后文件：{$this->targetSrc}\n-----------------\n");
             return $rt;
         }
     }
@@ -311,13 +313,13 @@ class Encipher extends Common
     public function decode()
     {
         if (is_dir($this->sourceSrc)) {
-            $total=0;
-            $copy=0;
-            $encode=0;
+            $total = 0;
+            $copy = 0;
+            $encode = 0;
             foreach ($this->sourceSrcList as $k => $source) {
-                $target = $this->targetSrc.str_replace($this->sourceSrc, '', $source);
-                $ext=$this->getExt($source);
-                if ($ext!='php') {
+                $target = $this->targetSrc . str_replace($this->sourceSrc, '', $source);
+                $ext = $this->getExt($source);
+                if ($ext != 'php') {
                     copy($source, $target);
                     echo sprintf("复制文件：{$source}\n{$target}\n-----------------\n");
                     $copy++;
@@ -329,17 +331,17 @@ class Encipher extends Common
                 }
                 $total++;
             }
-            $rt=sprintf("{$this->sourceSrc}:解密{$encode}个文件，复制{$copy}个文件，共处理{$total}个文件");
+            $rt = sprintf("{$this->sourceSrc}:解密{$encode}个文件，复制{$copy}个文件，共处理{$total}个文件");
             return $rt;
         } else {
-            $ext=$this->getExt($this->sourceSrc);
-            if ($ext!='php') {
+            $ext = $this->getExt($this->sourceSrc);
+            if ($ext != 'php') {
                 echo '不支持这种文件格式';
                 return;
             }
             $sourceSrcContent = file_get_contents($this->sourceSrc);
             $this->decodeTemplate($sourceSrcContent)->write($this->targetSrc);
-            $rt=sprintf("解密前文件：{$this->sourceSrc}\n解密后文件：{$this->targetSrc}\n-----------------\n");
+            $rt = sprintf("解密前文件：{$this->sourceSrc}\n解密后文件：{$this->targetSrc}\n-----------------\n");
             return $rt;
         }
     }

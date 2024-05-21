@@ -56,10 +56,11 @@ class WebSocket extends WebSocketCommand
 {
     protected function configure()
     {
+        parent::configure();
         $this->setName('ws')
             ->addArgument('action', Argument::OPTIONAL, "start|stop|restart|reload|status|connections", 'start')
-            ->addOption('mode', 'm', Option::VALUE_OPTIONAL, '模式。d:后台运行;g:优雅地停止')
-            ->addOption('debug', 'd', Option::VALUE_REQUIRED, '调试模式。1:开启;0:关闭', true)
+            ->addOption('mode', 'm', Option::VALUE_OPTIONAL, '模式。d:后台运行(不支持service);g:优雅地停止')
+            ->addOption('debug', 'd', Option::VALUE_REQUIRED, '调试模式。1:开启;0:关闭', 1)
             ->addOption('port', 'p', Option::VALUE_REQUIRED, '监听端口', 99)
             ->addOption('count', 'c', Option::VALUE_REQUIRED, '开启的线程数。windows操作系统下只支持1个线程', 3)
             ->setDescription('workerman脚本。输入`php think ws -h`查看说明');

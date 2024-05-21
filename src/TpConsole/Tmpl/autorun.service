@@ -1,0 +1,10 @@
+[Unit]
+Description=[Description]
+[Service]
+ExecStart=[ExecStart]
+ExecReload=
+ExecStop=
+Restart=always
+RestartSec=5s
+[Install]
+WantedBy=multi-user.target
