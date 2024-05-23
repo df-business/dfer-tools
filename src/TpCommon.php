@@ -1,6 +1,4 @@
 <?php
-namespace Dfer\Tools;
-
 /**
  * +----------------------------------------------------------------------
  * | thinkphp常用的方法
@@ -33,6 +31,10 @@ namespace Dfer\Tools;
  * +----------------------------------------------------------------------
  *
  */
+namespace Dfer\Tools;
+
+use think\Validate;
+
 class TpCommon
 {
     protected static $db;
@@ -135,6 +137,50 @@ class TpCommon
                 return $e;
             }
         }
+    }
+
+    /**
+     * 验证数据
+     * @param array        $data     数据
+     * @param string|array $validate 验证器对象字符串
+     * @param array        $message  提示信息
+     * @param bool         $batch    是否批量验证
+     * @param mixed        $callback 回调方法（闭包）
+     * @return array|string|true
+     * @throws ValidateException
+     */
+    public function validate(array $data, $validate, array $message = [], bool $batch = false)
+    {
+        if (is_array($validate)) {
+            $v = new Validate();
+            $v->rule($validate);
+        } else {
+            if (strpos($validate, '.')) {
+                // 支持场景
+                [$validate, $scene] = explode('.', $validate);
+            }
+            $class = $validate;
+            $v     = new $class();
+            if (!empty($scene)) {
+                $v->scene($scene);
+            }
+        }
+
+        $v->message($message);
+
+        // 是否批量验证
+        if ($batch) {
+            $v->batch(true);
+        }
+
+        $result = $v->failException(false)->check($data);
+
+        if (!$result) {
+            $result = $v->getError();
+        }
+
+        return $result;
+
     }
 
 }
