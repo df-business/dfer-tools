@@ -162,6 +162,7 @@ class Create extends Command
                           sudo systemctl daemon-reload
                           sudo systemctl stop dfer_{$name_snake}
                           sudo systemctl start dfer_{$name_snake}
+                          sudo systemctl restart dfer_{$name_snake}
                           sudo systemctl status dfer_{$name_snake}
                           ```
                           - 在linux终端运行上述代码，添加、管理自定义服务
