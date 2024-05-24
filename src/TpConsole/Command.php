@@ -128,7 +128,7 @@ class Command extends BaseCommand
             $this->tp_ver = app()->version();
             $this->root = app()->getRootPath();
             $this->root_commond = "{$this->root}app/command";
-            \think\facade\Lang::load(APP_PATH . 'lang/zh-cn.php');
+            \think\facade\Lang::load( app()->getAppPath() . 'lang/zh-cn.php');
         }
     }
 

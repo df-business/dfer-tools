@@ -224,7 +224,7 @@ php think dfer:console_create Test
 return [
     // 指令定义
     'commands' => [
-           'dfer:console_create' => 'Dfer\Tools\Console\Create'
+           'dfer:console_create' => 'Dfer\Tools\TpConsole\Create'
     ]
 ];
 
