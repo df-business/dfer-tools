@@ -50,7 +50,7 @@ class Create extends Command
         $this->setName('dfer:console_create')->addArgument('name', Argument::OPTIONAL, "脚本名称。命名采用大驼峰", '')
             ->addOption('type', 't', Option::VALUE_OPTIONAL, '类型。ws(websocket脚本) plain(控制台脚本) ped(php加密、解密) service(linux自启动服务)', 'plain')
             ->addOption('debug', 'd', Option::VALUE_OPTIONAL, '调试模式', true)
-            ->addOption('code', 'c', Option::VALUE_OPTIONAL, 'service里的代码，不设置时调用默认的sh文件。例如：php think dfer:console_create upload -t service -c "php /www/wwwroot/www.dfer.site/think dfer:upload"')
+            ->addOption('code', 'c', Option::VALUE_OPTIONAL, 'service里的代码，不设置时调用默认的sh文件。例如：php think dfer:console_create upload -t service -c "/usr/bin/php /www/wwwroot/www.dfer.site/think dfer:upload"')
             ->setDescription('生成脚本。输入`php think dfer:console_create -h`查看说明');
     }
 
