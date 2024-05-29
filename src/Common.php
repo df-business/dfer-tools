@@ -1,7 +1,4 @@
 <?php
-namespace Dfer\Tools;
-
-use DOMDocument;
 
 /**
  * +----------------------------------------------------------------------
@@ -35,6 +32,12 @@ use DOMDocument;
  * +----------------------------------------------------------------------
  *
  */
+
+namespace Dfer\Tools;
+
+use DOMDocument;
+
+
 class Common
 {
     // 静态属性，保存单例实例
@@ -1684,7 +1687,7 @@ class Common
     {
         try {
             // 执行传入的代码
-            eval ($code);
+            eval($code);
         } catch (Exception $e) {
             // 处理异常
             echo "捕获到异常: " . $e->getMessage() . "\n";
@@ -1858,7 +1861,7 @@ class Common
      */
     function getOtherSizeFromOssByParam($file_src, $param)
     {
-        $file_src ="{$file_src}?x-oss-process={$param}";
+        $file_src = "{$file_src}?x-oss-process={$param}";
         return $file_src;
     }
 
@@ -1911,7 +1914,7 @@ class Common
 
             // 构造 poster 的 URL（这里假设 poster 与视频文件在同一个目录下，并且文件名为 src 的同名图片，后缀为 .jpg）
             $poster = $dirname . DIRECTORY_SEPARATOR . "c" . DIRECTORY_SEPARATOR . $filename . '.jpg'; // 假设视频是 .mp4 格式
-            if (!$this->imageExists($poster)) {
+            if (!$this->getHtmlStatus($poster)) {
                 $poster = $defaultCover;
             }
             // 添加 poster 属性到 <video> 标签
@@ -1937,7 +1940,7 @@ class Common
      **/
     public function formatDirectorySeparator($var = null)
     {
-        $var = str_replace(['/','\\'], [DIRECTORY_SEPARATOR,DIRECTORY_SEPARATOR], $var);
+        $var = str_replace(['/', '\\'], [DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR], $var);
         return $var;
     }
 
@@ -1946,7 +1949,7 @@ class Common
      * @param {Object} $textColor ANSI转义序列文字颜色。30=黑色, 31=红色, 32=绿色, 33=黄色, 34=蓝色, 35=洋红（紫色）, 36=青色（深绿）, 37=白色, 90=明亮的黑色, 91=明亮的红色, 92=明亮的绿色, 93=明亮的黄色, 94=明亮的蓝色, 95=明亮的洋红（紫色）, 96=明亮的青色（深绿）, 97=明亮的白色
      * @param {Object} $bgColor ANSI转义序列文字颜色。40=黑色背景, 41=红色背景, 42=绿色背景, 43=黄色背景, 44=蓝色背景, 45=洋红（紫色）背景, 46=青色（深绿）背景, 47=白色背景,100=明亮的黑色背景, 101=明亮的红色背景, 102=明亮的绿色背景, 103=明亮的黄色背景, 104=明亮的蓝色背景, 105=明亮的洋红（紫色）背景, 106=明亮的青色（深绿）背景, 107=明亮的白色背景
      **/
-    public function colorEcho($message,$textColor=37,$bgColor=45)
+    public function colorEcho($message, $textColor = 37, $bgColor = 45)
     {
         // 构建ANSI转义序列
         $startColor = "\033[" . $bgColor . ";" . $textColor . "m";
@@ -1974,8 +1977,7 @@ class Common
     {
         if (DIRECTORY_SEPARATOR === '\\') {
             return true;
-        }
-        else
+        } else
             return false;
     }
 
@@ -1983,8 +1985,9 @@ class Common
      * 去掉数组中最小的值
      * @param {Object} $array 数组
      **/
-    public function removeMinValue($list) {
-        $origin_list=$list;
+    public function removeMinValue($list)
+    {
+        $origin_list = $list;
         if (empty($list)) {
             return $list;
         }
@@ -1995,16 +1998,16 @@ class Common
             unset($list[$key]);
         }
 
-        $obj=new class($minValue,$origin_list,$list){
-            public $remove_value,$origin_list,$list;
-            public function __construct($remove_value,$origin_list, $list) {
-                    $this->remove_value = $remove_value;
-                    $this->origin_list = $origin_list;
-                    $this->list = $list;
+        $obj = new class($minValue, $origin_list, $list)
+        {
+            public $remove_value, $origin_list, $list;
+            public function __construct($remove_value, $origin_list, $list)
+            {
+                $this->remove_value = $remove_value;
+                $this->origin_list = $origin_list;
+                $this->list = $list;
             }
         };
         return $obj;
     }
-
-
 }

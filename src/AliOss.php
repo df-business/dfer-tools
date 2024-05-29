@@ -49,7 +49,7 @@ class AliOss extends Common
     private $access_id = '';
     private $access_key = '';
     private $endpoint = 'http://oss-cn-chengdu.aliyuncs.com';
-    private $bucket = 'chanpinfabu';
+    private $bucket = '';
     private $ossClient = NULL;
 
     // 域名 eg:http://res.tye3.com/
@@ -64,7 +64,7 @@ class AliOss extends Common
     // 回调返回的参数
     private $post_arr = [];
 
-    public function __construct($config = [])
+    public function __construct($config = [], $needOssClient = true)
     {
         $this->access_id = $config['access_id'] ?? $this->access_id;
         $this->access_key = $config['access_key'] ?? $this->access_key;
@@ -78,6 +78,10 @@ class AliOss extends Common
         $this->dir = $this->dir . DIRECTORY_SEPARATOR;
 
         $this->debug = $config['debug'] ?? $this->debug;
+
+        if ($needOssClient) {
+            $this->ossClientInit();
+        }
     }
 
 
@@ -145,7 +149,6 @@ class AliOss extends Common
     public function uploadCallback(Closure $callback_function = null)
     {
         try {
-            $this->ossClientInit();
 
             $authorizationBase64 = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
             $pubKeyUrlBase64 = $_SERVER['HTTP_X_OSS_PUB_KEY_URL'] ?? null;
@@ -319,7 +322,7 @@ class AliOss extends Common
                     'code' => $status ? 1 : 0,
                     'msg' => $status ? '上传成功!' : '上传失败!',
                     'data' => [
-                        'filepath' => $this->post_arr['host'] . $this->post_arr['filePath'],
+                        'file_path' => $this->post_arr['filePath'],
                         'name' => $this->post_arr['fileName'],
                         'id' => 0,
                         'preview_url' => $this->post_arr['host'] . $this->post_arr['filePath'],
@@ -332,6 +335,7 @@ class AliOss extends Common
             case 'ueditor':
                 $return = [
                     'state' => $status ? 'SUCCESS' : 'FAIL',
+                    'file_path' => $this->post_arr['filePath'],
                     'url' => $this->post_arr['host'] . $this->post_arr['filePath'],
                     'title' => $this->post_arr['fileName'],
                     'original' => $this->post_arr['fileName']
@@ -340,6 +344,7 @@ class AliOss extends Common
             default:
                 $return = [
                     'status' => $status,
+                    'file_path' => $this->post_arr['filePath'],
                     'url' => $this->post_arr['host'] . $this->post_arr['filePath'],
                     'title' => $this->post_arr['fileName']
                 ];
