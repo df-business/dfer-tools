@@ -1,12 +1,5 @@
 <?php
 
-namespace Dfer\Tools;
-
-use OSS\OssClient;
-use OSS\Core\OssException;
-use Exception;
-use Closure;
-
 /**
  * +----------------------------------------------------------------------
  * | 阿里云oss类
@@ -40,6 +33,15 @@ use Closure;
  * +----------------------------------------------------------------------
  *
  */
+
+namespace Dfer\Tools;
+
+use OSS\OssClient;
+use OSS\Core\OssException;
+use Exception;
+use Error;
+use Closure;
+
 class AliOss extends Common
 {
     // ali访问凭证
@@ -91,7 +93,6 @@ class AliOss extends Common
      */
     public function getRequestParams($ext_param = [])
     {
-
         $callback_url = $this->callback_url;
         $dir = $this->dir;
 
@@ -190,24 +191,19 @@ class AliOss extends Common
                 $this->setHttpStatus(self::FORBIDDEN);
             }
         } catch (OssException $exception) {
-            if ($this->post_arr) {
-                $err_msg = $exception->getMessage();
-                $this->post_arr['error'] = $err_msg;
-            } else {
-                $err_msg = $this->getException($exception);
-                $this->post_arr = ['type' => 'error', "msg" => $err_msg];
-            }
             $this->debug($exception);
+            $err_msg = $exception->getMessage();
+            $this->post_arr['error'] = $err_msg;
             $this->returnData($callback_function);
         } catch (Exception $exception) {
-            if ($this->post_arr) {
-                $err_msg = $exception->getMessage();
-                $this->post_arr['error'] = $err_msg;
-            } else {
-                $err_msg = $this->getException($exception);
-                $this->post_arr = ['type' => 'error', "msg" => $err_msg];
-            }
             $this->debug($exception);
+            $err_msg = $exception->getMessage();
+            $this->post_arr['error'] = $err_msg;
+            $this->returnData($callback_function);
+        } catch (Error $exception) {
+            $this->debug($exception);
+            $err_msg = $exception->getMessage();
+            $this->post_arr['error'] = $err_msg;
             $this->returnData($callback_function);
         }
     }
@@ -241,7 +237,7 @@ class AliOss extends Common
      */
     private function processSave()
     {
-        $this->debug('processSave',$this->post_arr);
+        $this->debug('processSave', $this->post_arr);
         // 文件类型。text、image、video、application
         $mime_type = $this->getMimeTypePrefix($this->post_arr['mimeType']);
         // 文件在oss中的路径
@@ -291,7 +287,7 @@ class AliOss extends Common
                     $file_src_new = $dirname . DIRECTORY_SEPARATOR . $mime_type . DIRECTORY_SEPARATOR . $this->getTime(null, "Y") . DIRECTORY_SEPARATOR . $this->getTime(null, "m") . DIRECTORY_SEPARATOR . $value . DIRECTORY_SEPARATOR . $basename;
                 }
                 $style = "style/{$key}";
-                $result[]=$this->saveFileOss($file_src,$file_src_new,$style,$is_async);
+                $result[] = $this->saveFileOss($file_src, $file_src_new, $style, $is_async);
             }
         }
 
@@ -305,17 +301,15 @@ class AliOss extends Common
      */
     private function returnData(Closure $callback_function)
     {
+        $this->debug($this->post_arr);
+
         $type = $this->post_arr['type'];
         // 运行状态。true 成功 false 失败
         $status = isset($this->post_arr['error']) ? false : true;
 
         if ($callback_function === null) {
             $callback_function = function ($post_arr) {
-                $return = [
-                    'url' => $post_arr['host'] . $post_arr['filePath'],
-                    'title' => $post_arr['fileName']
-                ];
-                return $return;
+                return null;
             };
         }
 
@@ -343,9 +337,6 @@ class AliOss extends Common
                     'original' => $this->post_arr['fileName']
                 ];
                 break;
-            case 'error':
-                $return = $this->post_arr;
-                break;
             default:
                 $return = [
                     'status' => $status,
@@ -355,16 +346,12 @@ class AliOss extends Common
                 break;
         }
 
-        if (!$status) {
-            $return['error'] = $this->post_arr['error'];
-        }
-        // throw new Exception('人为创造一个错误');
-        try {
+        if ($status) {
+            // throw new Exception('人为创造一个错误');
             // 调用回调函数
             $callback_function($this->post_arr);
-        } catch (Exception $exception) {
-            $err_msg = $this->getException($exception);
-            $this->debug($err_msg);
+        } else {
+            $return['error'] = $this->post_arr['error'];
         }
         $this->debug($return);
         $this->showJsonBase($return);
@@ -412,7 +399,7 @@ class AliOss extends Common
      * @param {Object} $from_src 源文件路径
      * @param {Object} $to_src 目标路径
      */
-    public function copyFileOss($from_src,$to_src)
+    public function copyFileOss($from_src, $to_src)
     {
         //判断object是否存在
         $doesExist = $this->ossClient->doesObjectExist($this->bucket, $from_src);
@@ -433,16 +420,16 @@ class AliOss extends Common
      * 样式参数 image/resize,m_fixed,w_100,h_100/rotate,90 地址栏调用：http://res.tye3.com/kp_tye3/2024/image/tYGKNP9trMWHR9EQ.jpg?x-oss-process=image/auto-orient,1/resize,m_pad,w_200,h_200
      * @param {Object} $is_async 异步处理。图片处理默认使用`x-oss-process`，视频截帧默认使用`x-oss-async-process`
      */
-    public function saveFileOss($from_src,$to_src,$style=null,$is_async=false)
+    public function saveFileOss($from_src, $to_src, $style = null, $is_async = false)
     {
         //判断object是否存在
         $doesExist = $this->ossClient->doesObjectExist($this->bucket, $from_src);
         if ($doesExist) {
-            $style = $style?"{$style}|":"";
+            $style = $style ? "{$style}|" : "";
             // 通过添加另存为参数（sys/saveas）的方式将阿里云SDK处理后的文件保存至指定Bucket
             // https://help.aliyun.com/zh/oss/user-guide/sys-or-saveas?spm=5176.28426678.J_HeJR_wZokYt378dwP-lLl.19.211c5181AjnjwZ&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2326694.S_BB1@bl+RQW@ag0+BB2@ag0+os0.ID_2326694-RL_sys/saveas-LOC_search~UND~helpdoc~UND~item-OR_ser-V_3-P0_3
-            $process = $this->str("{0}sys/saveas,o_{1},b_{2}", [$style,$this->base64UrlEncode($to_src), $this->base64UrlEncode($this->bucket)]);
-            $this->debug($from_src,$to_src, $process,$is_async);
+            $process = $this->str("{0}sys/saveas,o_{1},b_{2}", [$style, $this->base64UrlEncode($to_src), $this->base64UrlEncode($this->bucket)]);
+            $this->debug($from_src, $to_src, $process, $is_async);
 
             if ($is_async)
                 $result = $this->ossClient->asyncProcessObject($this->bucket, $from_src, $process);
