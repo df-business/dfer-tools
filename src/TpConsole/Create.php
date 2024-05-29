@@ -164,6 +164,8 @@ class Create extends Command
                           sudo systemctl start dfer_{$name_snake}
                           sudo systemctl restart dfer_{$name_snake}
                           sudo systemctl status dfer_{$name_snake}
+
+                          sudo journalctl -u dfer_{$name_snake} > dfer_{$name_snake}.log && cat dfer_{$name_snake}.log && rm -rf dfer_{$name_snake}.log
                           ```
                           - 在linux终端运行上述代码，添加、管理自定义服务
                           - 建议保存上述命令，方便后续管理

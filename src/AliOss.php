@@ -1,4 +1,5 @@
 <?php
+
 namespace Dfer\Tools;
 
 use OSS\OssClient;
@@ -61,18 +62,6 @@ class AliOss extends Common
     // 回调返回的参数
     private $post_arr = [];
 
-    private function ossClient()
-    {
-        if (!class_exists('OSS\OssClient')) {
-            $this->debug("缺少`OSS`组件");
-        }
-        if (is_null($this->ossClient)) {
-            $this->ossClient = new OssClient($this->access_id, $this->access_key, $this->endpoint);
-        }
-        return $this->ossClient;
-    }
-
-
     public function __construct($config = [])
     {
         $this->access_id = $config['access_id'] ?? $this->access_id;
@@ -88,6 +77,9 @@ class AliOss extends Common
 
         $this->debug = $config['debug'] ?? $this->debug;
     }
+
+
+    ////////////////////////////////////////////////// 核心方法 START //////////////////////////////////////////////////
 
     /**
      * 向oss发起上传请求时的必要参数
@@ -109,6 +101,7 @@ class AliOss extends Common
             'callbackBody' => http_build_query($ext_param) . '&filePath=${object}&size=${size}&mimeType=${mimeType}&width=${imageInfo.width}&height=${imageInfo.height}',
             'callbackBodyType' => "application/x-www-form-urlencoded"
         ];
+        // $this->debug($callback_param);
 
         //设置该policy超时时间
         $expire = 30;
@@ -142,12 +135,17 @@ class AliOss extends Common
 
     /**
      * 上传成功之后的回调
+     *
+     * 暂不支持分片上传。参考：https://help.aliyun.com/zh/oss/user-guide/multipart-upload?spm=5176.28426678.J_HeJR_wZokYt378dwP-lLl.251.211c5181zWp9u3&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@31850.S_BB1@bl+RQW@ag0+BB2@ag0+hot+os0.ID_31850-RL_%E5%88%86%E7%89%87-LOC_search~UND~helpdoc~UND~item-OR_ser-V_3-P0_0
+     *
      * @param {Object} $callback_function    回调匿名函数 eg:function($data){return $this->callback($data);}
      * @param {Object} $this->host
      */
     public function uploadCallback(Closure $callback_function = null)
     {
         try {
+            $this->ossClientInit();
+
             $authorizationBase64 = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
             $pubKeyUrlBase64 = $_SERVER['HTTP_X_OSS_PUB_KEY_URL'] ?? null;
             if (empty($authorizationBase64) || empty($pubKeyUrlBase64)) {
@@ -159,7 +157,7 @@ class AliOss extends Common
             $pubKeyUrl = base64_decode($pubKeyUrlBase64);
 
             $pubKey = $this->httpRequest($pubKeyUrl);
-            $this->debug($pubKey);
+            // $this->debug($pubKey);
             if (empty($pubKey)) {
                 $this->setHttpStatus(self::FORBIDDEN);
             }
@@ -179,7 +177,7 @@ class AliOss extends Common
 
             // 验证签名
             $status = openssl_verify($authStr, $authorization, $pubKey, OPENSSL_ALGO_MD5);
-            $this->debug($status);
+            // $this->debug($status);
             $this->post_arr = $this->getPara($body);
             if ($status == 1) {
                 // 将查询字符串中的参数解析为变量
@@ -199,6 +197,7 @@ class AliOss extends Common
                 $err_msg = $this->getException($exception);
                 $this->post_arr = ['type' => 'error', "msg" => $err_msg];
             }
+            $this->debug($exception);
             $this->returnData($callback_function);
         } catch (Exception $exception) {
             if ($this->post_arr) {
@@ -208,8 +207,28 @@ class AliOss extends Common
                 $err_msg = $this->getException($exception);
                 $this->post_arr = ['type' => 'error', "msg" => $err_msg];
             }
+            $this->debug($exception);
             $this->returnData($callback_function);
         }
+    }
+
+    //////////////////////////////////////////////////  核心方法 END  //////////////////////////////////////////////////
+
+    ////////////////////////////////////////////////// 自定义方法 START //////////////////////////////////////////////////
+
+
+    /**
+     * 初始化OssClient
+     */
+    private function ossClientInit()
+    {
+        if (!class_exists('OSS\OssClient')) {
+            $this->debug("缺少`OSS`组件");
+        }
+        if (is_null($this->ossClient)) {
+            $this->ossClient = new OssClient($this->access_id, $this->access_key, $this->endpoint);
+        }
+        return true;
     }
 
     /**
@@ -222,7 +241,7 @@ class AliOss extends Common
      */
     private function processSave()
     {
-        $this->debug($this->post_arr);
+        $this->debug('processSave',$this->post_arr);
         // 文件类型。text、image、video、application
         $mime_type = $this->getMimeTypePrefix($this->post_arr['mimeType']);
         // 文件在oss中的路径
@@ -237,15 +256,16 @@ class AliOss extends Common
         // file
         $filename = pathinfo($file_src, PATHINFO_FILENAME);
 
+        // ********************** 移动文件 START **********************
         // 转移上传的文件到指定目录。根据类型、年、月设置上传目录
         $file_src_new = $dirname . DIRECTORY_SEPARATOR . $mime_type . DIRECTORY_SEPARATOR . $this->getTime(null, "Y") . DIRECTORY_SEPARATOR . $this->getTime(null, "m") . DIRECTORY_SEPARATOR . $basename;
-        $process = $this->str("sys/saveas,o_%s,b_%s", [$this->base64UrlEncode($file_src_new), $this->base64UrlEncode($this->bucket)]);
-        $this->debug($process);
-        $result[] = $this->ossClient()->processObject($this->bucket, $file_src, $process);
+        $result[] = $this->copyFileOss($file_src, $file_src_new);
         // 删除原始文件
         $this->delFileOss($file_src);
         // 修改原始路径
         $this->post_arr['filePath'] = $file_src = $file_src_new;
+        // **********************  移动文件 END  **********************
+
 
         // 异步处理。图片处理默认使用`x-oss-process`，视频截帧默认使用`x-oss-async-process`
         $is_async = false;
@@ -270,21 +290,8 @@ class AliOss extends Common
                     // 保存到新路径
                     $file_src_new = $dirname . DIRECTORY_SEPARATOR . $mime_type . DIRECTORY_SEPARATOR . $this->getTime(null, "Y") . DIRECTORY_SEPARATOR . $this->getTime(null, "m") . DIRECTORY_SEPARATOR . $value . DIRECTORY_SEPARATOR . $basename;
                 }
-
-
-                // 样式名称。样式里包含了各种参数，比如：http://res.tye3.com/kp_tye3//2024/image/tYGKNP9trMWHR9EQ.jpg?x-oss-process=image/auto-orient,1/resize,m_pad,w_200,h_200
                 $style = "style/{$key}";
-                // 通过添加另存为参数（sys/saveas）的方式将阿里云SDK处理后的文件保存至指定Bucket
-                // https://help.aliyun.com/zh/oss/user-guide/sys-or-saveas?spm=5176.28426678.J_HeJR_wZokYt378dwP-lLl.19.211c5181AjnjwZ&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2326694.S_BB1@bl+RQW@ag0+BB2@ag0+os0.ID_2326694-RL_sys/saveas-LOC_search~UND~helpdoc~UND~item-OR_ser-V_3-P0_3
-                $process = $style .
-                    '|sys/saveas' .
-                    ',o_' . $this->base64UrlEncode($file_src_new) .
-                    ',b_' . $this->base64UrlEncode($this->bucket);
-                $this->debug($file_src_new, $process);
-                if ($is_async)
-                    $result[] = $this->ossClient()->asyncProcessObject($this->bucket, $file_src, $process);
-                else
-                    $result[] = $this->ossClient()->processObject($this->bucket, $file_src, $process);
+                $result[]=$this->saveFileOss($file_src,$file_src_new,$style,$is_async);
             }
         }
 
@@ -359,6 +366,7 @@ class AliOss extends Common
             $err_msg = $this->getException($exception);
             $this->debug($err_msg);
         }
+        $this->debug($return);
         $this->showJsonBase($return);
     }
 
@@ -369,13 +377,13 @@ class AliOss extends Common
      */
     public function uploadFileOss($filePath, $saveDir)
     {
-        $doesObjectExist = $this->ossClient()->doesObjectExist($this->bucket, $saveDir);
+        $doesObjectExist = $this->ossClient->doesObjectExist($this->bucket, $saveDir);
         if (!$doesObjectExist) {
             //创建虚拟目录
-            $this->ossClient()->createObjectDir($this->bucket, $saveDir);
+            $this->ossClient->createObjectDir($this->bucket, $saveDir);
         }
         $save_file_name = pathinfo($filePath, PATHINFO_BASENAME);
-        $this->ossClient()->uploadFile($this->bucket, $saveDir . DIRECTORY_SEPARATOR . $save_file_name, $filePath);
+        $this->ossClient->uploadFile($this->bucket, $saveDir . DIRECTORY_SEPARATOR . $save_file_name, $filePath);
         //删除原文件
         if (is_file($filePath)) {
             unlink($filePath);
@@ -390,11 +398,60 @@ class AliOss extends Common
     public function delFileOss($src)
     {
         //判断object是否存在
-        $doesExist = $this->ossClient()->doesObjectExist($this->bucket, $src);
+        $doesExist = $this->ossClient->doesObjectExist($this->bucket, $src);
         if ($doesExist) {
             //删除object
-            $result = $this->ossClient()->deleteObject($this->bucket, $src);
+            return $this->ossClient->deleteObject($this->bucket, $src);
         }
+        return false;
+    }
+
+    /**
+     * 复制文件
+     * https://help.aliyun.com/zh/oss/developer-reference/api-reference/?spm=a2c4g.11186623.0.0.17ac4dcamRAH1J
+     * @param {Object} $from_src 源文件路径
+     * @param {Object} $to_src 目标路径
+     */
+    public function copyFileOss($from_src,$to_src)
+    {
+        //判断object是否存在
+        $doesExist = $this->ossClient->doesObjectExist($this->bucket, $from_src);
+        if ($doesExist) {
+            return $this->ossClient->copyObject($this->bucket, $from_src, $this->bucket, $to_src);
+        }
+        return false;
+    }
+
+    /**
+     * 保存文件
+     * https://help.aliyun.com/zh/oss/user-guide/sys-or-saveas?spm=5176.28426678.J_HeJR_wZokYt378dwP-lLl.23.211c5181zWp9u3&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2326694.S_BB1@bl+RQW@ag0+BB2@ag0+os0.ID_2326694-RL_syssaveas-LOC_search~UND~helpdoc~UND~item-OR_ser-V_3-P0_2
+     *
+     * @param {Object} $from_src 源文件路径
+     * @param {Object} $to_src 目标路径
+     * @param {Object} $style 样式。
+     * 样式名称 style/test
+     * 样式参数 image/resize,m_fixed,w_100,h_100/rotate,90 地址栏调用：http://res.tye3.com/kp_tye3/2024/image/tYGKNP9trMWHR9EQ.jpg?x-oss-process=image/auto-orient,1/resize,m_pad,w_200,h_200
+     * @param {Object} $is_async 异步处理。图片处理默认使用`x-oss-process`，视频截帧默认使用`x-oss-async-process`
+     */
+    public function saveFileOss($from_src,$to_src,$style=null,$is_async=false)
+    {
+        //判断object是否存在
+        $doesExist = $this->ossClient->doesObjectExist($this->bucket, $from_src);
+        if ($doesExist) {
+            $style = $style?"{$style}|":"";
+            // 通过添加另存为参数（sys/saveas）的方式将阿里云SDK处理后的文件保存至指定Bucket
+            // https://help.aliyun.com/zh/oss/user-guide/sys-or-saveas?spm=5176.28426678.J_HeJR_wZokYt378dwP-lLl.19.211c5181AjnjwZ&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2326694.S_BB1@bl+RQW@ag0+BB2@ag0+os0.ID_2326694-RL_sys/saveas-LOC_search~UND~helpdoc~UND~item-OR_ser-V_3-P0_3
+            $process = $this->str("{0}sys/saveas,o_{1},b_{2}", [$style,$this->base64UrlEncode($to_src), $this->base64UrlEncode($this->bucket)]);
+            $this->debug($from_src,$to_src, $process,$is_async);
+
+            if ($is_async)
+                $result = $this->ossClient->asyncProcessObject($this->bucket, $from_src, $process);
+            else
+                $result = $this->ossClient->processObject($this->bucket, $from_src, $process);
+
+            return $result;
+        }
+        return false;
     }
 
     /**
@@ -405,4 +462,6 @@ class AliOss extends Common
         if ($this->debug)
             parent::debug(func_get_args());
     }
+
+    //////////////////////////////////////////////////  自定义方法 END  //////////////////////////////////////////////////
 }
