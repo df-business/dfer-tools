@@ -322,11 +322,12 @@ class AliOss extends Common
                     'code' => $status ? 1 : 0,
                     'msg' => $status ? '上传成功!' : '上传失败!',
                     'data' => [
-                        'file_path' => $this->post_arr['filePath'],
-                        'name' => $this->post_arr['fileName'],
                         'id' => 0,
+                        'name' => $this->post_arr['fileName'],
+                        'filepath' => $this->post_arr['host'] . $this->post_arr['filePath'],
                         'preview_url' => $this->post_arr['host'] . $this->post_arr['filePath'],
-                        'url' => $this->post_arr['host'] . $this->post_arr['filePath']
+                        'url' => $this->post_arr['host'] . $this->post_arr['filePath'],
+                        'path' => $this->post_arr['filePath']
                     ],
                     'url' => '',
                     'wait' => 3
@@ -335,18 +336,18 @@ class AliOss extends Common
             case 'ueditor':
                 $return = [
                     'state' => $status ? 'SUCCESS' : 'FAIL',
-                    'file_path' => $this->post_arr['filePath'],
-                    'url' => $this->post_arr['host'] . $this->post_arr['filePath'],
                     'title' => $this->post_arr['fileName'],
-                    'original' => $this->post_arr['fileName']
+                    'original' => $this->post_arr['fileName'],
+                    'url' => $this->post_arr['host'] . $this->post_arr['filePath'],
+                    'path' => $this->post_arr['filePath']
                 ];
                 break;
             default:
                 $return = [
                     'status' => $status,
-                    'file_path' => $this->post_arr['filePath'],
+                    'title' => $this->post_arr['fileName'],
                     'url' => $this->post_arr['host'] . $this->post_arr['filePath'],
-                    'title' => $this->post_arr['fileName']
+                    'path' => $this->post_arr['filePath']
                 ];
                 break;
         }
