@@ -1430,6 +1430,9 @@ class Common
      */
     public function getThumbnailText($str, $length)
     {
+        if($length<=0){
+            return "";
+        }
         // 去掉HTML标签
         $text = strip_tags($str);
         // 截取UTF-8编码的字符串
