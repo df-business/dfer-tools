@@ -277,7 +277,8 @@ class AliOss extends Common
         } else {
             foreach ($process_list as $key => $value) {
                 if (is_array($value)) {
-                    $basename = "{$filename}.{$value[1]}";
+                    if (isset($value[1]))
+                        $basename = "{$filename}.{$value[1]}";
                     $value = $value[0];
                     $is_async = true;
                 }
@@ -289,8 +290,7 @@ class AliOss extends Common
                     // 保存到新路径
                     $file_src_new = $dirname . DIRECTORY_SEPARATOR . $mime_type . DIRECTORY_SEPARATOR . $this->getTime(null, "Y") . DIRECTORY_SEPARATOR . $this->getTime(null, "m") . DIRECTORY_SEPARATOR . $value . DIRECTORY_SEPARATOR . $basename;
                 }
-                $style = "style/{$key}";
-                $result[] = $this->saveFileOss($file_src, $file_src_new, $style, $is_async);
+                $result[] = $this->saveFileOss($file_src, $file_src_new, $key, $is_async);
             }
         }
 
@@ -364,6 +364,64 @@ class AliOss extends Common
     }
 
     /**
+     * 保存文件
+     * https://help.aliyun.com/zh/oss/user-guide/sys-or-saveas?spm=5176.28426678.J_HeJR_wZokYt378dwP-lLl.23.211c5181zWp9u3&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2326694.S_BB1@bl+RQW@ag0+BB2@ag0+os0.ID_2326694-RL_syssaveas-LOC_search~UND~helpdoc~UND~item-OR_ser-V_3-P0_2
+     *
+     * @param {Object} $from_src 源文件路径
+     * @param {Object} $to_src 目标路径
+     * @param {Object} $style 样式。目前仅支持样式名称调用。
+     * 例子：
+     * 样式名称 style/test
+     * 样式参数 image/resize,m_fixed,w_100,h_100/rotate,90 地址栏调用：http://res.tye3.com/kp_tye3/2024/image/tYGKNP9trMWHR9EQ.jpg?x-oss-process=image/auto-orient,1/resize,m_pad,w_200,h_200
+     * @param {Object} $is_async 异步处理。图片处理默认使用`x-oss-process`，视频截帧默认使用`x-oss-async-process`
+     */
+    public function saveFileOss($from_src, $to_src, $style = null, $is_async = false)
+    {
+        //判断object是否存在
+        $doesExist = $this->ossClient->doesObjectExist($this->bucket, $from_src);
+        if ($doesExist) {
+            switch ($style) {
+                case 'h264-mp4-360p':
+                    // 调用系统样式   https://oss.console.aliyun.com/bucket/oss-cn-chengdu/chanpinfabu/process/new_imm/media-processing
+                    $style = "video/convert,f_mp4,vcodec_h264,fps_25,fpsopt_1,s_640x,sopt_1,scaletype_fit,arotate_1,crf_25,g_250,acodec_aac,ar_44100,ac_2,ab_64000,abopt_1";
+                    break;
+                case 'h264-mp4-540p':
+                    $style = "video/convert,f_mp4,vcodec_h264,fps_25,fpsopt_1,s_960x,sopt_1,scaletype_fit,arotate_1,crf_25,g_250,acodec_aac,ar_44100,ac_2,ab_96000,abopt_1";
+                    break;
+                case 'h264-mp4-720p':
+                    $style = "video/convert,f_mp4,vcodec_h264,fps_25,fpsopt_1,s_1280x,sopt_1,scaletype_fit,arotate_1,crf_26,g_250,acodec_aac,ar_44100,ac_2,ab_128000,abopt_1";
+                    break;
+                case 'h264-mp4-1080p':
+                    $style = "video/convert,f_mp4,vcodec_h264,fps_25,fpsopt_1,s_1920x,sopt_1,scaletype_fit,arotate_1,crf_26,g_250,acodec_aac,ar_44100,ac_2,ab_160000,abopt_1";
+                    break;
+                case 'h264-mp4-1440p':
+                    $style = "video/convert,f_mp4,vcodec_h264,fps_60,fpsopt_1,s_2560x,sopt_1,scaletype_fit,arotate_1,crf_26,g_250,acodec_aac,ar_48000,ab_320000,abopt_1";
+                    break;
+                case 'h264-mp4-2160p':
+                    $style = "video/convert,f_mp4,vcodec_h264,fps_60,fpsopt_1,s_3840x,sopt_1,scaletype_fit,arotate_1,crf_26,g_250,acodec_aac,ar_48000,ab_512000,abopt_1";
+                    break;
+                default:
+                    $style = "style/{$style}";
+                    break;
+            }
+
+            $style = "{$style}|";
+            // 通过添加另存为参数（sys/saveas）的方式将阿里云SDK处理后的文件保存至指定Bucket
+            // https://help.aliyun.com/zh/oss/user-guide/sys-or-saveas?spm=5176.28426678.J_HeJR_wZokYt378dwP-lLl.19.211c5181AjnjwZ&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2326694.S_BB1@bl+RQW@ag0+BB2@ag0+os0.ID_2326694-RL_sys/saveas-LOC_search~UND~helpdoc~UND~item-OR_ser-V_3-P0_3
+            $process = $this->str("{0}sys/saveas,o_{1},b_{2}", [$style, $this->base64UrlEncode($to_src), $this->base64UrlEncode($this->bucket)]);
+            $this->debug($from_src, $to_src, $process, $is_async);
+
+            if ($is_async)
+                $result = $this->ossClient->asyncProcessObject($this->bucket, $from_src, $process);
+            else
+                $result = $this->ossClient->processObject($this->bucket, $from_src, $process);
+
+            return $result;
+        }
+        return false;
+    }
+
+    /**
      * 通过路径上传文件到oss
      * @param {Object} $filePath 服务器上的文件路径
      * @param {Object} $saveDir oss保存目录
@@ -411,38 +469,6 @@ class AliOss extends Common
         $doesExist = $this->ossClient->doesObjectExist($this->bucket, $from_src);
         if ($doesExist) {
             return $this->ossClient->copyObject($this->bucket, $from_src, $this->bucket, $to_src);
-        }
-        return false;
-    }
-
-    /**
-     * 保存文件
-     * https://help.aliyun.com/zh/oss/user-guide/sys-or-saveas?spm=5176.28426678.J_HeJR_wZokYt378dwP-lLl.23.211c5181zWp9u3&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2326694.S_BB1@bl+RQW@ag0+BB2@ag0+os0.ID_2326694-RL_syssaveas-LOC_search~UND~helpdoc~UND~item-OR_ser-V_3-P0_2
-     *
-     * @param {Object} $from_src 源文件路径
-     * @param {Object} $to_src 目标路径
-     * @param {Object} $style 样式。
-     * 样式名称 style/test
-     * 样式参数 image/resize,m_fixed,w_100,h_100/rotate,90 地址栏调用：http://res.tye3.com/kp_tye3/2024/image/tYGKNP9trMWHR9EQ.jpg?x-oss-process=image/auto-orient,1/resize,m_pad,w_200,h_200
-     * @param {Object} $is_async 异步处理。图片处理默认使用`x-oss-process`，视频截帧默认使用`x-oss-async-process`
-     */
-    public function saveFileOss($from_src, $to_src, $style = null, $is_async = false)
-    {
-        //判断object是否存在
-        $doesExist = $this->ossClient->doesObjectExist($this->bucket, $from_src);
-        if ($doesExist) {
-            $style = $style ? "{$style}|" : "";
-            // 通过添加另存为参数（sys/saveas）的方式将阿里云SDK处理后的文件保存至指定Bucket
-            // https://help.aliyun.com/zh/oss/user-guide/sys-or-saveas?spm=5176.28426678.J_HeJR_wZokYt378dwP-lLl.19.211c5181AjnjwZ&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2326694.S_BB1@bl+RQW@ag0+BB2@ag0+os0.ID_2326694-RL_sys/saveas-LOC_search~UND~helpdoc~UND~item-OR_ser-V_3-P0_3
-            $process = $this->str("{0}sys/saveas,o_{1},b_{2}", [$style, $this->base64UrlEncode($to_src), $this->base64UrlEncode($this->bucket)]);
-            $this->debug($from_src, $to_src, $process, $is_async);
-
-            if ($is_async)
-                $result = $this->ossClient->asyncProcessObject($this->bucket, $from_src, $process);
-            else
-                $result = $this->ossClient->processObject($this->bucket, $from_src, $process);
-
-            return $result;
         }
         return false;
     }
