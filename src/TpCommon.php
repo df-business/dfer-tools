@@ -42,6 +42,12 @@ use think\{Validate, Db};
 
 class TpCommon extends Common
 {
+    const V2="2.0";
+    const V3="3.0";
+    const V5="5.1";
+    const V6="6.0";
+    const V8="8.0";
+
     // tp版本
     protected $tp_version;
 
@@ -58,7 +64,7 @@ class TpCommon extends Common
      */
     public function getColName($table, $keys = [], $col_name = 'Comment')
     {
-        if ($this->facade()) {
+        if ($this->checkVersion()) {
             \think\facade\Db::query("SHOW FULL COLUMNS FROM {$table};");
         } else {
             $list = (new Db)->query("SHOW FULL COLUMNS FROM {$table};");
@@ -84,13 +90,13 @@ class TpCommon extends Common
     }
 
     /**
-     * 静态调用
-     * tp>=5.1 开始支持facade
-     * @param {Object} $require 必须支持静态调用
+     * 检查版本号
+     * tp>=5.1 开始支持facade(静态调用)
+     * @param {Object} $need_ver 版本号    比如：self::V6
+     * @param {Object} $require 必须支持该版本
      **/
-    public function facade($require = false)
+    public function checkVersion($need_ver=self::V5,$require = false)
     {
-        $need_ver = "5.1";
         if ($require) {
             version_compare($this->tp_version, $need_ver, '>=') or die("需要 ThinkPHP >= v{$need_ver} !");
         }
@@ -102,6 +108,7 @@ class TpCommon extends Common
         }
     }
 
+
     /**
      * 日志
      * 独立日志：'apart_level'=>['error','sql','debug','dfer']
@@ -109,7 +116,7 @@ class TpCommon extends Common
      **/
     public function log($data, $identification = 'dfer')
     {
-        if ($this->facade()) {
+        if ($this->checkVersion()) {
             \think\facade\Log::write($data, $identification);
         } else {
             \think\Log::write($data, $identification);
@@ -123,7 +130,7 @@ class TpCommon extends Common
      */
     public function uploadForm()
     {
-        $this->facade(true);
+        $this->checkVersion(self::V5,true);
 
         $files = request()->file();
         // dump($files);
@@ -190,8 +197,11 @@ class TpCommon extends Common
         if ($batch) {
             $v->batch(true);
         }
-
-        $result = $v->failException(false)->check($data);
+        if ($this->checkVersion(self::V6)) {
+            $result = $v->failException(false)->check($data);
+        }else{
+            $result = $v->check($data);
+        }
 
         if (!$result) {
             $result = $v->getError();
