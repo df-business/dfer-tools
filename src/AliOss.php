@@ -37,6 +37,7 @@
 namespace Dfer\Tools;
 
 use OSS\OssClient;
+
 use OSS\Core\OssException;
 use Exception;
 use Error;
@@ -44,11 +45,11 @@ use Closure;
 
 class AliOss extends Common
 {
-    // ali访问凭证
-    // https://ram.console.aliyun.com/manage/ak
+    // ali访问凭证  https://ram.console.aliyun.com/manage/ak
     private $access_id = '';
     private $access_key = '';
     private $endpoint = 'http://oss-cn-chengdu.aliyuncs.com';
+
     private $bucket = '';
     private $ossClient = NULL;
 
@@ -108,7 +109,7 @@ class AliOss extends Common
         ];
         // $this->debug($callback_param);
 
-        //设置该policy超时时间
+        //设置该policy超时时间（秒）
         $expire = 30;
         $end = time() + $expire;
         $expiration = $this->gmtIso8601($end);
@@ -122,6 +123,10 @@ class AliOss extends Common
         $arr = array('expiration' => $expiration, 'conditions' => $conditions);
 
         $policy = base64_encode(json_encode($arr));
+        // HMAC具有单向性，从HMAC值反向推导出原始消息或密钥在计算上是不可行的。尽管 HMAC 本身不能被“解密”以恢复原始密钥或消息，但攻击者可能会尝试使用暴力破解或字典攻击来猜测密钥。因此，确保使用足够强大且难以猜测的密钥是非常重要的。
+        // 安全性：sha256 > sha1 > md5 性能：md5 > sha1 > sha256
+        // 获取`$algo`的可选值
+        // var_dump(hash_hmac_algos());
         $signature = base64_encode(hash_hmac('sha1', $policy, $this->access_key, true));
 
         $callback = base64_encode(json_encode($callback_param));
