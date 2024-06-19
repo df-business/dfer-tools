@@ -96,10 +96,14 @@ class Common
 
     /**
      * 输出json，然后终止当前请求
+     * @param {Object} $status    状态码。0:正常 其余数字:失败
+     * 比如：
+     * 100 未提交数据
+     * 101 不要重复提交数据
      */
-    public function showJson($status = 1, $data = array(), $success_msg = '', $fail_msg = '')
+    public function showJson($status = 0, $data = array(), $success_msg = '', $fail_msg = '')
     {
-        $msg = boolval($status) ? ($success_msg ?: '操作成功') : ($fail_msg ?: '操作失败');
+        $msg = $status==0 ? ($success_msg ?: '操作成功') : ($fail_msg ?: '操作失败');
 
         $ret = array(
             'status' => $status,
