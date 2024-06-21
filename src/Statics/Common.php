@@ -27,10 +27,10 @@ namespace Dfer\Tools\Statics;
  *                           :;:: !@;        ..
  *                               ;@*........
  *                       ....   !@* ..
- *                 ......    .!%$! ..        | AUTHOR: dfer
- *         ......        .;o*%*!  .          | EMAIL: df_business@qq.com
- *                .:;;o&***o;.   .           | QQ: 3504725309
- *        .;;!o&****&&o;:.    ..
+ *                 ......    .!%$! ..     | AUTHOR: dfer
+ *         ......        .;o*%*!  .       | EMAIL: df_business@qq.com
+ *                .:;;o&***o;.   .        | QQ: 3504725309
+ *        .;;!o&****&&o;:.    ..          | WEBSITE: http://www.dfer.site
  * +----------------------------------------------------------------------
  *
  */
@@ -47,9 +47,9 @@ class Common extends Base
     const UPLOAD_UMEDITOR_SINGLE = 0,UPLOAD_UMEDITOR_EDITOR = 1,UPLOAD_LAYUI_EDITOR = 2,UPLOAD_EDITORMD_EDITOR = 3,UPLOAD_WEB_UPLOADER = 4;
 
     const NL_CRLF2BR= 0, NL_BR2CRLF = 1;
-    
+
     const OSS_SIZE_NORMAL="",OSS_SIZE_MIDDLE="m",OSS_SIZE_SMALL="s";
-    
+
     protected function className(){
         return str_replace("\Statics", "", __CLASS__);
     }

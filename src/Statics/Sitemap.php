@@ -34,7 +34,7 @@ namespace Dfer\Tools\Statics;
  * +----------------------------------------------------------------------
  *
  */
-class Office extends Base
+class Sitemap extends Base
 {
     protected function className(){
         return str_replace("\Statics", "", __CLASS__);
