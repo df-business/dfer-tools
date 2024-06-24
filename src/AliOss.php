@@ -48,16 +48,18 @@ class AliOss extends Common
     // ali访问凭证  https://ram.console.aliyun.com/manage/ak
     private $access_id = '';
     private $access_key = '';
-    private $endpoint = 'http://oss-cn-chengdu.aliyuncs.com';
-
+    // Endpoint（地域节点）
+    private $endpoint = '';
+    // Bucket 域名
     private $bucket = '';
+    // oss客户端对象
     private $ossClient = NULL;
 
     // 域名 eg:http://res.tye3.com/
     private $host = '';
     // 回调地址 eg:https://ktp.tye3.com/callback/Oss/ossUploadCallback
     private $callback_url = '';
-    // oss目录。 eg:ktp_tye3
+    // oss目录    eg:ktp_tye3
     // 路径中的两条斜杠会自动添加同名目录。eg：`https://res.tye3.com/kp_tye3//2024/image/tYGKNP9trMWHR9EQ.jpg`实际对应路径为`oss根目录/kp_tye3/kp_tye3/2024/image/tYGKNP9trMWHR9EQ.jpg`
     private $dir = '';
     // 调试模式
@@ -111,8 +113,9 @@ class AliOss extends Common
 
         //设置该policy超时时间（秒）
         $expire = 30;
-        $end = time() + $expire;
-        $expiration = $this->gmtIso8601($end);
+        // 截止时间
+        $end_time = time() + $expire;
+        $expiration = $this->gmtIso8601($end_time);
 
         //最大文件大小.用户可以自己设置
         $condition = array(0 => 'content-length-range', 1 => 0, 2 => 1048576000);
@@ -135,8 +138,6 @@ class AliOss extends Common
         $response['OSSAccessKeyId'] = $this->access_id;
         $response['callback'] = $callback;
         $response['dir'] = $dir;
-        $response['expire'] = $end;
-        $response['host'] = 'https://chanpinfabu.oss-cn-chengdu.aliyuncs.com';
         $response['policy'] = $policy;
         $response['signature'] = $signature;
         $this->showJsonBase($response);
@@ -321,6 +322,9 @@ class AliOss extends Common
             };
         }
 
+        // 调用回调函数
+        $callback_function($status,$this->post_arr);
+
         switch ($type) {
             case 'webuploader':
                 $return = [
@@ -357,13 +361,11 @@ class AliOss extends Common
                 break;
         }
 
-        if ($status) {
-            // throw new Exception('人为创造一个错误');
-            // 调用回调函数
-            $callback_function($this->post_arr);
-        } else {
+        if (!$status) {
             $return['error'] = $this->post_arr['error'];
         }
+
+
         $this->debug($return);
         $this->showJsonBase($return);
     }
@@ -387,7 +389,7 @@ class AliOss extends Common
         if ($doesExist) {
             switch ($style) {
                 case 'h264-mp4-360p':
-                    // 调用系统样式   https://oss.console.aliyun.com/bucket/oss-cn-chengdu/chanpinfabu/process/new_imm/media-processing
+                    // 调用系统样式   例：https://oss.console.aliyun.com/bucket/oss-cn-chengdu/chanpinfabu/process/new_imm/media-processing
                     $style = "video/convert,f_mp4,vcodec_h264,fps_25,fpsopt_1,s_640x,sopt_1,scaletype_fit,arotate_1,crf_25,g_250,acodec_aac,ar_44100,ac_2,ab_64000,abopt_1";
                     break;
                 case 'h264-mp4-540p':
@@ -453,6 +455,7 @@ class AliOss extends Common
      */
     public function delFileOss($src)
     {
+        $this->debug($this->bucket, $src);
         //判断object是否存在
         $doesExist = $this->ossClient->doesObjectExist($this->bucket, $src);
         if ($doesExist) {
@@ -470,6 +473,7 @@ class AliOss extends Common
      */
     public function copyFileOss($from_src, $to_src)
     {
+        $this->debug($this->bucket,$this->ossClient,$from_src,$to_src);
         //判断object是否存在
         $doesExist = $this->ossClient->doesObjectExist($this->bucket, $from_src);
         if ($doesExist) {

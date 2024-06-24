@@ -466,22 +466,88 @@ uploader.on('uploadBeforeSend', function (file, data, header) {
 
 ```
 
-**/app/user/controller/AssetController.php**
+**/app/api/controller/Oss.php**
 ```
-namespace app\user\controller;
-use cmf\controller\AdminBaseController;
+namespace app\api\controller;
+
+use Dfer\Tools\Statics\{Common};
 use Dfer\Tools\AliOss;
-class AssetController extends AdminBaseController{
+use Exception;
+
+use app\api\model\OssUploadRecordModel;
+
+class Oss extends Base
+{
+    private $userId=0;
+
+    public function __construct()
+    {
+        parent::__construct(app());
+
+        if (!class_exists('Dfer\Tools\AliOss')) {
+            die("缺少`dfer/tools`组件");
+        }
+    }
+
     public function getRequestParams(){
+        // 组件类型
         $type = $this->request->param('type','ueditor');
+        // 资源加工列表
         $process_list = $this->request->param('process_list',[]);
+
         $access_id =  config('oss.access_id');
         $access_key =  config('oss.access_key');
         $callback_url =  config('oss.callback_url');
+
         $dir =  config('oss.dir');
         $user_id=$this->userId;
-        $oss=new AliOss(compact('access_id','access_key','dir','callback_url'));
+        $debug=1;
+        Common::debug(compact('access_id','access_key','dir','callback_url','debug'),false);
+        $oss=new AliOss(compact('access_id','access_key','dir','callback_url','debug'),false);
         $oss->getRequestParams(compact('user_id','type','process_list'));
+    }
+
+
+    public function uploadCallback($var = null)
+    {
+        $access_id =  config('oss.access_id');
+        $access_key =  config('oss.access_key');
+        $bucket =  config('oss.bucket');
+        $endpoint =  config('oss.endpoint');
+        $host =  config('oss.host');
+        // 调试日志保存在`/data/logs/`
+        $debug=1;
+        Common::debug(compact('access_id','access_key','bucket','host','debug','endpoint'));
+        $oss=new AliOss(compact('access_id','access_key','bucket','endpoint','host','debug'));
+        $oss->uploadCallback(function($status,$data){return $this->callback($status,$data);});
+    }
+
+    public function callback($status,$post_arr = null)
+    {
+        if(intval($status)){
+            OssUploadRecordModel::create([
+                'user_id'=>$post_arr['user_id'],
+                'file_path'=>$post_arr['filePath'],
+                'url'=>$post_arr['host'].$post_arr['filePath']
+            ]);
+        }
+
+
+
+        $return = [
+            'code' => $status ? 1 : 0,
+            'msg' => $status ? '上传成功!' : '上传失败!',
+            'original' => $post_arr['fileName'],
+            'state' => $status ? 'SUCCESS' : 'FAIL',
+            'title' => $post_arr['fileName'],
+            'url' => $post_arr['host'] . $post_arr['filePath']
+        ];
+
+        if (!$status) {
+            $return['error'] = $post_arr['error'];
+        }
+
+        Common::showJsonBase($return);
     }
 }
 ```
@@ -492,69 +558,14 @@ class AssetController extends AdminBaseController{
 return [
     'access_id'=>'*************',
     'access_key'=>'*************',
-    'callback_url'=>'https://ktp.tye3.com/callback/Oss/uploadCallback',
-    'dir'=>'ktp_tye3/',
-    'host'=>'http://res.tye3.com/',
+    'callback_url'=>'https://www.dfer.site/api/oss/uploadCallback',
+    'dir'=>'www_dfer_site',
+    'host'=>'http://oss.dfer.site/',
+    'bucket'=>'df-linux-oss',
+    'endpoint'=>'oss-cn-hangzhou.aliyuncs.com',
 ];
 ```
 
-**/app/callback/controller/OssController.php**
-```
-namespace app\callback\controller;
-use think\Controller;
-use Dfer\Tools\AliOss;
-
-class OssController extends Controller
-{
-    public function uploadCallback($var = null)
-    {
-        $access_id =  config('oss.access_id');
-        $access_key =  config('oss.access_key');
-        $host =  config('oss.host');
-        $debug=0;
-        $oss=new AliOss(compact('access_id','access_key','host','debug'));
-        $oss->uploadCallback();
-    }
-
-}
-```
-
-```
-namespace app\callback\controller;
-use think\Controller;
-use Dfer\Tools\AliOss;
-use app\common\model\KtpUserImgRecordModel;
-
-class OssController extends Controller
-{
-    public function uploadCallback($var = null)
-    {
-        $access_id =  config('oss.access_id');
-        $access_key =  config('oss.access_key');
-        $host =  config('oss.host');
-        $debug=0;
-        $oss=new AliOss(compact('access_id','access_key','host','debug'));
-        $oss->uploadCallback(function($data){return $this->callback($data);});
-    }
-
-
-    /**
-     * 上传回调
-     * 可用来添加上传记录
-     * @param {Object} $post_arr 上传参数
-     **/
-    public function callback($post_arr = null)
-    {
-         if(intval($post_arr['user_id'])>0){
-            KtpUserImgRecordModel::create([
-                'user_id'=>$post_arr['user_id'],
-                'img_url'=>$post_arr['host'].$post_arr['filePath']
-            ]);
-        }
-    }
-
-}
-```
 
 
 
