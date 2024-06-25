@@ -257,25 +257,19 @@ trait FilesTrait
 
     /**
      * 获取文件后缀
-     * @param {Object} $file_name
+     * @param {Object} $file_name   文件名
      */
     public function getExt($file_name)
     {
-        //获取数组最后一条数据
-        //用.号对字符串进行分组
-        $a = explode('.', $file_name);
-        return array_pop($a);
-    }
-
-
-    /**
-     * 获取文件后缀
-     * @param   string  $name   文件名
-     * @return  string
-     */
-    public function getFileExt($name)
-    {
-        return strtolower(pathinfo($name, PATHINFO_EXTENSION));
+        $ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+        if (!$ext) {
+            $file_name = $this->removeQueryParams($file_name);
+            //用.号对字符串进行分组
+            $file_name_arr = explode('.', $file_name);
+            //获取数组最后一条数据
+            return array_pop($file_name_arr);
+        }
+        return $ext;
     }
 
     /**
@@ -593,5 +587,44 @@ trait FilesTrait
     {
         $root = dirname(__DIR__, 4);
         return $root;
+    }
+
+    /**
+     * 获取网络文件 
+     * 
+     * 例：
+     * Common::getFileFromUrl("https://fyb-1.cdn.bcebos.com/fyb/de6163834f53ca92c1273fff98ac9078.jpeg?x-bce-process=image/resize,m_fill,w_256,h_170")
+     * 
+     * @param {Object} $url    文件远程地址。如：https://fyb-1.cdn.bcebos.com/fyb/de6163834f53ca92c1273fff98ac9078.jpeg?x-bce-process=image/resize,m_fill,w_256,h_170
+     * @param {Object} $dir    本地保存目录。如：/www/wwwroot/www.dfer.site/public/uploads/collect
+     * @return {Object} 
+     * $dir为空：返回base64字符串
+     * $dir不为空：返回文件保存路径
+     */
+    public function getFileFromUrl($url, $dir = null)
+    {
+        // $url 以 // 开头，就在其前面加上 https: 协议
+        if (strncmp($url, '//', 2) === 0) {
+            $url = 'https:' . $url;
+        }
+        // 读取文件的内容
+        $file_data = file_get_contents($url);
+        // 获取文件类型
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mimeType = finfo_buffer($finfo, $file_data);
+        finfo_close($finfo);
+        list($type, $ext) = explode('/', $mimeType);
+
+        if ($dir) {
+            Common::mkDirs($dir);
+            // 把url转化为base64字符串作为文件名
+            $fileName = base64_encode($url) . '.' . $ext;
+            $src = Common::str("{0}/{1}", [$dir, $fileName]);
+            file_put_contents($src, $file_data);
+            return $src;
+        } else {
+            $file_base64 = "data:{$mimeType};base64," . base64_encode($file_data);
+            return $file_base64;
+        }
     }
 }

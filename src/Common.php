@@ -103,7 +103,7 @@ class Common
      */
     public function showJson($status = 0, $data = array(), $success_msg = '', $fail_msg = '')
     {
-        $msg = $status==0 ? ($success_msg ?: '操作成功') : ($fail_msg ?: '操作失败');
+        $msg = $status == 0 ? ($success_msg ?: '操作成功') : ($fail_msg ?: '操作失败');
 
         $ret = array(
             'status' => $status,
@@ -1434,7 +1434,7 @@ class Common
      */
     public function getThumbnailText($str, $length)
     {
-        if($length<=0){
+        if ($length <= 0) {
             return "";
         }
         // 去掉HTML标签
@@ -2016,5 +2016,28 @@ class Common
             }
         };
         return $obj;
+    }
+
+    /**
+     * 去掉 URL 中的所有参数，只保留基本 URL 路径（即域名和路径部分）
+     * @param {Object} $url 地址
+     */
+    public function removeQueryParams($url)
+    {
+        $parts = parse_url($url);
+
+        // 移除查询字符串和片段
+        $parts['query'] = null;
+        $parts['fragment'] = null;
+
+        // 重新构建 URL（不包含查询字符串和片段）
+        $scheme = isset($parts['scheme']) ? $parts['scheme'] . '://' : '';
+        $host = isset($parts['host']) ? $parts['host'] : '';
+        $port = isset($parts['port']) ? ':' . $parts['port'] : '';
+        $path = isset($parts['path']) ? $parts['path'] : '';
+
+        $newUrl = $scheme . $host . $port . $path;
+
+        return $newUrl;
     }
 }
