@@ -454,22 +454,20 @@ class Common
 
 
     /**
-     * 在字符串中查找指定字符串，从1开始计算
-     * 存在则返回大于0的数字，不存在则返回0
+     * 在字符串中查找指定字符串
      *
-     * eg:findstr('abc','c')
+     * eg:findstr('Hello, world!','hello')
+     * @param {Object} $str 原始字符串
+     * @param {Object} $target  被查找的字符串
+     * @return bool true 找到 false 未找到
      */
-    public function findStr($find, $str)
+    public function findStr($str, $target)
     {
-        $pos = strpos($find, $str);
-        //    echo $pos;
-        if ((bool) $pos) {
-            $rt = $pos + 1;
-        } else {
-            $rt = 0;
+        if (strpos($str, $target) !== false) {
+            return true;
         }
 
-        return $rt;
+        return false;
     }
 
     /**

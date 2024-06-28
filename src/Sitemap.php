@@ -77,8 +77,8 @@ class Sitemap extends Common
 	}
 
 	/**
-	 * 设置网站地图根域名，开头用 http:// or https://, 结尾不要反斜杠/
-	 * @param string $domain	：	网站地图根域名 <br>例如: http://mimvp.com
+	 * 设置网站地图根域名，开头用 http:// 或 https://, 结尾不要反斜杠/
+	 * @param string $domain	：	网站地图根域名。例如: http://mimvp.com
 	 */
 	public function setDomain($domain)
 	{
@@ -191,11 +191,11 @@ class Sitemap extends Common
 	{
 		$xmlfileFullPath = "";
 		if ($this->getCurrentSitemap()) {
-			$xmlfileFullPath = $this->getXmlFile() . self::SITEMAP_SEPERATOR . $this->getCurrentSitemap() . self::SITEMAP_EXT;
 			// 第n个网站地图xml文件名 + -n + 后缀.xml
+			$xmlfileFullPath = $this->getXmlFile() . self::SITEMAP_SEPERATOR . $this->getCurrentSitemap() . self::SITEMAP_EXT;
 		} else {
-			$xmlfileFullPath = $this->getXmlFile() . self::SITEMAP_EXT;
 			// 第一个网站地图xml文件名 + 后缀.xml
+			$xmlfileFullPath = $this->getXmlFile() . self::SITEMAP_EXT;
 		}
 		$this->setCurrXmlFileFullPath($xmlfileFullPath);
 		// 保存当前xml文件全路径
@@ -218,8 +218,8 @@ class Sitemap extends Common
 	private function startSitemap()
 	{
 		$this->setWriter(new XMLWriter());
-		$this->getWriter()->openURI($this->getXMLFileFullPath());
 		// 获取xml文件全路径
+		$this->getWriter()->openURI($this->getXMLFileFullPath());
 
 		$this->getWriter()->startDocument('1.0', 'UTF-8');
 		$this->getWriter()->setIndentString("\t");
@@ -246,19 +246,19 @@ class Sitemap extends Common
 		}
 		$this->incCurrentItem();
 		$this->getWriter()->startElement('url');
-		//		$this -> getWriter() -> writeElement('loc', $this -> getDomain() .$loc);
+		// 必选
+		// $this -> getWriter() -> writeElement('loc', $this -> getDomain() .$loc);
 		$this->getWriter()->writeElement('loc', $loc);
 		// 必选
 		$this->getWriter()->writeElement('priority', $priority);
-		// 必选
 		if ($changefreq) {
-			$this->getWriter()->writeElement('changefreq', $changefreq);
 			// 可选
+			$this->getWriter()->writeElement('changefreq', $changefreq);
 		}
 		if ($lastmod) {
-			//			$this -> getWriter() -> writeElement('lastmod', $this -> getLastModifiedDate($lastmod));
-			$this->getWriter()->writeElement('lastmod', $lastmod);
 			// 可选
+			// $this -> getWriter() -> writeElement('lastmod', $this -> getLastModifiedDate($lastmod));
+			$this->getWriter()->writeElement('lastmod', $lastmod);
 		}
 		$this->getWriter()->endElement();
 		return $this;
@@ -293,7 +293,7 @@ class Sitemap extends Common
 		$this->getWriter()->endDocument();
 		$this->getWriter()->flush();
 		$rt_endSitemap = $this->getCurrXmlFileFullPath();
-		//		echo sprintf("<br><a href='%s' target='_blank'>%s</a> 生成完毕", $this -> getCurrXmlFileFullPath(), $this -> getCurrXmlFileFullPath());
+		// echo sprintf("<br><a href='%s' target='_blank'>%s</a> 生成完毕", $this -> getCurrXmlFileFullPath(), $this -> getCurrXmlFileFullPath());
 		$rt_createXSL2Html = $this->createXSL2Html(true);
 		$rt = array("xml" => $rt_endSitemap, "html" => $rt_createXSL2Html);
 		return $rt;
@@ -340,7 +340,6 @@ class Sitemap extends Common
 	 */
 	public function createXSL2Html($isopen_htmlfile = false)
 	{
-
 		header("Content-Type: text/html; charset=UTF-8");
 		$xml = new DOMDocument();
 		// var_dump($this -> xmlFile . '.xml');
@@ -350,7 +349,6 @@ class Sitemap extends Common
 		$xslproc = new XSLTProcessor();
 		$xslproc->importStylesheet($xsl);
 		// 	echo $xslproc->transformToXML($xml);
-
 		$htmlFile = $this->xmlFile . '.html';
 
 		$f = fopen($htmlFile, 'w');

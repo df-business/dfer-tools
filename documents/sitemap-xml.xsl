@@ -65,7 +65,7 @@
 						这是一个XML站点地图，应该由百度、谷歌、必应和雅虎等搜索引擎处理。
 						<br />
 						This is a XML Sitemap which is supposed to be processed by search engines like
-						<a href="http://www.baidu.com">Baidu</a>
+						<a href="http://www.baidu.com">Baidu</a>,
 						<a href="http://www.google.com">Google</a>,
 						<a href="http://bing.com">Bing</a> and
 						<a href="http://www.yahoo.com">Yahoo</a>.
@@ -103,14 +103,14 @@
 								</td>
 								<td>
 									<xsl:value-of
-										select="concat(substring(sitemap:lastmod,0,11),concat(' ', substring(sitemap:lastmod,12,5)))" />
+										select="sitemap:lastmod" />
 								</td>
 							</tr>
 						</xsl:for-each>
 					</table>
 				</div>
 				<div id="footer">
-					© 2021-2023
+					© 2021-2024
 					<a href="http://www.dfer.site" target="_blank">Dfer.Site</a>.
 				</div>
 			</body>
