@@ -4,11 +4,12 @@
 
 ## 使用
 
-**生成字体文件到dompdf**
+**安装系统字体到dompdf**
 ```
-php load_font.php simhei simhei.ttf
+php load_font.php system_fonts simhei
 ```
-- 生成`simhei`至`/vendor/dompdf/dompdf/lib/fonts/`，使pdf能够调用该字体
+- 安装`C:\Windows\Fonts`里的字体到`dompdf`
+- 生成`simhei`至`/vendor/dompdf/dompdf/lib/fonts/`，使`dompdf`能够调用该字体
 
 
 
@@ -34,7 +35,7 @@ php load_font.php simhei simhei.ttf
     }
 }
 ```
-- 需要手动替换此文件，否则会报错
+- 脚本会自动替换
 
 
 **IndexController.php**
@@ -44,11 +45,11 @@ $html =
 <<<STR
 <html lang="zh-CN">
     <head>
-        <meta charset="UTF-8">        
-            <style>               
+        <meta charset="UTF-8">
+            <style>
                * {
-                   font-family: simhei;                    
-               }              
+                   font-family: simhei;
+               }
             </style>
     </head>
     <body>
@@ -58,9 +59,9 @@ $html =
 STR;
 
 $dompdf = new Dompdf();
-$dompdf->loadHtml($html,'UTF-8');    
-$dompdf->setPaper('A4', 'portrait');    
-$dompdf->render();    
+$dompdf->loadHtml($html,'UTF-8');
+$dompdf->setPaper('A4', 'portrait');
+$dompdf->render();
 $filename = 'pdf_'. date('His') .'.pdf';
 $dompdf->stream($filename);
 ```

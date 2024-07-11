@@ -1,6 +1,6 @@
 <?php
 // 1. [Required] Point to the composer or dompdf autoloader
-require_once  dirname(__DIR__, 4).DIRECTORY_SEPARATOR."vendor/autoload.php";
+require_once  dirname(__DIR__, 4) . DIRECTORY_SEPARATOR . "autoload.php";
 
 // 2. [Optional] Set the path to your font directory
 //    By default dompdf loads fonts to dompdf/lib/fonts
@@ -22,7 +22,8 @@ use FontLib\Font;
 /**
  * Display command line usage
  */
-function usage() {
+function usage()
+{
   echo <<<EOD
 
 Usage: {$_SERVER["argv"][0]} font_family [n_file [b_file] [i_file] [bi_file]]
@@ -50,10 +51,10 @@ Examples:
 ./load_font.php 'Times New Roman' /mnt/c_drive/WINDOWS/Fonts/times.ttf
 
 EOD;
-exit;
+  exit;
 }
 
-if ( $_SERVER["argc"] < 3 && @$_SERVER["argv"][1] != "system_fonts" ) {
+if ($_SERVER["argc"] < 3 && @$_SERVER["argv"][1] != "system_fonts") {
   usage();
 }
 
@@ -78,11 +79,12 @@ if (isset($fontDir) && realpath($fontDir) !== false) {
  *
  * @throws Exception
  */
-function install_font_family($dompdf, $fontname, $normal, $bold = null, $italic = null, $bold_italic = null) {
+function install_font_family($dompdf, $fontname, $normal, $bold = null, $italic = null, $bold_italic = null)
+{
   $fontMetrics = $dompdf->getFontMetrics();
 
   // Check if the base filename is readable
-  if ( !is_readable($normal) )
+  if (!is_readable($normal))
     throw new Exception("Unable to read '$normal'.");
 
   $dir = dirname($normal);
@@ -96,7 +98,7 @@ function install_font_family($dompdf, $fontname, $normal, $bold = null, $italic 
     $ext = '';
   }
 
-  if ( !in_array($ext, array(".ttf", ".otf")) ) {
+  if (!in_array($ext, array(".ttf", ".otf"))) {
     throw new Exception("Unable to process fonts of type '$ext'.");
   }
 
@@ -110,15 +112,15 @@ function install_font_family($dompdf, $fontname, $normal, $bold = null, $italic 
   );
 
   foreach ($patterns as $type => $_patterns) {
-    if ( !isset($$type) || !is_readable($$type) ) {
-      foreach($_patterns as $_pattern) {
-        if ( is_readable("$path$_pattern$ext") ) {
+    if (!isset($$type) || !is_readable($$type)) {
+      foreach ($_patterns as $_pattern) {
+        if (is_readable("$path$_pattern$ext")) {
           $$type = "$path$_pattern$ext";
           break;
         }
       }
 
-      if ( is_null($$type) )
+      if (is_null($$type))
         echo ("Unable to find $type face file.\n");
     }
   }
@@ -128,23 +130,23 @@ function install_font_family($dompdf, $fontname, $normal, $bold = null, $italic 
 
   // Copy the files to the font directory.
   foreach ($fonts as $var => $src) {
-    if ( is_null($src) ) {
-      $entry[$var] = $dompdf->getOptions()->get('fontDir') . '/' . mb_substr(basename($normal), 0, -4);
+    if (is_null($src)) {
+      $entry[$var] = mb_substr(basename($normal), 0, -4);
       continue;
     }
 
     // Verify that the fonts exist and are readable
-    if ( !is_readable($src) )
+    if (!is_readable($src))
       throw new Exception("Requested font '$src' is not readable");
 
     $dest = $dompdf->getOptions()->get('fontDir') . '/' . basename($src);
 
-    if ( !is_writeable(dirname($dest)) )
+    if (!is_writeable(dirname($dest)))
       throw new Exception("Unable to write to destination '$dest'.");
 
     echo "Copying $src to $dest...\n";
 
-    if ( !copy($src, $dest) )
+    if (!copy($src, $dest))
       throw new Exception("Unable to copy '$src' to '$dest'");
 
     $entry_name = mb_substr($dest, 0, -4);
@@ -155,9 +157,9 @@ function install_font_family($dompdf, $fontname, $normal, $bold = null, $italic 
     $font_obj->saveAdobeFontMetrics("$entry_name.ufm");
     $font_obj->close();
 
-    $entry[$var] = $entry_name;
+    $entry[$var] = basename($entry_name);
   }
-
+  // var_dump($entry);
   // Store the fonts in the lookup table
   $fontMetrics->setFontFamily($fontname, $entry);
 
@@ -166,37 +168,39 @@ function install_font_family($dompdf, $fontname, $normal, $bold = null, $italic 
 }
 
 // If installing system fonts (may take a long time)
-if ( $_SERVER["argv"][1] === "system_fonts" ) {
+if ($_SERVER["argv"][1] === "system_fonts") {
+  if (!isset($_SERVER["argv"][2])) {
+    die("输入系统字体的名称(在`C:\Windows\Fonts`查看字体文件的属性名称)，比如：simhei\n");
+  }
+  $sys_font_name = $_SERVER["argv"][2];
+  $sys_font_dir = "C:\Windows\Fonts";
+  $sys_font_ext = ".ttf";
+
   $fontMetrics = $dompdf->getFontMetrics();
-  $files = glob("/usr/share/fonts/truetype/*.ttf") +
-    glob("/usr/share/fonts/truetype/*/*.ttf") +
-    glob("/usr/share/fonts/truetype/*/*/*.ttf") +
-    glob("C:\\Windows\\fonts\\*.ttf") +
-    glob("C:\\WinNT\\fonts\\*.ttf") +
-    glob("/mnt/c_drive/WINDOWS/Fonts/");
+
+  $files = [$sys_font_dir . DIRECTORY_SEPARATOR . $sys_font_name . $sys_font_ext];
+
   $fonts = array();
   foreach ($files as $file) {
-      $font = Font::load($file);
-      $records = $font->getData("name", "records");
-      $type = $fontMetrics->getType($records[2]);
-      $fonts[mb_strtolower($records[1])][$type] = $file;
-      $font->close();
+    $font = Font::load($file);
+    $records = $font->getData("name", "records");
+    $type = $fontMetrics->getType($records[2]);
+    $fonts[mb_strtolower($sys_font_name)][$type] = $file;
+    $font->close();
   }
 
-  foreach ( $fonts as $family => $files ) {
+  foreach ($fonts as $family => $files) {
     echo " >> Installing '$family'... \n";
 
-    if ( !isset($files["normal"]) ) {
+    if (!isset($files["normal"])) {
       echo "No 'normal' style font file\n";
-    }
-    else {
+    } else {
       install_font_family($dompdf, $family, @$files["normal"], @$files["bold"], @$files["italic"], @$files["bold_italic"]);
       echo "Done !\n";
     }
 
     echo "\n";
   }
-}
-else {
-  call_user_func_array("install_font_family", array_merge( array($dompdf), array_slice($_SERVER["argv"], 1) ));
+} else {
+  call_user_func_array("install_font_family", array_merge(array($dompdf), array_slice($_SERVER["argv"], 1)));
 }

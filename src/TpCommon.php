@@ -38,15 +38,17 @@
 
 namespace Dfer\Tools;
 
-use think\{Validate, Db};
+use think\{Db, Log, Validate};
+use think\facade\{Db as FacadeDb, Log as FacadeLog, Filesystem as FacadeFilesystem};
+use think\exception\ValidateException;
 
 class TpCommon extends Common
 {
-    const V2="2.0";
-    const V3="3.0";
-    const V5="5.1";
-    const V6="6.0";
-    const V8="8.0";
+    const V2 = "2.0";
+    const V3 = "3.0";
+    const V5 = "5.1";
+    const V6 = "6.0";
+    const V8 = "8.0";
 
     // tp版本
     protected $tp_version;
@@ -65,7 +67,7 @@ class TpCommon extends Common
     public function getColName($table, $keys = [], $col_name = 'Comment')
     {
         if ($this->checkVersion()) {
-            \think\facade\Db::query("SHOW FULL COLUMNS FROM {$table};");
+            $list = FacadeDb::query("SHOW FULL COLUMNS FROM {$table};");
         } else {
             $list = (new Db)->query("SHOW FULL COLUMNS FROM {$table};");
         }
@@ -95,7 +97,7 @@ class TpCommon extends Common
      * @param {Object} $need_ver 版本号    比如：self::V6
      * @param {Object} $require 必须支持该版本
      **/
-    public function checkVersion($need_ver=self::V5,$require = false)
+    public function checkVersion($need_ver = self::V5, $require = false)
     {
         if ($require) {
             version_compare($this->tp_version, $need_ver, '>=') or die("需要 ThinkPHP >= v{$need_ver} !");
@@ -117,9 +119,9 @@ class TpCommon extends Common
     public function log($data, $identification = 'dfer')
     {
         if ($this->checkVersion()) {
-            \think\facade\Log::write($data, $identification);
+            FacadeLog::write($data, $identification);
         } else {
-            \think\Log::write($data, $identification);
+            Log::write($data, $identification);
         }
     }
 
@@ -130,16 +132,15 @@ class TpCommon extends Common
      */
     public function uploadForm()
     {
-        $this->checkVersion(self::V5,true);
+        $this->checkVersion(self::V5, true);
 
         $files = request()->file();
         // dump($files);
         if (!empty($files)) {
             try {
-                $validate = new \app\validate\upload;
-                $result = $validate->check($files);
-                if (!$result) {
-                    echo $validate->getError();
+                $result = $this->validate($files, ['image' => 'fileSize:10240|fileExt:jpg|image:200,200,jpg']);
+                if ($result !== true) {
+                    die($result);
                 }
 
                 $files = $files['image'];
@@ -147,17 +148,17 @@ class TpCommon extends Common
                 if (\is_array($files)) {
                     $savename = [];
                     foreach ($files as $file) {
-                        $savename[] = \think\facade\Filesystem::putFile('e', $file);
+                        $savename[] = FacadeFilesystem::putFile('e', $file);
                     }
                 }
                 // 单文件
                 else {
                     // 上传到本地服务器
-                    $savename = \think\facade\Filesystem::putFile('e', $file);
+                    $savename = FacadeFilesystem::putFile('e', $file);
                 }
                 // dump($savename);
                 return $savename;
-            } catch (\think\exception\ValidateException $e) {
+            } catch (ValidateException $e) {
                 dump($e);
                 return $e;
             }
@@ -170,8 +171,7 @@ class TpCommon extends Common
      * @param string|array $validate 验证器对象字符串
      * @param array        $message  提示信息
      * @param bool         $batch    是否批量验证
-     * @param mixed        $callback 回调方法（闭包）
-     * @return array|string|true
+     * @return string(错误信息)|true(成功)
      * @throws ValidateException
      */
     public function validate(array $data, $validate, array $message = [], bool $batch = false)
@@ -199,7 +199,7 @@ class TpCommon extends Common
         }
         if ($this->checkVersion(self::V6)) {
             $result = $v->failException(false)->check($data);
-        }else{
+        } else {
             $result = $v->check($data);
         }
 

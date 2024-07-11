@@ -1632,6 +1632,9 @@ class Common
 
     /**
      * 替换字符串
+     * 例如：
+     *      Common::strReplace($inputHTML,['&nbsp;'],[null])
+     *
      * @param {Object} $str 原始字符串
      * @param {Object} $from 被替换的字符串
      * @param {Object} $to 替换之后的字符串
