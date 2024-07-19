@@ -1,5 +1,6 @@
 <?php
-namespace Dfer\Tools;
+
+namespace Dfer\Tools\Office;
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -9,6 +10,7 @@ use PhpOffice\PhpSpreadsheet\Cell\DataType;
 /**
  * +----------------------------------------------------------------------
  * | 电子表格类
+ * | 支持xlsx、xls、xml、html、csv、ods文件
  * | composer require phpoffice/phpspreadsheet="^1.29"
  * +----------------------------------------------------------------------
  *                                            ...     .............
@@ -39,7 +41,7 @@ use PhpOffice\PhpSpreadsheet\Cell\DataType;
  * +----------------------------------------------------------------------
  *
  */
-class Office
+class Excel
 {
 
     protected static $spreadsheetInstance;
@@ -58,11 +60,56 @@ class Office
     protected $hasContentTitle = false;
 
     // 标题样式
-    protected $titleStyle = [];
+    protected $titleStyle = [
+        'font' => [
+            'bold' => true,
+            'size' => 15,
+        ],
+        'borders' => [
+            'outline' => [
+                'borderStyle' => 'thin',
+                'color' => ['argb' => 'FF000000'],
+            ],
+        ],
+        'alignment' => [
+            'horizontal' => 'center',
+            'vertical' => 'center'
+        ],
+    ];
     // 头部样式
-    protected $headerStyle = [];
+    protected $headerStyle = [
+        'font' => [
+            'bold' => true,
+            'size' => 10,
+        ],
+        'borders' => [
+            'outline' => [
+                'borderStyle' => 'thin',
+                'color' => ['argb' => 'FF000000'],
+            ],
+        ],
+        'alignment' => [
+            'horizontal' => 'center',
+            'vertical' => 'center'
+        ],
+    ];
     // 主体样式
-    protected $bodyStyle = [];
+    protected $bodyStyle = [
+        'font' => [
+            'bold' => false,
+            'size' => 10,
+        ],
+        'borders' => [
+            'allBorders' => [
+                'borderStyle' => 'thin',
+                'color' => ['argb' => 'FF000000'],
+            ],
+        ],
+        'alignment' => [
+            'horizontal' => 'center',
+            'vertical' => 'center'
+        ],
+    ];
 
 
     /**
@@ -98,54 +145,9 @@ class Office
      */
     public function setStyle(array $titleStyle = [], array $headerStyle = [], array $bodyStyle = [])
     {
-        $this->titleStyle = array_merge([
-            'font' => [
-                'bold' => true,
-                'size' => 15,
-            ],
-            'borders' => [
-                'outline' => [
-                    'borderStyle' => 'thin',
-                    'color' => ['argb' => 'FF000000'],
-                ],
-            ],
-            'alignment' => [
-                'horizontal' => 'center',
-                'vertical' => 'center'
-            ],
-        ], $titleStyle);
-        $this->headerStyle = array_merge([
-            'font' => [
-                'bold' => true,
-                'size' => 10,
-            ],
-            'borders' => [
-                'outline' => [
-                    'borderStyle' => 'thin',
-                    'color' => ['argb' => 'FF000000'],
-                ],
-            ],
-            'alignment' => [
-                'horizontal' => 'center',
-                'vertical' => 'center'
-            ],
-        ], $headerStyle);
-        $this->bodyStyle = array_merge([
-            'font' => [
-                'bold' => false,
-                'size' => 10,
-            ],
-            'borders' => [
-                'allBorders' => [
-                    'borderStyle' => 'thin',
-                    'color' => ['argb' => 'FF000000'],
-                ],
-            ],
-            'alignment' => [
-                'horizontal' => 'center',
-                'vertical' => 'center'
-            ],
-        ], $bodyStyle);
+        $this->titleStyle = array_merge($this->titleStyle, $titleStyle);
+        $this->headerStyle = array_merge($this->headerStyle, $headerStyle);
+        $this->bodyStyle = array_merge($this->bodyStyle, $bodyStyle);
         return $this;
     }
 
@@ -235,7 +237,6 @@ class Office
         $this->currentRow += 1;
         return $this;
     }
-
 
 
     /**

@@ -36,7 +36,7 @@
 namespace Dfer\Tools;
 
 use DOMDocument;
-
+use Closure;
 
 class Common
 {
@@ -131,8 +131,6 @@ class Common
     }
 
 
-
-
     /**
      * 是微信端则返回true
      */
@@ -143,7 +141,6 @@ class Common
         }
         return true;
     }
-
 
 
     /**
@@ -256,7 +253,6 @@ class Common
         // $str = preg_replace_callback('/\\\\u([0-9a-f]{4})/i', 'replace_unicode_escape_sequence', $name);
         // return $str;
     }
-
 
 
     /**
@@ -428,7 +424,6 @@ class Common
     }
 
 
-
     /**
      * 将查询字符串中的参数解析为变量
      * eg:user_id=391&type=ueditor
@@ -449,8 +444,6 @@ class Common
             return $ret ?? [];
         }
     }
-
-
 
 
     /**
@@ -569,7 +562,6 @@ class Common
     }
 
 
-
     /**
      * 字符串转十六进制函数
      * @pream string $str='abc';
@@ -618,7 +610,6 @@ class Common
     }
 
 
-
     /**
      * php调用网页头的验证功能
      * @param {Object} $account
@@ -632,8 +623,7 @@ class Common
         //验证成功
         if ($strAuthUser == $account && $strAuthPass == $password) {
             return true;
-        }
-        //验证失败
+        } //验证失败
         else {
             header('WWW-Authenticate: Basic realm="Df"');
             header('HTTP/1.0 401 Unauthorized');
@@ -920,7 +910,6 @@ class Common
     }
 
 
-
     /**
      * 分割字符串
      * eg:split("1|2|3","|");
@@ -1085,12 +1074,11 @@ class Common
     }
 
 
-
     /**
      * 字符串半角和全角间相互转换
      * 半角即英文字符，全角即中文字符
      * @param string $str 待转换的字符串
-     * @param int  $type 类型。TODBC:转换为半角；TOSBC，转换为全角
+     * @param int $type 类型。TODBC:转换为半角；TOSBC，转换为全角
      * @return string 返回转换后的字符串
      */
     public function convertStrType($str, $type)
@@ -1448,13 +1436,13 @@ class Common
 
     /**
      * 检查字符串中是否包含某些字符串
-     * @param string       $haystack
+     * @param string $haystack
      * @param string|array $needles
      * @return bool
      */
     public function contains($haystack, $needles)
     {
-        foreach ((array) $needles as $needle) {
+        foreach ((array)$needles as $needle) {
             if ($needle != '' && mb_strpos($haystack, $needle) !== false) {
                 return true;
             }
@@ -1466,14 +1454,14 @@ class Common
     /**
      * 检查字符串是否以某些字符串结尾
      *
-     * @param  string       $haystack
-     * @param  string|array $needles
+     * @param string $haystack
+     * @param string|array $needles
      * @return bool
      */
     public function endsWith($haystack, $needles)
     {
-        foreach ((array) $needles as $needle) {
-            if ((string) $needle === static::substr($haystack, -static::length($needle))) {
+        foreach ((array)$needles as $needle) {
+            if ((string)$needle === static::substr($haystack, -static::length($needle))) {
                 return true;
             }
         }
@@ -1484,13 +1472,13 @@ class Common
     /**
      * 检查字符串是否以某些字符串开头
      *
-     * @param  string       $haystack
-     * @param  string|array $needles
+     * @param string $haystack
+     * @param string|array $needles
      * @return bool
      */
     public function startsWith($haystack, $needles)
     {
-        foreach ((array) $needles as $needle) {
+        foreach ((array)$needles as $needle) {
             if ($needle != '' && mb_strpos($haystack, $needle) === 0) {
                 return true;
             }
@@ -1502,7 +1490,7 @@ class Common
     /**
      * 获取指定长度的随机字母数字组合的字符串
      *
-     * @param  int $length
+     * @param int $length
      * @return string
      */
     public function random($length = 16)
@@ -1515,7 +1503,7 @@ class Common
     /**
      * 字符串转小写
      *
-     * @param  string $value
+     * @param string $value
      * @return string
      */
     public function lower($value)
@@ -1526,7 +1514,7 @@ class Common
     /**
      * 字符串转大写
      *
-     * @param  string $value
+     * @param string $value
      * @return string
      */
     public function upper($value)
@@ -1537,7 +1525,7 @@ class Common
     /**
      * 获取字符串的长度
      *
-     * @param  string $value
+     * @param string $value
      * @return int
      */
     public function length($value)
@@ -1548,9 +1536,9 @@ class Common
     /**
      * 截取字符串
      *
-     * @param  string   $string
-     * @param  int      $start
-     * @param  int|null $length
+     * @param string $string
+     * @param int $start
+     * @param int|null $length
      * @return string
      */
     public function substr($string, $start, $length = null)
@@ -1561,11 +1549,12 @@ class Common
     protected static $snakeCache = [];
     protected static $camelCache = [];
     protected static $studlyCache = [];
+
     /**
      * 驼峰转下划线
      *
-     * @param  string $value
-     * @param  string $delimiter
+     * @param string $value
+     * @param string $delimiter
      * @return string
      */
     public function snake($value, $delimiter = '_')
@@ -1588,7 +1577,7 @@ class Common
     /**
      * 下划线转驼峰(首字母小写)
      *
-     * @param  string $value
+     * @param string $value
      * @return string
      */
     public function camel($value)
@@ -1603,7 +1592,7 @@ class Common
     /**
      * 下划线转驼峰(首字母大写)
      *
-     * @param  string $value
+     * @param string $value
      * @return string
      */
     public function studly($value)
@@ -1622,7 +1611,7 @@ class Common
     /**
      * 转为首字母大写的标题格式
      *
-     * @param  string $value
+     * @param string $value
      * @return string
      */
     public function title($value)
@@ -1730,7 +1719,8 @@ class Common
         {1}
         //////////////////////////////////////////////////  出错 END  //////////////////////////////////////////////////
 
-        STR, [$exception->getMessage(), implode(PHP_EOL, $trace_list)]);
+        STR
+            , [$exception->getMessage(), implode(PHP_EOL, $trace_list)]);
 
         return $err_msg;
     }
@@ -1806,7 +1796,6 @@ class Common
         $list = $this->traverseParentTree($categories_tree);
         return $list;
     }
-
 
 
     /**
@@ -2006,9 +1995,9 @@ class Common
             unset($list[$key]);
         }
 
-        $obj = new class($minValue, $origin_list, $list)
-        {
+        $obj = new class($minValue, $origin_list, $list) {
             public $remove_value, $origin_list, $list;
+
             public function __construct($remove_value, $origin_list, $list)
             {
                 $this->remove_value = $remove_value;

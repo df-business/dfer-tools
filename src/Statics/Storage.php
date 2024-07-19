@@ -34,9 +34,10 @@ namespace Dfer\Tools\Statics;
  * +----------------------------------------------------------------------
  *
  */
-class Office extends Base
+class Storage extends Base
 {
-    protected function className(){
+    protected function className()
+    {
         return str_replace("\Statics", "", __CLASS__);
     }
 }

@@ -59,6 +59,7 @@ trait FilesTrait
      */
     public $my_scenfiles = array();
     public $my_files = array();
+
     public function scanDir($dir)
     {
         global $my_scenfiles, $my_files;
@@ -77,7 +78,6 @@ trait FilesTrait
             closedir($handle);
         }
     }
-
 
 
     /**
@@ -325,7 +325,6 @@ trait FilesTrait
     }
 
 
-
     /**
      *
      * 上传文件
@@ -392,7 +391,7 @@ trait FilesTrait
 
 
         switch ($filetype) {
-                //图片上传
+            //图片上传
             case 'image/gif':
             case 'image/jpeg':
             case 'image/pjpeg':
@@ -545,14 +544,13 @@ trait FilesTrait
             <<<STR
 
             ********************** DEBUG{tag} START **********************
-            {$trace[2]['file']}:{$trace[2]['line']}
-            {$trace[1]['file']}:{$trace[1]['line']}
-            {$trace[0]['file']}:{$trace[0]['line']}
+            {$trace}
 
             {0}
             **********************  DEBUG{tag} END  **********************
 
-            STR,
+            STR
+            ,
             [$args, 'tag' => "[{$tag} {$time}]"]
         );
         $file_dir = $this->str("{root}/data/logs/{0}", [date('Ym'), "root" => $root]);
@@ -573,10 +571,17 @@ trait FilesTrait
         foreach ($trace as $index => $call) {
             // 检查是否有 'file' 键
             if (isset($call['file'])) {
-                $filteredBacktrace[] = $call;
+                if ($this->findStr($call['file'], "/vendor/")) {
+                    continue;
+                }
+                $filteredBacktrace[] = $this->str("{file}:{line}", ['file' => $call['file'], 'line' => $call['line']]);
+                if (count($filteredBacktrace) == 9) {
+                    break;
+                }
             }
         }
-        return $filteredBacktrace;
+        $filteredBacktraceString = implode(PHP_EOL, $filteredBacktrace);
+        return $filteredBacktraceString;
     }
 
     /**
@@ -590,14 +595,14 @@ trait FilesTrait
     }
 
     /**
-     * 获取网络文件 
-     * 
+     * 获取网络文件
+     *
      * 例：
      * Common::getFileFromUrl("https://fyb-1.cdn.bcebos.com/fyb/de6163834f53ca92c1273fff98ac9078.jpeg?x-bce-process=image/resize,m_fill,w_256,h_170")
-     * 
+     *
      * @param {Object} $url    文件远程地址。如：https://fyb-1.cdn.bcebos.com/fyb/de6163834f53ca92c1273fff98ac9078.jpeg?x-bce-process=image/resize,m_fill,w_256,h_170
      * @param {Object} $dir    本地保存目录。如：/www/wwwroot/www.dfer.site/public/uploads/collect
-     * @return {Object} 
+     * @return {Object}
      * $dir为空：返回base64字符串
      * $dir不为空：返回文件保存路径
      */
