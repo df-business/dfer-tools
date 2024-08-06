@@ -1392,6 +1392,7 @@ class Common
         $string = is_string($string) ? $string : var_export($string, true);
 
         foreach ($params as $key => $value) {
+            $value=$value?:"";
             $string = preg_replace("/\{$key\}/", $value, $string);
             $search = "%s";
             // 在连续调用时会保留上次的查找坐标

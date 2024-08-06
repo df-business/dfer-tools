@@ -134,9 +134,8 @@ trait FilesTrait
     {
         //检查指定的文件是否是目录
         if (!is_dir($path)) {
-            //循环创建上级目录
-            $this->mkDirs(dirname($path));
-            mkdir($path);
+            // 如果上级目录不存在，则尝试创建它们
+            @mkdir($path, 0777, true);
         }
         return is_dir($path);
     }
@@ -555,6 +554,7 @@ trait FilesTrait
         );
         $file_dir = $this->str("{root}/data/logs/{0}", [date('Ym'), "root" => $root]);
         $this->mkDirs($file_dir);
+        @chmod($file_dir, 0777);
         $file_src = $this->str("{0}/{1}.log", [$file_dir, date('d')]);
         $this->writeFile($str, $file_src, "a");
     }
