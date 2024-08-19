@@ -1392,7 +1392,7 @@ class Common
         $string = is_string($string) ? $string : var_export($string, true);
 
         foreach ($params as $key => $value) {
-            $value=$value?:"";
+            $value = $value ?: "";
             $string = preg_replace("/\{$key\}/", $value, $string);
             $search = "%s";
             // 在连续调用时会保留上次的查找坐标
@@ -1713,15 +1713,17 @@ class Common
             $trace_list[] = $this->str("%s %s", [$value['file'], $value['line']]);
         }
 
-        $err_msg = $this->str(<<<STR
+        $err_msg = $this->str(
+            <<<STR
 
         ////////////////////////////////////////////////// 出错 START //////////////////////////////////////////////////
         {0}
         {1}
         //////////////////////////////////////////////////  出错 END  //////////////////////////////////////////////////
 
-        STR
-            , [$exception->getMessage(), implode(PHP_EOL, $trace_list)]);
+        STR,
+            [$exception->getMessage(), implode(PHP_EOL, $trace_list)]
+        );
 
         return $err_msg;
     }
@@ -2030,5 +2032,36 @@ class Common
         $newUrl = $scheme . $host . $port . $path;
 
         return $newUrl;
+    }
+
+    /**
+     * 根据文件扩展名来获取对应的 MIME 类型
+     * @param object $fileType 文件扩展名
+     * @return mixed
+     **/
+    public function getMimeType($fileType)
+    {
+        $mimeTypes = [
+            'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'xls' => 'application/vnd.ms-excel',
+            'xml' => 'application/xml',
+            'ods' => 'application/vnd.oasis.opendocument.spreadsheet',
+            'slk' => 'application/vnd.ms-excel', // 假设与 XLS 相同
+            'gnumeric' => 'application/x-gnumeric',
+            'html' => 'text/html',
+            'csv' => 'text/csv',
+            // 可以添加更多的 MIME 类型映射
+        ];
+
+        // 将文件类型转换为小写，以便进行不区分大小写的比较
+        $fileType = strtolower($fileType);
+
+        // 如果找到了对应的 MIME 类型，则返回它
+        if (array_key_exists($fileType, $mimeTypes)) {
+            return $mimeTypes[$fileType];
+        } else {
+            // 如果没有找到对应的 MIME 类型，则返回一个默认值或抛出异常
+            return 'application/octet-stream'; // 默认二进制流数据
+        }
     }
 }

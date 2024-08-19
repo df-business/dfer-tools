@@ -6,6 +6,7 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Style;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use Dfer\Tools\Common;
 
 /**
  * +----------------------------------------------------------------------
@@ -41,7 +42,7 @@ use PhpOffice\PhpSpreadsheet\Cell\DataType;
  * +----------------------------------------------------------------------
  *
  */
-class Excel
+class Excel extends Common
 {
 
     protected static $spreadsheetInstance;
@@ -379,28 +380,14 @@ class Excel
     {
         self::spreadsheetInstance()->setActiveSheetIndex(0);
         $format = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
-        $contentType = '';
-        switch ($format) {
-            case 'xlsx':
-                $contentType = 'data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;';
-                break;
-            case 'xls':
-                $contentType = 'data:application/vnd.ms-excel;';
-                break;
-            case 'csv':
-                $contentType = 'data:text/csv;';
-                break;
-            default:
-                return false;
-                break;
-        }
+        $contentType = $this->getMimeType($format);
         $writer = IOFactory::createWriter(self::spreadsheetInstance(), ucfirst($format));
         ob_start();
         $writer->save('php://output');
         $xlsData = ob_get_contents();
         ob_end_clean();
         $response = [
-            'file' => $contentType . "base64," . base64_encode($xlsData),
+            'file' => "data:{$contentType};base64," . base64_encode($xlsData),
             'title' => $fileName
         ];
         return $response;
@@ -416,9 +403,6 @@ class Excel
         self::spreadsheetInstance()->setActiveSheetIndex(0);
         $file = $this->getFileName($fileName);
         $format = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
-        if (!in_array($format, ['xlsx', 'xls', 'csv'])) {
-            return false;
-        }
         $writer = IOFactory::createWriter(self::spreadsheetInstance(), ucfirst($format));
         $writer->save($file);
         return '/' . $file;
@@ -441,7 +425,7 @@ class Excel
     public function readFile(string $fileName = 'test.xlsx', array $col_item = [], int $row_index = 3, array $origin_item = [])
     {
         //设置excel格式
-        $format = 'xlsx';
+        $format = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
         $reader = IOFactory::createReader(ucfirst($format));
         //载入excel文件
         $excel = $reader->load($fileName);
