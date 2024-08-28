@@ -36,12 +36,10 @@
 
 namespace Dfer\Tools;
 
+use Exception,Error,Closure;
 use OSS\OssClient;
-
 use OSS\Core\OssException;
-use Exception;
-use Error;
-use Closure;
+use Dfer\Tools\Constants;
 
 class AliOss extends Common
 {
@@ -159,7 +157,7 @@ class AliOss extends Common
             $authorizationBase64 = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
             $pubKeyUrlBase64 = $_SERVER['HTTP_X_OSS_PUB_KEY_URL'] ?? null;
             if (empty($authorizationBase64) || empty($pubKeyUrlBase64)) {
-                $this->setHttpStatus(self::FORBIDDEN);
+                $this->setHttpStatus(Constants::FORBIDDEN);
             }
             // 获取OSS的签名
             $authorization = base64_decode($authorizationBase64);
@@ -169,7 +167,7 @@ class AliOss extends Common
             $pubKey = $this->httpRequest($pubKeyUrl);
             // $this->debug($pubKey);
             if (empty($pubKey)) {
-                $this->setHttpStatus(self::FORBIDDEN);
+                $this->setHttpStatus(Constants::FORBIDDEN);
             }
             // 获取回调body
             $body = file_get_contents('php://input');
@@ -197,7 +195,7 @@ class AliOss extends Common
                 $this->processSave();
                 $this->returnData($callback_function);
             } else {
-                $this->setHttpStatus(self::FORBIDDEN);
+                $this->setHttpStatus(Constants::FORBIDDEN);
             }
         } catch (OssException $exception) {
             $this->debug($exception);

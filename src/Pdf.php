@@ -1,8 +1,4 @@
 <?php
-namespace Dfer\Tools;
-
-use Dompdf\{Dompdf,Options};
-
 
 /**
  * +----------------------------------------------------------------------
@@ -37,18 +33,21 @@ use Dompdf\{Dompdf,Options};
  * +----------------------------------------------------------------------
  *
  */
+
+namespace Dfer\Tools;
+
+use Dompdf\{Dompdf,Options};
+use Dfer\Tools\Constants;
+
 class Pdf extends Common
 {
-    // 横向
-    const LANDSCAPE='landscape';
-    // 纵向
-    const PORTRAIT='portrait';
+
 
     /**
      * 将html转化为pdf
      * @param {Object} $var 变量
      **/
-    public function html2pdf($html,$filename="pdf",$direction = self::PORTRAIT)
+    public function html2pdf($html,$filename="pdf",$direction = Constants::PORTRAIT)
     {
         $dompdf = new Dompdf();
         $dompdf->loadHtml($html,'UTF-8');

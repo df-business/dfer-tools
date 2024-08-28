@@ -1,8 +1,5 @@
 <?php
 
-namespace Dfer\Tools\Statics;
-
-
 /**
  * +----------------------------------------------------------------------
  * | 静态调用
@@ -35,6 +32,9 @@ namespace Dfer\Tools\Statics;
  * +----------------------------------------------------------------------
  *
  */
+
+namespace Dfer\Tools\Statics;
+
 abstract class Base
 {
     /**

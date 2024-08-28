@@ -1,10 +1,5 @@
 <?php
 
-namespace Dfer\Tools\TpConsole\Tmpl;
-
-use think\console\input\{Argument, Option};
-use think\exception\ErrorException;
-
 /**
  * +----------------------------------------------------------------------
  * | 简单控制台
@@ -41,6 +36,12 @@ use think\exception\ErrorException;
  * +----------------------------------------------------------------------
  *
  */
+
+namespace Dfer\Tools\TpConsole\Tmpl;
+
+use think\console\input\{Argument, Option};
+use think\exception\ErrorException;
+
 class Plain extends PlainCommand
 {
 

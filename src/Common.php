@@ -35,8 +35,8 @@
 
 namespace Dfer\Tools;
 
-use DOMDocument;
-use Closure;
+use DOMDocument,Closure,Exception, Error, Throwable;
+use Dfer\Tools\Constants;
 
 class Common
 {
@@ -44,19 +44,6 @@ class Common
     private static $instance;
 
     use ImgTrait, FilesTrait;
-
-    const TIME_FULL = 'Y-m-d H:i:s', TIME_YMD = 'Y-m-d';
-
-    const REQ_JSON = 0, REQ_GET = 1, REQ_POST = 2;
-
-    const OK = 200, MOVED_PERMANENTLY = 301, UNAUTHORIZED = 401, FORBIDDEN = 403, NOT_FOUND = 404;
-
-    //um单个文件上传;um编辑框;layui编辑器上传;editormd编辑器上传;baidu组件上传
-    const UPLOAD_UMEDITOR_SINGLE = 0, UPLOAD_UMEDITOR_EDITOR = 1, UPLOAD_LAYUI_EDITOR = 2, UPLOAD_EDITORMD_EDITOR = 3, UPLOAD_WEB_UPLOADER = 4;
-
-    const NL_CRLF2BR = 0, NL_BR2CRLF = 1;
-
-    const OSS_SIZE_NORMAL = "", OSS_SIZE_MIDDLE = "m", OSS_SIZE_SMALL = "s";
 
     /**
      * 简介
@@ -103,7 +90,7 @@ class Common
      */
     public function showJson($status = 0, $data = array(), $success_msg = '', $fail_msg = '')
     {
-        $msg = $status == 0 ? ($success_msg ?: '操作成功') : ($fail_msg ?: '操作失败');
+        $msg = $status === 0 ? ($success_msg ?: '操作成功') : ($fail_msg ?: '操作失败');
 
         $ret = array(
             'status' => $status,
@@ -113,7 +100,7 @@ class Common
             $ret['data'] = $data;
         }
 
-        self::showJsonBase($ret);
+        $this->showJsonBase($ret);
     }
 
     /**
@@ -171,7 +158,7 @@ class Common
      * @param {Object} $type 类型
      * @return {Object} 正常时间格式(2024-02-28 11:36:41)
      */
-    public function getTime($time = null, $type = self::TIME_FULL)
+    public function getTime($time = null, $type = Constants::TIME_FULL)
     {
         $format = $type;
         if (empty($time)) {
@@ -265,12 +252,12 @@ class Common
      * @param $header ["Content-Type: application/json"]
      * @param $type
      **/
-    public function httpRequest($url, $data = null, $type = self::REQ_POST, $header = null)
+    public function httpRequest($url, $data = null, $type = Constants::REQ_POST, $header = null)
     {
         //初始化浏览器
         $curl = curl_init();
         switch ($type) {
-            case self::REQ_JSON:
+            case Constants::REQ_JSON:
                 if (!empty($data)) {
                     $data = json_encode($data, JSON_UNESCAPED_UNICODE);
                     curl_setopt($curl, CURLOPT_HEADER, false);
@@ -286,7 +273,7 @@ class Common
                     );
                 }
                 break;
-            case self::REQ_GET:
+            case Constants::REQ_GET:
                 //判断data是否有数据
                 if (!empty($data)) {
                     $url .= '?';
@@ -296,7 +283,7 @@ class Common
                     $data = null;
                 }
                 break;
-            case self::REQ_POST:
+            case Constants::REQ_POST:
                 break;
             default:
                 # code...
@@ -636,19 +623,19 @@ class Common
      * 设置网页状态
      * @param {Object} $var 变量
      **/
-    public function setHttpStatus($var = self::OK)
+    public function setHttpStatus($var = Constants::OK)
     {
         http_response_code($var);
         switch ($var) {
-            case self::MOVED_PERMANENTLY:
+            case Constants::MOVED_PERMANENTLY:
                 die("永久重定向");
-            case self::UNAUTHORIZED:
+            case Constants::UNAUTHORIZED:
                 die("未经授权");
-            case self::FORBIDDEN:
+            case Constants::FORBIDDEN:
                 die("禁止访问");
-            case self::NOT_FOUND:
+            case Constants::NOT_FOUND:
                 die("页面没找到");
-            case self::OK:
+            case Constants::OK:
             default:
                 break;
         }
@@ -710,7 +697,7 @@ class Common
      */
     public function getBrowser()
     {
-        return sprintf("%s-%s", self::getBrowserName(), self::getBrowserVer());
+        return sprintf("%s-%s", $this->getBrowserName(), $this->getBrowserVer());
     }
 
 
@@ -758,19 +745,23 @@ class Common
     }
 
     /**
-     * 拼装随机数，保留0位小数，生成一个字符串
+     * 将一个较大的字节数转换为一个更易读和理解的格式，并返回这个格式的字符串表示
+     * @param {Object} $input   字节数
+     * @param {Object} $prec    保留小数位数
      */
     public function byteFormat($input, $prec = 0)
     {
-        $prefix_arr = array('D', 'F', 'E', 'R');
-        $value = round($input, $prec);
+        // 标准的字节单位前缀
+        $units = array('B', 'KB', 'MB', 'GB', 'TB', 'PB');
+        $value = $input;
         $i = 0;
-        while ($value > 1024) {
+
+        while ($value > 1024 && $i < count($units) - 1) {
             $value /= 1024;
             $i++;
         }
-        $return_str = round($value, $prec) . $prefix_arr[$i];
-        return $return_str;
+
+        return round($value, $prec) . ' ' . $units[$i];
     }
 
     /**
@@ -865,7 +856,7 @@ class Common
     {
         if (is_array($var)) {
             foreach ($var as $key => $value) {
-                $var[htmlspecialchars($key)] = self::ihtmlspecialchars($value);
+                $var[htmlspecialchars($key)] = $this->ihtmlspecialchars($value);
             }
         } else {
             $var = str_replace('&amp;', '&', htmlspecialchars($var, ENT_QUOTES));
@@ -1304,7 +1295,7 @@ class Common
      */
     public function isEmpty($obj)
     {
-        if (!isset($obj) || $obj === null || self::trimAll($obj) === '') {
+        if (!isset($obj) || $obj === null || $this->trimAll($obj) === '') {
             return true;
         }
         return false;
@@ -1352,7 +1343,7 @@ class Common
      **/
     public function runScript($var = null)
     {
-        return self::str(shell_exec($var));
+        return $this->str(shell_exec($var));
     }
 
     /**
@@ -1392,7 +1383,9 @@ class Common
         $string = is_string($string) ? $string : var_export($string, true);
 
         foreach ($params as $key => $value) {
-            $value = $this->isEmpty($value)?"":$value;
+            if (is_string($key) && !$this->findStr($string, $key))
+                continue;
+            $value = $this->isEmpty($value) ? "" : $value;
             $string = preg_replace("/\{$key\}/", $value, $string);
             $search = "%s";
             // 在连续调用时会保留上次的查找坐标
@@ -1497,8 +1490,41 @@ class Common
     public function random($length = 16)
     {
         $pool = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-
         return static::substr(str_shuffle(str_repeat($pool, $length)), 0, $length);
+    }
+
+    /**
+     * 生成一段特定长度的具有高度唯一性的随机字符串
+     * UUIDv4（Universally Unique Identifier version 4）使用随机数或伪随机数来生成大部分的字节，长度为36个字符（4个短横线+32个十六进制数），包括4组由短横线分隔的十六进制数（每组分别为 8、4、4、4、12 个字符），技术上，你可以缩短这个字符串，但这样做会牺牲其作为全局唯一标识符的可靠性。UUIDv4 的长度是基于其设计目标和算法需求来确定的，旨在提供极高的唯一性保证。缩短 UUID 字符串将减少其可用的唯一值数量，从而增加在不同场合下发生冲突的风险。
+     *
+     * UUIDv4提供了大约2122（约等于5.3×1036）个可能的UUID。这意味着在极端情况下，例如每秒生成10亿个UUID，在接下来的100年内只产生一个重复的概率约为50%。
+     * 对于绝大多数应用场景来说，UUIDv4的重复概率可以忽略不计。UUIDv4的设计目标就是在全球范围内为数据对象分配独一无二的标识符，并且其生成算法在多种情况下都能够保持其唯一性。
+     * 尽管UUIDv4的重复概率极低，但在某些特定场景下，如分布式系统或高并发环境中，仍然需要采取额外的措施来确保数据的唯一性。例如，可以将UUIDv4与其他唯一性约束（如数据库的自增主键）结合使用。
+     */
+    public function generateUUIDv4()
+    {
+        // 按照UUIDv4的标准生成16字节的随机数据
+        $data = random_bytes(16);
+        assert(strlen($data) == 16);
+        // 设置版本号为0100
+        $data[6] = chr(ord($data[6]) & 0x0f | 0x40); // 设置版本为0100
+        // 设置变体为0100
+        $data[8] = chr(ord($data[8]) & 0x3f | 0x80); // 设置变体为10
+        // 输出32个十六进制数字，以短横线分隔成5组
+        return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+    }
+
+    /**
+     * 牺牲UUIDv4的高度唯一性，从而获取指定长度的UUIDv4字符串
+     * 对UUIDv4进行哈希处理（如使用SHA-256），然后截取哈希值的一部分作为较短的唯一标识符。这种方法可以显著缩短标识符的长度，但也会增加冲突的可能性。
+     * @param {Object} $uuidv4
+     * @param {Object} $length
+     */
+    public function generateShortUUID($length = 5)
+    {
+        $uuidv4 = $this->generateUUIDv4();
+        $hash = hash('sha256', $uuidv4);
+        return substr($hash, 0, $length);
     }
 
     /**
@@ -1652,13 +1678,13 @@ class Common
      * @param {Object} $str    字符串
      * @param {Object} $file2html    true 文件转html false html转文件
      */
-    public function newlineConversion($str, $type = self::NL_CRLF2BR)
+    public function newlineConversion($str, $type = Constants::NL_CRLF2BR)
     {
         switch ($type) {
-            case self::NL_CRLF2BR:
+            case Constants::NL_CRLF2BR:
                 $ret = str_replace(PHP_EOL, "<br />", $str);
                 break;
-            case self::NL_BR2CRLF:
+            case Constants::NL_BR2CRLF:
                 // 匹配任何形式的br标签，不区分大小写以及标签中的空格
                 $ret = preg_replace('/<br\\s*?\/??>/i', PHP_EOL, $str);
 
@@ -1702,7 +1728,7 @@ class Common
      * @param {Exception} $exception 验证对象
      * @return {String} 错误详情
      **/
-    public function getException(\Exception $exception)
+    public function getException(Exception $exception)
     {
         $trace_list = [];
         $trace_list[] = $this->str("%s %s", [$exception->getFile(), $exception->getLine()]);
@@ -1835,7 +1861,7 @@ class Common
      * @param {Object} $file_src    图片路径 eg:https://res.tye3.com/kp_tye3/image/2024/04/6nRFsXy6jXEJ63wJ.jpg
      * @param {Object} $type    类型。Common::OSS_SIZE_NORMAL 原图   Common::OSS_SIZE_MIDDLE 中图  Common::OSS_SIZE_SMALL 小图
      */
-    function getOtherSizeFromOss($file_src, $type = self::OSS_SIZE_NORMAL)
+    function getOtherSizeFromOss($file_src, $type = Constants::OSS_SIZE_NORMAL)
     {
         // /path/to
         $dirname = pathinfo($file_src, PATHINFO_DIRNAME);
@@ -1845,7 +1871,7 @@ class Common
         $extension = pathinfo($file_src, PATHINFO_EXTENSION);
 
         switch ($type) {
-            case self::OSS_SIZE_NORMAL:
+            case Constants::OSS_SIZE_NORMAL:
                 return $file_src;
                 break;
             default:
@@ -2042,6 +2068,7 @@ class Common
     public function getMimeType($fileType)
     {
         $mimeTypes = [
+            // ********************** 文档 START **********************
             'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'xls' => 'application/vnd.ms-excel',
             'xml' => 'application/xml',
@@ -2050,7 +2077,28 @@ class Common
             'gnumeric' => 'application/x-gnumeric',
             'html' => 'text/html',
             'csv' => 'text/csv',
-            // 可以添加更多的 MIME 类型映射
+            // **********************  文档 END  **********************
+
+            // ********************** 图片 START **********************
+            'gif' => 'image/gif',
+            'jpg' => 'image/jpeg',
+            'png' => 'image/png',
+            'ico' => 'image/vnd.microsoft.icon',
+            // **********************  图片 END  **********************
+
+            // ********************** 音频 START **********************
+            'mp3' => 'audio/mp3',
+            'mpeg' => 'audio/mpeg',
+            // **********************  音频 END  **********************
+
+            // ********************** 视频 START **********************
+            'mp4' => 'video/mp4',
+            // **********************  视频 END  **********************
+
+            // ********************** 应用程序 START **********************
+            'zip' => 'application/zip',
+            'apk' => 'application/vnd.android.package-archive'
+            // **********************  应用程序 END  **********************
         ];
 
         // 将文件类型转换为小写，以便进行不区分大小写的比较

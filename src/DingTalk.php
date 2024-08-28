@@ -1,5 +1,4 @@
 <?php
-namespace Dfer\Tools;
 
 /**
  * +----------------------------------------------------------------------
@@ -33,6 +32,11 @@ namespace Dfer\Tools;
  * +----------------------------------------------------------------------
  *
  */
+
+namespace Dfer\Tools;
+
+use Dfer\Tools\Constants;
+
 class DingTalk extends Common
 {
     private $token = '';
@@ -80,7 +84,7 @@ class DingTalk extends Common
             // "refreshToken" => "",
             "grantType" => "authorization_code"
         ];
-        $rt = $this->httpRequest("https://api.dingtalk.com/v1.0/oauth2/userAccessToken", $data, self::REQ_JSON);
+        $rt = $this->httpRequest("https://api.dingtalk.com/v1.0/oauth2/userAccessToken", $data, Constants::REQ_JSON);
         // var_dump($rt);
         if (isset($rt['accessToken'])) {
             return $rt['accessToken'];
@@ -102,7 +106,7 @@ class DingTalk extends Common
         $rt = $this->httpRequest(
             "https://api.dingtalk.com/v1.0/contact/users/{$unionId}",
             $data,
-            self::REQ_JSON,
+            Constants::REQ_JSON,
             ["x-acs-dingtalk-access-token" => $accessToken]
         );
         if (!isset($rt['code'])) {
@@ -130,7 +134,7 @@ class DingTalk extends Common
             'appkey' => $this->appkey,
             'appsecret' => $this->appsecret
         ];
-        $rt = $this->httpRequest("https://oapi.dingtalk.com/gettoken", $data, self::REQ_GET);
+        $rt = $this->httpRequest("https://oapi.dingtalk.com/gettoken", $data, Constants::REQ_GET);
         return $rt['access_token'];
     }
 
@@ -164,7 +168,7 @@ class DingTalk extends Common
             'code' => $code
         ];
         // var_dump($data);
-        $rt = $this->httpRequest("https://oapi.dingtalk.com/topapi/v2/user/getuserinfo", $data, self::REQ_GET);
+        $rt = $this->httpRequest("https://oapi.dingtalk.com/topapi/v2/user/getuserinfo", $data, Constants::REQ_GET);
         return $rt;
     }
 

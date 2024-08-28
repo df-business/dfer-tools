@@ -1,9 +1,5 @@
 <?php
 
-namespace Dfer\Tools\TpConsole\Tmpl;
-
-use Dfer\Tools\TpConsole\Command;
-
 /**
  * +----------------------------------------------------------------------
  * | 普通console类模板
@@ -36,6 +32,11 @@ use Dfer\Tools\TpConsole\Command;
  * +----------------------------------------------------------------------
  *
  */
+
+namespace Dfer\Tools\TpConsole\Tmpl;
+
+use Dfer\Tools\TpConsole\Command;
+
 class PlainCommand extends Command
 {
 }

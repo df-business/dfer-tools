@@ -1,12 +1,5 @@
 <?php
 
-namespace Dfer\Tools\Office;
-
-use PhpOffice\PhpWord\{PhpWord, IOFactory, Settings};
-use PhpOffice\PhpWord\SimpleType\DocProtect;
-
-use Dfer\Tools\Common;
-
 /**
  * +----------------------------------------------------------------------
  * | 文档类
@@ -46,12 +39,16 @@ use Dfer\Tools\Common;
  * +----------------------------------------------------------------------
  *
  */
+
+namespace Dfer\Tools\Office;
+
+use PhpOffice\PhpWord\{PhpWord, IOFactory, Settings};
+use PhpOffice\PhpWord\SimpleType\DocProtect;
+use Dfer\Tools\{Common,Constants};
+
 class Word extends Common
 {
     protected static $wordInstance, $sectionInstance;
-
-    // 字体大小。一号=26pt 二号=22pt 三号=16pt 四号=14pt 五号=10.5pt 六号=7.5pt
-    const S1 = 26, S2 = 22, S3 = 16, S4 = 14, S5 = 10.5, S6 = 7.5;
 
     protected $headerStyle = [
         'name' => '宋体',
@@ -131,9 +128,9 @@ class Word extends Common
     public function setTitle(string $title, string $second_title = null)
     {
         $section = self::sectionInstance();
-        $section->addText($title, array_merge($this->headerStyle, ['size' => self::S2]), $this->headerFormat);
+        $section->addText($title, array_merge($this->headerStyle, ['size' => Constants::S2]), $this->headerFormat);
         if ($second_title)
-            $section->addText($second_title, array_merge($this->headerStyle, ['size' => self::S3]), $this->headerFormat);
+            $section->addText($second_title, array_merge($this->headerStyle, ['size' => Constants::S3]), $this->headerFormat);
         $section->addTextBreak(2);
         return $this;
     }
@@ -152,7 +149,7 @@ class Word extends Common
         // 用换行符拆分成数组
         $data_arr = explode(PHP_EOL, $data);
         foreach ($data_arr as $key => $value) {
-            $section->addText($value, array_merge($this->bodyStyle, ['size' => self::S3]), $this->bodyFormat);
+            $section->addText($value, array_merge($this->bodyStyle, ['size' => Constants::S3]), $this->bodyFormat);
         }
         return $this;
     }

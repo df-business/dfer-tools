@@ -1,13 +1,5 @@
 <?php
 
-namespace Dfer\Tools\TpConsole;
-
-use Dfer\Tools\Common;
-use Workerman\Worker;
-use Workerman\Lib\Timer;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
-
 /**
  * +----------------------------------------------------------------------
  * | workerman文件监控组件
@@ -48,6 +40,14 @@ use RecursiveIteratorIterator;
  * +----------------------------------------------------------------------
  *
  */
+
+namespace Dfer\Tools\TpConsole;
+
+use Workerman\Worker;
+use Workerman\Lib\Timer;
+use RecursiveDirectoryIterator,RecursiveIteratorIterator;
+use Dfer\Tools\Common;
+
 class FileMonitor extends Common
 {
     private $last_mtime;

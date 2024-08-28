@@ -1,15 +1,5 @@
 <?php
 
-namespace Dfer\Tools\TpConsole\Tmpl;
-
-use Workerman\Worker;
-use Workerman\Lib\Timer;
-use Workerman\Connection\TcpConnection;
-use Dfer\Tools\TpConsole\Command;
-use Dfer\Tools\Statics\Common;
-use Channel\Client as ChannelClient;
-use GlobalData\Client as GlobalDataClient;
-
 /**
  * +----------------------------------------------------------------------
  * | workerman的console类模板
@@ -42,6 +32,17 @@ use GlobalData\Client as GlobalDataClient;
  * +----------------------------------------------------------------------
  *
  */
+
+namespace Dfer\Tools\TpConsole\Tmpl;
+
+use Workerman\Worker;
+use Workerman\Lib\Timer;
+use Workerman\Connection\TcpConnection;
+use Channel\Client as ChannelClient;
+use GlobalData\Client as GlobalDataClient;
+use Dfer\Tools\TpConsole\Command;
+use Dfer\Tools\Statics\Common;
+
 class WebSocketCommand extends Command
 {
     // 应用层通信协议和侦听地址。例如：websocket://0.0.0.0:99

@@ -1,12 +1,5 @@
 <?php
 
-namespace Dfer\Tools\TpConsole;
-
-use think\console\{Command as BaseCommand, Input, Output};
-use think\console\input\{Argument, Option};
-use Dfer\Tools\Statics\Common;
-use Exception;
-
 /**
  * +----------------------------------------------------------------------
  * | console基础类，继承自Command
@@ -39,6 +32,15 @@ use Exception;
  * +----------------------------------------------------------------------
  *
  */
+
+namespace Dfer\Tools\TpConsole;
+
+use Exception;
+use think\console\{Command as BaseCommand, Input, Output};
+use think\console\input\{Argument, Option};
+use Dfer\Tools\Statics\Common;
+use Dfer\Tools\Constants;
+
 class Command extends BaseCommand
 {
     // 调试模式
@@ -98,11 +100,11 @@ class Command extends BaseCommand
                 }
             }
 
-            $this->tpPrint(Common::str('////////////////////////////////////////////////// {0} 开始 //////////////////////////////////////////////////', [$class_name]), Consts::COLOR_ECHO);
+            $this->tpPrint(Common::str('////////////////////////////////////////////////// {0} 开始 //////////////////////////////////////////////////', [$class_name]), Constants::COLOR_ECHO);
             echo PHP_EOL;
             $this->init();
             echo PHP_EOL;
-            $this->tpPrint(Common::str('////////////////////////////////////////////////// {0} 结束 //////////////////////////////////////////////////', [$class_name]), Consts::COLOR_ECHO);
+            $this->tpPrint(Common::str('////////////////////////////////////////////////// {0} 结束 //////////////////////////////////////////////////', [$class_name]), Constants::COLOR_ECHO);
             echo PHP_EOL;
         } catch (Exception $exception) {
             $err_msg = Common::getException($exception);
@@ -135,32 +137,32 @@ class Command extends BaseCommand
     /**
      * 控制台打印、日志记录
      */
-    public function tpPrint($str, $type = Consts::CONSOLE_WRITE, $textColor = 37, $bgColor = 45)
+    public function tpPrint($str, $type = Constants::CONSOLE_WRITE, $textColor = 37, $bgColor = 45)
     {
         global $argv;
 
         // 后台运行时调用"CONSOLE_WRITE"会导致后台服务堵塞
-        if ($type == Consts::CONSOLE_WRITE && isset($argv[2]) && $argv[2] == '-d') {
-            $type = Consts::STDOUT_WRITE;
+        if ($type == Constants::CONSOLE_WRITE && isset($argv[2]) && $argv[2] == '-d') {
+            $type = Constants::STDOUT_WRITE;
         }
 
         switch ($type) {
-            case Consts::CONSOLE_WRITE:
+            case Constants::CONSOLE_WRITE:
                 // tp控制台输出
                 $this->output->newLine();
                 $this->output->writeln(sprintf(">>>>>>>>>>>>%s", $str), Output::OUTPUT_NORMAL);
                 break;
-            case Consts::LOG_WRITE:
+            case Constants::LOG_WRITE:
                 // 写日志
                 Common::debug($str);
                 break;
-            case Consts::COLOR_ECHO:
+            case Constants::COLOR_ECHO:
                 // 带颜色输出
                 echo PHP_EOL;
                 Common::colorEcho(sprintf("%s", $str), $textColor, $bgColor);
                 echo PHP_EOL;
                 break;
-            case Consts::STDOUT_WRITE:
+            case Constants::STDOUT_WRITE:
             default:
                 // 普通输出
                 echo PHP_EOL;
@@ -177,7 +179,7 @@ class Command extends BaseCommand
     {
         if ($this->debug) {
             $str = substr(json_encode($str, JSON_UNESCAPED_UNICODE), 1, -1);
-            $this->tpPrint($str, Consts::COLOR_ECHO, $textColor, $bgColor);
+            $this->tpPrint($str, Constants::COLOR_ECHO, $textColor, $bgColor);
         }
     }
 

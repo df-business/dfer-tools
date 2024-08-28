@@ -1,10 +1,8 @@
 <?php
 
-namespace Dfer\Tools\TpConsole;
-
 /**
  * +----------------------------------------------------------------------
- * | 常量
+ * | 静态调用
  * +----------------------------------------------------------------------
  *                                            ...     .............
  *                                          ..   .:!o&*&&&&&ooooo&; .
@@ -34,14 +32,13 @@ namespace Dfer\Tools\TpConsole;
  * +----------------------------------------------------------------------
  *
  */
-class Consts
+
+namespace Dfer\Tools\Statics;
+
+class Env extends Base
 {
-    // 控制台输出
-    const CONSOLE_WRITE = 0;
-    // tp日志
-    const LOG_WRITE = 1;
-    // worker日志
-    const STDOUT_WRITE = 2;
-    // 带颜色输出
-    const COLOR_ECHO = 3;
+    protected function className()
+    {
+        return str_replace("\Statics", "", __CLASS__);
+    }
 }

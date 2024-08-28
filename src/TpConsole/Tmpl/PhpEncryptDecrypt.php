@@ -1,10 +1,5 @@
 <?php
 
-namespace Dfer\Tools\TpConsole\Tmpl;
-
-use think\console\input\{Argument, Option};
-use think\exception\ErrorException;
-
 /**
  * +----------------------------------------------------------------------
  * | PHP加密、解密
@@ -41,6 +36,12 @@ use think\exception\ErrorException;
  * +----------------------------------------------------------------------
  *
  */
+
+namespace Dfer\Tools\TpConsole\Tmpl;
+
+use think\console\input\{Argument, Option};
+use think\exception\ErrorException;
+
 class PhpEncryptDecrypt extends PhpEncryptDecryptCommand
 {
     // 自定义需要进行处理的文件所属目录（相对于项目根目录）

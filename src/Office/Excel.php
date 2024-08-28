@@ -1,13 +1,5 @@
 <?php
 
-namespace Dfer\Tools\Office;
-
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\IOFactory;
-use PhpOffice\PhpSpreadsheet\Style;
-use PhpOffice\PhpSpreadsheet\Cell\DataType;
-use Dfer\Tools\Common;
-
 /**
  * +----------------------------------------------------------------------
  * | 电子表格类
@@ -42,6 +34,13 @@ use Dfer\Tools\Common;
  * +----------------------------------------------------------------------
  *
  */
+
+namespace Dfer\Tools\Office;
+
+use PhpOffice\PhpSpreadsheet\{Spreadsheet,IOFactory,Style};
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use Dfer\Tools\Common;
+
 class Excel extends Common
 {
 

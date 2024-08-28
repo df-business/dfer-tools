@@ -38,6 +38,7 @@
 namespace Dfer\Tools;
 
 use XMLWriter, DOMDocument, XSLTProcessor;
+use Dfer\Tools\Constants;
 
 class Sitemap extends Common
 {
@@ -61,14 +62,7 @@ class Sitemap extends Common
 	// 网站地图的个数（序号）
 	private $current_sitemap = 0;
 
-	const SCHEMA_XMLNS = 'http://www.sitemaps.org/schemas/sitemap/0.9';
-	const SCHEMA_XMLNS_XSI = 'http://www.w3.org/2001/XMLSchema-instance';
-	const SCHEMA_XSI_SCHEMALOCATION = 'http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd';
-	const DEFAULT_PRIORITY = 0.5;
-	const SITEMAP_ITEMS = 50000;
-	const SITEMAP_SEPERATOR = '-';
-	const INDEX_SUFFIX = 'index';
-	const SITEMAP_EXT = '.xml';
+
 
 	public function __construct()
 	{
@@ -192,10 +186,10 @@ class Sitemap extends Common
 		$xmlfileFullPath = "";
 		if ($this->getCurrentSitemap()) {
 			// 第n个网站地图xml文件名 + -n + 后缀.xml
-			$xmlfileFullPath = $this->getXmlFile() . self::SITEMAP_SEPERATOR . $this->getCurrentSitemap() . self::SITEMAP_EXT;
+			$xmlfileFullPath = $this->getXmlFile() . Constants::SITEMAP_SEPERATOR . $this->getCurrentSitemap() . Constants::SITEMAP_EXT;
 		} else {
 			// 第一个网站地图xml文件名 + 后缀.xml
-			$xmlfileFullPath = $this->getXmlFile() . self::SITEMAP_EXT;
+			$xmlfileFullPath = $this->getXmlFile() . Constants::SITEMAP_EXT;
 		}
 		$this->setCurrXmlFileFullPath($xmlfileFullPath);
 		// 保存当前xml文件全路径
@@ -226,18 +220,18 @@ class Sitemap extends Common
 		$this->getWriter()->setIndent(true);
 		$this->getWriter()->startElement('urlset');
 		if ($this->getIsSchemaMore()) {
-			$this->getWriter()->writeAttribute('xmlns:xsi', self::SCHEMA_XMLNS_XSI);
-			$this->getWriter()->writeAttribute('xsi:schemaLocation', self::SCHEMA_XSI_SCHEMALOCATION);
+			$this->getWriter()->writeAttribute('xmlns:xsi', Constants::SCHEMA_XMLNS_XSI);
+			$this->getWriter()->writeAttribute('xsi:schemaLocation', Constants::SCHEMA_XSI_SCHEMALOCATION);
 		}
-		$this->getWriter()->writeAttribute('xmlns', self::SCHEMA_XMLNS);
+		$this->getWriter()->writeAttribute('xmlns', Constants::SCHEMA_XMLNS);
 	}
 
 	/**
 	 * 写入item元素，url、loc、priority字段必选，changefreq、lastmod可选
 	 */
-	public function addItem($loc, $priority = self::DEFAULT_PRIORITY, $changefreq = NULL, $lastmod = NULL)
+	public function addItem($loc, $priority = Constants::DEFAULT_PRIORITY, $changefreq = NULL, $lastmod = NULL)
 	{
-		if (($this->getCurrentItem() % self::SITEMAP_ITEMS) == 0) {
+		if (($this->getCurrentItem() % Constants::SITEMAP_ITEMS) == 0) {
 			if ($this->getWriter() instanceof XMLWriter) {
 				$this->endSitemap();
 			}
@@ -308,16 +302,16 @@ class Sitemap extends Common
 	public function createSitemapIndex($loc, $lastmod = 'Today')
 	{
 		$indexwriter = new XMLWriter();
-		$indexwriter->openURI($this->getXmlFile() . self::SITEMAP_SEPERATOR . self::INDEX_SUFFIX . self::SITEMAP_EXT);
+		$indexwriter->openURI($this->getXmlFile() . Constants::SITEMAP_SEPERATOR . Constants::INDEX_SUFFIX . Constants::SITEMAP_EXT);
 		$indexwriter->startDocument('1.0', 'UTF-8');
 		$indexwriter->setIndent(true);
 		$indexwriter->startElement('sitemapindex');
-		$indexwriter->writeAttribute('xmlns:xsi', self::SCHEMA_XMLNS_XSI);
-		$indexwriter->writeAttribute('xsi:schemaLocation', self::SCHEMA_XSI_SCHEMALOCATION);
-		$indexwriter->writeAttribute('xmlns', self::SCHEMA_XMLNS);
+		$indexwriter->writeAttribute('xmlns:xsi', Constants::SCHEMA_XMLNS_XSI);
+		$indexwriter->writeAttribute('xsi:schemaLocation', Constants::SCHEMA_XSI_SCHEMALOCATION);
+		$indexwriter->writeAttribute('xmlns', Constants::SCHEMA_XMLNS);
 		for ($index = 0; $index < $this->getCurrentSitemap(); $index++) {
 			$indexwriter->startElement('sitemap');
-			$indexwriter->writeElement('loc', $loc . $this->getFilename() . ($index ? self::SITEMAP_SEPERATOR . $index : '') . self::SITEMAP_EXT);
+			$indexwriter->writeElement('loc', $loc . $this->getFilename() . ($index ? Constants::SITEMAP_SEPERATOR . $index : '') . Constants::SITEMAP_EXT);
 			$indexwriter->writeElement('lastmod', $this->getLastModifiedDate($lastmod));
 			$indexwriter->endElement();
 		}

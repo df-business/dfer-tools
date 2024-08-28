@@ -1,7 +1,5 @@
 <?php
 
-namespace Dfer\Tools\Statics;
-
 /**
  * +----------------------------------------------------------------------
  * | 静态调用
@@ -34,9 +32,13 @@ namespace Dfer\Tools\Statics;
  * +----------------------------------------------------------------------
  *
  */
+
+namespace Dfer\Tools\Statics;
+
 class Sitemap extends Base
 {
-    protected function className(){
+    protected function className()
+    {
         return str_replace("\Statics", "", __CLASS__);
     }
 }

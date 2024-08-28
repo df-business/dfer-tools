@@ -1,13 +1,5 @@
 <?php
 
-namespace Dfer\Tools\TpConsole;
-
-use think\helper\Str;
-use think\console\input\{Argument, Option};
-use think\exception\ErrorException;
-use Exception;
-use Dfer\Tools\Statics\Common;
-
 /**
  * +----------------------------------------------------------------------
  * | 用来生成console脚本
@@ -43,6 +35,15 @@ use Dfer\Tools\Statics\Common;
  * +----------------------------------------------------------------------
  *
  */
+
+namespace Dfer\Tools\TpConsole;
+
+use Exception;
+use think\helper\Str;
+use think\console\input\{Argument, Option};
+use think\exception\ErrorException;
+use Dfer\Tools\Statics\Common;
+
 class Create extends Command
 {
     protected function configure()

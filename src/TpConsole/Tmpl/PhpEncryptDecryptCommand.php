@@ -1,11 +1,5 @@
 <?php
 
-namespace Dfer\Tools\TpConsole\Tmpl;
-
-use Dfer\Tools\TpConsole\Command;
-use Dfer\Tools\TpConsole\Encipher;
-use Dfer\Tools\Statics\Common;
-
 /**
  * +----------------------------------------------------------------------
  * | 普通console类模板
@@ -38,6 +32,12 @@ use Dfer\Tools\Statics\Common;
  * +----------------------------------------------------------------------
  *
  */
+
+namespace Dfer\Tools\TpConsole\Tmpl;
+
+use Dfer\Tools\TpConsole\{Command,Encipher};
+use Dfer\Tools\Statics\Common;
+
 class PhpEncryptDecryptCommand extends Command
 {
     protected $items = [

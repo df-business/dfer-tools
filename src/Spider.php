@@ -1,9 +1,4 @@
 <?php
-namespace Dfer\Tools;
-
-use QL\QueryList;
-use QL\Ext\CurlMulti;
-use QL\Ext\AbsoluteUrl;
 
 /**
  * +----------------------------------------------------------------------
@@ -40,14 +35,15 @@ use QL\Ext\AbsoluteUrl;
  * +----------------------------------------------------------------------
  *
  */
+
+namespace Dfer\Tools;
+
+use QL\QueryList;
+use QL\Ext\{CurlMulti,AbsoluteUrl};
+use Dfer\Tools\Constants;
+
 class Spider extends Common
 {
-
-
-    // 主机
-    const HOST = 'http://www.chinabz.org/';
-
-
     /**
      * 自动初始化
      */
@@ -67,13 +63,13 @@ class Spider extends Common
 
         $ql->curlMulti([
             // 通知公告
-            self::HOST . 'xhgg/',
+            Constants::HOST . 'xhgg/',
             // 新闻资讯
-            self::HOST . 'xwzx/',
+            Constants::HOST . 'xwzx/',
             // 政策法规
-            self::HOST . 'zcfg/',
+            Constants::HOST . 'zcfg/',
             // 标准化
-            self::HOST . 'bzh/',
+            Constants::HOST . 'bzh/',
         ])
             ->success(function (QueryList $ql, CurlMulti $curl, $r) {
                 $current = $r['info']['url'];
@@ -83,7 +79,7 @@ class Spider extends Common
 
                 // 菜单内的数据
                 $menu_type = $ql->find('#banner_list a')->texts();
-                $menu_url = $ql->absoluteUrl(self::HOST)->find('#banner_list a')->attrs('href');
+                $menu_url = $ql->absoluteUrl(Constants::HOST)->find('#banner_list a')->attrs('href');
 
                 if (count($menu_url) == 0) {
                     $menu_type[] = '';
@@ -97,7 +93,7 @@ class Spider extends Common
                     $list = QueryList::get($u);
                     $list->use(AbsoluteUrl::class);
                     // 遍历列表URL，访问详情页
-                    $url = $list->absoluteUrl(self::HOST)->find('#box_middle h4 a')->attrs('href');
+                    $url = $list->absoluteUrl(Constants::HOST)->find('#box_middle h4 a')->attrs('href');
                     // \var_dump($url);
                     foreach ($url as $i) {
                         $article = QueryList::get($i);

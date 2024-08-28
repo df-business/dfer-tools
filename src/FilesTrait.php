@@ -1,7 +1,5 @@
 <?php
 
-namespace Dfer\Tools;
-
 /**
  * +----------------------------------------------------------------------
  * | 文件处理
@@ -34,6 +32,9 @@ namespace Dfer\Tools;
  * +----------------------------------------------------------------------
  *
  */
+
+namespace Dfer\Tools;
+
 trait FilesTrait
 {
 
@@ -106,9 +107,9 @@ trait FilesTrait
             closedir($dh);
             //删除当前文件夹
             return rmdir($dir);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return 0;
-        } catch (\Throwable  $e) {
+        } catch (Throwable  $e) {
             return 0;
         }
     }
@@ -193,7 +194,7 @@ trait FilesTrait
                                 if (!$quiet)
                                     echo "deleting file:" . $file . "\n";
                                 unlink($file);
-                            } catch (\Exception $e) {
+                            } catch (Exception $e) {
                             }
                         }
                     }
@@ -352,10 +353,8 @@ trait FilesTrait
      * @param {Object} $option    特殊配置
      * @param {Object} $upload_root    上传目录
      */
-    public function uploadFile($edit_tool = self::UPLOAD_UMEDITOR_SINGLE, $option = null, $upload_root = 'upload')
+    public function uploadFile($edit_tool = Constants::UPLOAD_UMEDITOR_SINGLE, $option = null, $upload_root = 'upload')
     {
-        // var_dump($edit_tool);die;
-
         // 上传组件的name
         $name = $option['name'] ?? 'file';
         // 自定义路径
@@ -368,7 +367,7 @@ trait FilesTrait
         $fileSizeMax = FILE_SIZE_MAX;
 
         if ($_FILES == null) {
-            $this->showJson(false, null, null, '没有找到文件');
+            $this->uploadFileJson(Constants::FILE_NOT_FOUND, null, $edit_tool);
         }
 
         $file = $_FILES;
@@ -380,127 +379,131 @@ trait FilesTrait
 
         //以byte为单位
         if ($filesize > $fileSizeMax) {
-            $msg = '文件超出尺寸';
-            $this->uploadFileJson(false, compact('msg'), $edit_tool);
+            $this->uploadFileJson(Constants::FILE_SIZE_LIMIT, null, $edit_tool);
         }
         if ($fileErr > 0) {
-            $msg = '文件上传受限';
-            $this->uploadFileJson(false, compact('msg'), $edit_tool);
+            $this->uploadFileJson(Constants::FILE_UPLOAD_RESTRICTED, null, $edit_tool);
         }
 
-
-        switch ($filetype) {
-            //图片上传
-            case 'image/gif':
-            case 'image/jpeg':
-            case 'image/pjpeg':
-            case 'image/png':
-            case 'image/vnd.microsoft.icon':
-                //自动生成路径
+        $mime_type = $this->getMimeTypePrefix($filetype);
+        switch ($mime_type) {
+            case 'image':
                 if ($path) {
                     $new_name = $path;
                 } else {
-                    $path = str("{0}/img/{1}/", [$upload_root, date("Ymd")]);
+                    $path = $upload_root . DIRECTORY_SEPARATOR . $mime_type . DIRECTORY_SEPARATOR . $this->getTime(null, "Y") . DIRECTORY_SEPARATOR . $this->getTime(null, "m");
                     $this->mkDirs($path);
                     //新文件名
-                    $new_name = str("{0}/{1}.{2}", [$path, base64_encode(json_encode([$filename, $filesize])), $this->getExt($filename)]);
+                    $new_name = $this->str("{0}/{1}.{2}", [$path, $this->generateShortUUID() . '.' . date("dHis"), $this->getExt($filename)]);
                 }
 
                 if ($size) {
                     $size = $this->split($size, "*");
-                    $this->resizeJpg($filetmpname, $new_name, $size[0], $size[1]);  #将临时文件转变尺寸之后移动到网站目录
+                    // 将临时文件转变尺寸之后移动到网站目录
+                    $this->resizeJpg($filetmpname, $new_name, $size[0], $size[1]);
                 } else {
-                    #将临时文件移动到网站目录
+                    // 将临时文件移动到网站目录
                     move_uploaded_file($filetmpname, $new_name);
                 }
 
                 if ($compress) {
-                    #原图压缩，不缩放，但体积大大降低
+                    // 原图压缩，不缩放，但体积大大降低
                     $percent = 1;
                     $imgcompress = new ImgCompress($new_name, $percent);
                     $image = $imgcompress->compressImg($new_name);
                 }
-                $type = 'img';
-                $new_name = '/' . $new_name;
-                $this->uploadFileJson(true, compact('type', 'new_name', 'file'), $edit_tool);
+                $new_name = DIRECTORY_SEPARATOR . $new_name;
+                $this->uploadFileJson(Constants::FILE_UPLOAD_SUCCESS, compact('mime_type', 'new_name', 'file'), $edit_tool);
                 break;
-            case 'audio/mp3':
-            case 'audio/mpeg':
-                // 音乐上传
-                $path = str("{0}/music/{1}/", [$upload_root, date("Ymd")]);
-                break;
-            case 'application/zip':
-                // zip文件上传
-                $path = str("{0}/zip/{1}/", [$upload_root, date("Ymd")]);
-                break;
-            case 'video/mp4':
-                // video文件上传
-                $path = str("{0}/video/{1}/", [$upload_root, date("Ymd")]);
+            case 'audio':
+            case 'video':
+            case 'application':
+                $path = $upload_root . DIRECTORY_SEPARATOR . $mime_type . DIRECTORY_SEPARATOR . $this->getTime(null, "Y") . DIRECTORY_SEPARATOR . $this->getTime(null, "m");
+                $this->mkDirs($path);
+                // 新文件名
+                $new_name = $this->str("{0}/{1}.{2}", [$path, $this->generateShortUUID() . '.' . date("dHis"), $this->getExt($filename)]);
+                // 将临时文件移动到网站目录
+                move_uploaded_file($filetmpname, $new_name);
+                $new_name = DIRECTORY_SEPARATOR . $new_name;
+                $this->uploadFileJson(Constants::FILE_UPLOAD_SUCCESS, compact('mime_type', 'new_name'), $edit_tool);
                 break;
             default:
-                $msg = "不支持的文件类型:{$filetype}";
-                $this->uploadFileJson(false, compact('msg', 'file'), $edit_tool);
+                $this->uploadFileJson(Constants::FILE_TYPES_UNSUPPORTED, compact('filetype', 'file'), $edit_tool);
                 break;
         }
-
-        $this->mkDirs($path);
-        //新文件名
-        $new_name = sprintf("%s/%s-%s.%s", $path, rand(10000, 99999), date("Ymdhis"), $this->getExt($filename));
-
-        #将临时文件移动到网站目录
-        move_uploaded_file($filetmpname, $new_name);
-
-        $type = 'file';
-        $new_name = '/' . $new_name;
-        $this->uploadFileJson(true, compact('type', 'new_name'), $edit_tool);
-        return false;
     }
 
     /**
      * 不同组件的返回格式
-     * @param {Object} $var 变量
+     * @param {Object} $status_code 状态码
+     * @param {Object} $data 补充数据
+     * @param {Object} $edit_tool 组件类型
      **/
-    public function uploadFileJson($status, $data, $edit_tool = self::UPLOAD_UMEDITOR_EDITOR)
+    public function uploadFileJson($status_code, $data = null, $edit_tool = Constants::UPLOAD_UMEDITOR_EDITOR)
     {
         extract($data);
-        $msg = $msg ?? null;
+        $msg = $this->getStatusMsg($status_code, $data);
 
         //js上传插件会接收所有的echo数据
         switch ($edit_tool) {
-            case self::UPLOAD_UMEDITOR_EDITOR:
-                $stateMap = array(    //上传状态映射表，国际化用户需考虑此处数据的国际化
-                    "SUCCESS",                //上传成功标记，在UEditor中内不可改变，否则flash判断会出错
+            case Constants::UPLOAD_UMEDITOR_EDITOR:
+                //上传状态映射表，国际化用户需考虑此处数据的国际化
+                $stateMap = array(
+                    "SUCCESS"
                 );
                 $return = array(
                     "originalName" => null,
                     "name" => null,
                     "url" => $new_name,
                     "size" => null,
-                    "type" => $type,
-                    "state" => $status ? $stateMap[0] : $msg
+                    "type" => $mime_type,
+                    "state" => $status_code === 0 ? $stateMap[0] : $msg
                 );
                 $this->showJsonBase($return, false);
                 break;
-            case self::UPLOAD_WEB_UPLOADER:
-                $json = ["type" => $type, "url" => $new_name];
-                $this->showJson($status, $json, $status ? $msg : null, !$status ? $msg : null);
+            case Constants::UPLOAD_WEB_UPLOADER:
+                $json = ["type" => $mime_type, "url" => $new_name];
+                $this->showJson($status_code, $json, $status_code === 0 ? $msg : null, $status_code !== 0 ? $msg : null);
                 break;
-            case self::UPLOAD_UMEDITOR_SINGLE:
+            case Constants::UPLOAD_UMEDITOR_SINGLE:
                 $this->showJsonBase($this->delSpace($new_name));
                 break;
-            case self::UPLOAD_LAYUI_EDITOR:
-                $json = array('code' => 0, 'msg' => $msg, 'data' => array('src' => $new_name, 'title' => $new_name));
+            case Constants::UPLOAD_LAYUI_EDITOR:
+                $json = array('code' => $status_code, 'msg' => $msg, 'data' => array('src' => $new_name, 'title' => $new_name));
                 $this->showJsonBase($json);
                 break;
-            case self::UPLOAD_EDITORMD_EDITOR:
+            case Constants::UPLOAD_EDITORMD_EDITOR:
                 // http://editor.md.ipandao.com/examples/image-upload.html
-                $json = ["success" => $status ? 1 : 0, "url" => $new_name, "message" => $msg, "debug" => $data];
+                $json = ["success" => $status_code === 0 ? 1 : 0, "url" => $new_name, "message" => $msg, "debug" => $data];
                 $this->showJsonBase($json);
                 break;
             default:
-                $this->showJson($status, $data, $status ? $msg : null, !$status ? $$msg : null);
+                $this->showJson($status_code, $data, $status_code ? $msg : null, !$status_code ? $$msg : null);
                 break;
         }
+    }
+
+    /**
+     * 获取状态信息
+     * @param object $var 变量
+     * @return mixed
+     **/
+    public function getStatusMsg($key = null, $param = null)
+    {
+        $list = [
+            Constants::FILE_UPLOAD_SUCCESS => '文件上传成功',
+            Constants::FILE_SIZE_LIMIT => '文件超出尺寸',
+            Constants::FILE_UPLOAD_RESTRICTED => '文件上传受限',
+            Constants::FILE_TYPES_UNSUPPORTED => '不支持的文件类型:{filetype}',
+            Constants::FILE_NOT_FOUND => '没有找到文件',
+            Constants::UNKOWN_ERROR => '未知错误',
+        ];
+
+        if ($key !== null) {
+            // var_dump($list[$key]??$list[Constants::UNKOWN_ERROR],$param);
+            return $this->str($list[$key] ?? $list[Constants::UNKOWN_ERROR], $param);
+        }
+        return $list;
     }
 
     /**
@@ -548,8 +551,7 @@ trait FilesTrait
             {0}
             **********************  DEBUG{tag} END  **********************
 
-            STR
-            ,
+            STR,
             [$args, 'tag' => "[{$tag} {$time}]"]
         );
         $file_dir = $this->str("{root}/data/logs/{0}", [date('Ym'), "root" => $root]);

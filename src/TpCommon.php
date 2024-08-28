@@ -41,14 +41,11 @@ namespace Dfer\Tools;
 use think\{Db, Log, Validate};
 use think\facade\{Db as FacadeDb, Log as FacadeLog, Filesystem as FacadeFilesystem};
 use think\exception\ValidateException;
+use Dfer\Tools\Constants;
 
 class TpCommon extends Common
 {
-    const V2 = "2.0";
-    const V3 = "3.0";
-    const V5 = "5.1";
-    const V6 = "6.0";
-    const V8 = "8.0";
+
 
     // tp版本
     protected $tp_version;
@@ -94,10 +91,10 @@ class TpCommon extends Common
     /**
      * 检查版本号
      * tp>=5.1 开始支持facade(静态调用)
-     * @param {Object} $need_ver 版本号    比如：self::V6
+     * @param {Object} $need_ver 版本号    比如：Constants::V6
      * @param {Object} $require 必须支持该版本
      **/
-    public function checkVersion($need_ver = self::V5, $require = false)
+    public function checkVersion($need_ver = Constants::V5, $require = false)
     {
         if ($require) {
             version_compare($this->tp_version, $need_ver, '>=') or die("需要 ThinkPHP >= v{$need_ver} !");
@@ -132,7 +129,7 @@ class TpCommon extends Common
      */
     public function uploadForm()
     {
-        $this->checkVersion(self::V5, true);
+        $this->checkVersion(Constants::V5, true);
 
         $files = request()->file();
         // dump($files);
@@ -197,7 +194,7 @@ class TpCommon extends Common
         if ($batch) {
             $v->batch(true);
         }
-        if ($this->checkVersion(self::V6)) {
+        if ($this->checkVersion(Constants::V6)) {
             $result = $v->failException(false)->check($data);
         } else {
             $result = $v->check($data);

@@ -1,9 +1,5 @@
 <?php
 
-namespace Dfer\Tools\TpConsole;
-
-use Dfer\Tools\Common;
-
 /**
  * +----------------------------------------------------------------------
  * | 加密器
@@ -40,6 +36,11 @@ use Dfer\Tools\Common;
  * +----------------------------------------------------------------------
  *
  */
+
+namespace Dfer\Tools\TpConsole;
+
+use Dfer\Tools\Common;
+
 class Encipher extends Common
 {
     private $c = '';

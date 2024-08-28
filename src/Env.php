@@ -1,5 +1,4 @@
 <?php
-namespace Dfer\Tools;
 
 /**
  * +----------------------------------------------------------------------
@@ -33,22 +32,27 @@ namespace Dfer\Tools;
  * +----------------------------------------------------------------------
  *
  */
+
+namespace Dfer\Tools;
+
+use Exception;
+use Dfer\Tools\Constants;
+
 class Env
 {
     static $loaded = false;
-    const ENV_PREFIX = 'PHP_';
 
     /**
      * 加载配置文件
      * @access public
      * @param string $filePath 配置文件路径
      * @return void
-     * @throws \Exception
+     * @throws Exception
      */
-    public static function loadFile(string $filePath): void
+    public function loadFile(string $filePath): void
     {
         if (!file_exists($filePath)) {
-            throw new \Exception('配置文件' . $filePath . '不存在');
+            throw new Exception('配置文件' . $filePath . '不存在');
         }
 
         self::$loaded = true;
@@ -56,7 +60,7 @@ class Env
         //返回二位数组
         $env = parse_ini_file($filePath, true);
         foreach ($env as $key => $val) {
-            $prefix = static::ENV_PREFIX . strtoupper($key);
+            $prefix = Constants::ENV_PREFIX . strtoupper($key);
             if (is_array($val)) {
                 foreach ($val as $k => $v) {
                     $item = $prefix . '_' . strtoupper($k);
@@ -75,17 +79,17 @@ class Env
      * @param string $default 默认值
      * @return mixed
      */
-    public static function get(string $name, $default = null)
+    public function get(string $name, $default = null)
     {
         if (!self::$loaded) {
             try {
                 self::loadFile(dirname(dirname(dirname(dirname(__DIR__)))) . '/.env');
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 return $default;
             }
         }
 
-        $result = getenv(static::ENV_PREFIX . strtoupper(str_replace('.', '_', $name)));
+        $result = getenv(Constants::ENV_PREFIX . strtoupper(str_replace('.', '_', $name)));
 
         if (false !== $result) {
             if ('false' === $result) {

@@ -1,13 +1,5 @@
 <?php
 
-namespace Dfer\Tools\TpConsole\Tmpl;
-
-use think\console\input\{Argument, Option};
-use think\exception\ErrorException;
-use Workerman\Worker;
-use Channel\Server as ChannelServer;
-use GlobalData\Server as GlobalDataServer;
-
 /**
  * +----------------------------------------------------------------------
  * | WS后台服务
@@ -52,6 +44,15 @@ use GlobalData\Server as GlobalDataServer;
  * +----------------------------------------------------------------------
  *
  */
+
+namespace Dfer\Tools\TpConsole\Tmpl;
+
+use think\console\input\{Argument, Option};
+use think\exception\ErrorException;
+use Workerman\Worker;
+use Channel\Server as ChannelServer;
+use GlobalData\Server as GlobalDataServer;
+
 class WebSocket extends WebSocketCommand
 {
     protected function configure()

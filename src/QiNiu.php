@@ -1,8 +1,4 @@
 <?php
-namespace Dfer\Tools;
-
-use Qiniu\Auth;
-use Qiniu\Storage\UploadManager;
 
 /**
  * +----------------------------------------------------------------------
@@ -37,6 +33,12 @@ use Qiniu\Storage\UploadManager;
  * +----------------------------------------------------------------------
  *
  */
+
+namespace Dfer\Tools;
+
+use Qiniu\Auth;
+use Qiniu\Storage\UploadManager;
+
 class QiNiu
 {
     private static $_instance = null;

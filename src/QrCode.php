@@ -1,14 +1,4 @@
 <?php
-namespace Dfer\Tools;
-
-use Endroid\QrCode\Builder\Builder;
-use Endroid\QrCode\Encoding\Encoding;
-use Endroid\QrCode\ErrorCorrectionLevel\{ErrorCorrectionLevelHigh, ErrorCorrectionLevelQuartile};
-use Endroid\QrCode\RoundBlockSizeMode\{RoundBlockSizeModeMargin, RoundBlockSizeModeEnlarge, RoundBlockSizeModeShrink};
-use Endroid\QrCode\Label\Alignment\{LabelAlignmentCenter};
-use Endroid\QrCode\Writer\PngWriter;
-use Endroid\QrCode\Label\Font\{NotoSans, OpenSans};
-use Endroid\QrCode\Color\Color;
 
 /**
  * +----------------------------------------------------------------------
@@ -46,6 +36,18 @@ use Endroid\QrCode\Color\Color;
  * +----------------------------------------------------------------------
  *
  */
+
+namespace Dfer\Tools;
+
+use Endroid\QrCode\Builder\Builder;
+use Endroid\QrCode\Encoding\Encoding;
+use Endroid\QrCode\ErrorCorrectionLevel\{ErrorCorrectionLevelHigh, ErrorCorrectionLevelQuartile};
+use Endroid\QrCode\RoundBlockSizeMode\{RoundBlockSizeModeMargin, RoundBlockSizeModeEnlarge, RoundBlockSizeModeShrink};
+use Endroid\QrCode\Label\Alignment\{LabelAlignmentCenter};
+use Endroid\QrCode\Writer\PngWriter;
+use Endroid\QrCode\Label\Font\{NotoSans, OpenSans};
+use Endroid\QrCode\Color\Color;
+
 class QrCode extends Common
 {
 

@@ -1,5 +1,4 @@
 <?php
-namespace Dfer\Tools;
 
 /**
  * +----------------------------------------------------------------------
@@ -36,6 +35,9 @@ namespace Dfer\Tools;
  * +----------------------------------------------------------------------
  *
  */
+
+namespace Dfer\Tools;
+
 class ImgCompress
 {
     private $src;
