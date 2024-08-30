@@ -38,14 +38,13 @@
 
 namespace Dfer\Tools;
 
-use think\{Db, Log, Validate};
-use think\facade\{Db as FacadeDb, Log as FacadeLog, Filesystem as FacadeFilesystem};
 use think\exception\ValidateException;
+use think\{Db, Log, Validate};
+use think\facade\{Db as FacadeDb, Log as FacadeLog, Filesystem as FacadeFilesystem, Session as FacadeSession, Cache as FacadeCache, Request as FacadeRequest};
 use Dfer\Tools\Constants;
 
 class TpCommon extends Common
 {
-
 
     // tp版本
     protected $tp_version;
@@ -230,4 +229,62 @@ class TpCommon extends Common
         // var_dump($tp_version,$tp_version>="5.1.0",class_exists('\think\App'),defined('\think\App::VERSION'),function_exists('app')&&method_exists(app(), 'version'));
         return $tp_version;
     }
+
+    // ********************** session START **********************
+
+    /**
+     * 根据sessionId进行数据读取
+     * @param {Object} $sessionId
+     */
+    public function sessionRead($sessionId)
+    {
+        $name = 'sess_' . $sessionId;
+        $path = app()->getRuntimePath() . 'session' . DIRECTORY_SEPARATOR . $name;
+        $data = file_get_contents($path);
+        if (!empty($data)) {
+            return unserialize($data);
+        }
+        return [];
+    }
+
+    /**
+     * 根据sessionId进行数据写入
+     * @param {Object} $sessionId
+     * @param {Object} $data
+     */
+    public function sessionWrite($sessionId, $data)
+    {
+        $name = 'sess_' . $sessionId;
+        $path = app()->getRuntimePath() . 'session' . DIRECTORY_SEPARATOR . $name;
+        if (!empty($data)) {
+            $data = serialize($data);
+            return file_put_contents($path, $data);
+        } else {
+            return unlink($path);
+        }
+    }
+
+    /**
+     * 限制登录
+     * 网页端，同一个账号，同一时间只能登录一个。不同的浏览器缓存下，最新的登录会让之前的登录状态失效
+     * @param {Object} $user_id 用户id
+     * @param {Object} $mark 标记
+     */
+    function loginLimit($user_id, $mark = "")
+    {
+        $s_id = FacadeSession::getId();
+        $mark = $mark ?: FacadeRequest::host();
+        $key = "{$mark}.{$user_id}";
+        $last_s_id = FacadeCache::store('redis')->get($key);
+        // $last_s_id='b1d6625fa8a5d32fff1b53becc7a74bb';
+        if ($last_s_id && $last_s_id != $s_id) {
+            // 清理上一次登录的用户的登录状态
+            $data = $this->sessionRead($last_s_id);
+            unset($data['user']);
+            $this->sessionWrite($last_s_id, $data);
+        }
+        FacadeCache::store('redis')->set($key, $s_id);
+    }
+
+    // **********************  session END  **********************
 }
