@@ -43,22 +43,16 @@ use Dfer\Tools\Common;
 
 class Excel extends Common
 {
-
     protected static $spreadsheetInstance;
-
     // 当前行
     protected $currentRow = 1;
-
     // 栏目编号
     protected $sheetIndex = 0;
-
     // 公共宽、高
     protected $width = 20;
     protected $height = 20;
-
     // 是否有内容标题
     protected $hasContentTitle = false;
-
     // 标题样式
     protected $titleStyle = [
         'font' => [
@@ -111,7 +105,6 @@ class Excel extends Common
         ],
     ];
 
-
     /**
      * 静态获取Spreadsheet实例
      */
@@ -160,7 +153,6 @@ class Excel extends Common
         $sheet->getDefaultRowDimension()->setRowHeight($this->height);
         $sheet->getDefaultColumnDimension()->setWidth($this->width);
     }
-
 
     /**获取文件路径和名称
      * @param {Object} string $fileName    文件名
@@ -215,7 +207,6 @@ class Excel extends Common
         return $this;
     }
 
-
     /**
      * 设置特殊标题
      * @param {Object} array $data
@@ -237,7 +228,6 @@ class Excel extends Common
         $this->currentRow += 1;
         return $this;
     }
-
 
     /**
      * 设置内容
@@ -306,7 +296,6 @@ class Excel extends Common
         return $this;
     }
 
-
     /**
      * 纵向数据
      * @param {Object} array $header    标题数据
@@ -350,7 +339,6 @@ class Excel extends Common
         return $this;
     }
 
-
     /**
      * 直接获取文件，不保存
      * 必须以打开新页面的形式调用，比如：a标签的内部跳转或者外部跳转，js的`window.open`或者`location.href`
@@ -391,7 +379,6 @@ class Excel extends Common
         ];
         return $response;
     }
-
 
     /**
      * 保存文件
@@ -459,7 +446,6 @@ class Excel extends Common
 
         return $list;
     }
-
 
     /**
      * excel时间转换

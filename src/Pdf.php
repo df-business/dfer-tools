@@ -41,8 +41,6 @@ use Dfer\Tools\Constants;
 
 class Pdf extends Common
 {
-
-
     /**
      * 将html转化为pdf
      * @param {Object} $var 变量

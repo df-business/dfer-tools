@@ -64,8 +64,6 @@ class DingTalk extends Common
         $this->token = $this->getToken();
     }
 
-
-
     // ********************** Android接口 START **********************
 
     /**
@@ -118,7 +116,6 @@ class DingTalk extends Common
     }
 
     // **********************  Android接口 END  **********************
-
 
     // ********************** H5接口 START **********************
 
@@ -264,5 +261,4 @@ class DingTalk extends Common
     }
 
     // **********************  H5接口 END  **********************
-
 }

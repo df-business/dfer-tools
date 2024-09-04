@@ -37,7 +37,6 @@ namespace Dfer\Tools;
 
 trait ImgTrait
 {
-
     /**
      * 将图片对象保存到服务器
      * @param {Object} $base64_image_content    要保存的Base64
@@ -65,8 +64,6 @@ trait ImgTrait
             return $err;
         }
     }
-
-
 
     /**
      * 取得字符串中所有的图片地址
@@ -112,8 +109,6 @@ trait ImgTrait
         }
         return $thumb;
     }
-
-
 
     /**
      * 改变图片大小

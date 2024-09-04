@@ -69,7 +69,6 @@ class WebSocketCommand extends Command
     // 组列表。用来分组发送消息
     protected $group_list;
 
-
     ////////////////////////////////////////////////// Worker START //////////////////////////////////////////////////
 
     /**
@@ -235,6 +234,7 @@ class WebSocketCommand extends Command
         $connection->onBufferFull = function ($connection) {
         };
     }
+
     //////////////////////////////////////////////////  Worker END  //////////////////////////////////////////////////
 
     ////////////////////////////////////////////////// TcpConnection START //////////////////////////////////////////////////
@@ -454,7 +454,6 @@ class WebSocketCommand extends Command
 
         return $this->cSend("[客户端 {$client_id}] 已退出");
     }
-
 
     /**
      * 日志初始化

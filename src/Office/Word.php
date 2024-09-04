@@ -49,7 +49,6 @@ use Dfer\Tools\{Common,Constants};
 class Word extends Common
 {
     protected static $wordInstance, $sectionInstance;
-
     protected $headerStyle = [
         'name' => '宋体',
         'size' => 22,
@@ -65,7 +64,6 @@ class Word extends Common
     protected $bodyFormat = [
         'lineHeight' => 1.5, 'alignment' => 'both', 'indentation' => ['firstLine' => 2 * 16 * 20]
     ];
-
     protected $callback;
 
     /**
@@ -102,7 +100,6 @@ class Word extends Common
         $documentProtection->setEditing(DocProtect::READ_ONLY);
         $documentProtection->setPassword('df');
     }
-
 
     /**
      * 设置基本样式
@@ -153,8 +150,6 @@ class Word extends Common
         }
         return $this;
     }
-
-
 
     ////////////////////////////////////////////////// 输出文件 START //////////////////////////////////////////////////
 
@@ -218,7 +213,6 @@ class Word extends Common
         $this->callback = $callback_function;
         return $this;
     }
-
 
     /**
      * 直接获取文件，不保存

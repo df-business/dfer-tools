@@ -51,7 +51,6 @@ class Spider extends Common
     {
     }
 
-
     /**
      * 自动采集网络数据到本地数据库
      *

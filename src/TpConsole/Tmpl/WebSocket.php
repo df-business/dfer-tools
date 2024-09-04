@@ -67,7 +67,6 @@ class WebSocket extends WebSocketCommand
             ->setDescription('workerman脚本。输入`php think ws -h`查看说明');
     }
 
-
     public function init()
     {
         global $argv;

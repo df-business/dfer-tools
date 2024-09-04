@@ -37,8 +37,6 @@ namespace Dfer\Tools;
 
 class Mail
 {
-
-
     private $debug = false; //调试开关。是否显示发送的调试信息
     private $relay_host = 'ssl://smtp.mxhichina.com'; //SMTP服务器。QQ 邮箱的服务器地址;;
     private $smtp_port = 465; // SMTP服务器端口。smtp 服务器的远程服务器端口号
@@ -68,8 +66,6 @@ class Mail
         return $this;
     }
 
-
-
     /**
      * 发送邮件
      * @param {Object} $smtpemailto    收件人邮箱
@@ -82,8 +78,6 @@ class Mail
         $state = $this->sendmail($smtpemailto, $this->user, $mailtitle, $mailcontent, $mailtype, "", "", "");
         return $state;
     }
-
-    /* Main Function */
 
     /**
      *
@@ -130,7 +124,7 @@ class Mail
                 $sent = FALSE;
                 continue;
             }
-            if ($this->smtp_send($this->host_name, $mail_from, $rcpt_to, $header, $body)) {
+            if ($this->smtpSend($this->host_name, $mail_from, $rcpt_to, $header, $body)) {
                 $this->logWrite("E-mail has been sent to <" . $rcpt_to . ">\n");
             } else {
                 $this->logWrite("Error: Cannot send email to <" . $rcpt_to . ">\n");
@@ -142,8 +136,7 @@ class Mail
         return $sent;
     }
 
-    /* Private Functions */
-    function smtp_send($helo, $from, $to, $header, $body = "")
+    function smtpSend($helo, $from, $to, $header, $body = "")
     {
         if (!$this->smtpPutCmd("HELO", $helo)) {
             return $this->smtpError("sending HELO command");
@@ -289,7 +282,6 @@ class Mail
         fclose($fp);
         return TRUE;
     }
-
 
     function stripComment($address)
     {

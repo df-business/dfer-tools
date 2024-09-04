@@ -68,7 +68,6 @@ class Command extends BaseCommand
         $this->addOption('about', 'a', Option::VALUE_NONE, '简介');
     }
 
-
     protected function execute(Input $input, Output $output)
     {
         try {

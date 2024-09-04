@@ -42,7 +42,6 @@ use Dfer\Tools\Constants;
 
 class Sitemap extends Common
 {
-
 	// XMLWriter对象
 	private $writer;
 	// 网站地图根域名
@@ -61,8 +60,6 @@ class Sitemap extends Common
 	private $current_item = 0;
 	// 网站地图的个数（序号）
 	private $current_sitemap = 0;
-
-
 
 	public function __construct()
 	{
@@ -356,7 +353,6 @@ class Sitemap extends Common
 		}
 		return $rt;
 	}
-
 
 	/**
 	 * 获取插件根目录

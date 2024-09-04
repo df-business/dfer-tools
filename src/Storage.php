@@ -48,7 +48,6 @@ class Storage
 {
     // 文件内容数组。根据文件名存储文件内容
     private $contents = array();
-
     // 静态变量存储缓存数据
     static $_cache = array();
 
@@ -206,5 +205,4 @@ class Storage
         $path = "{$root}/data/storage/";
         return $path;
     }
-
 }

@@ -44,7 +44,6 @@ use think\exception\ErrorException;
 
 class Plain extends PlainCommand
 {
-
     protected function configure()
     {
         parent::configure();

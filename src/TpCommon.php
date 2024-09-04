@@ -45,7 +45,6 @@ use Dfer\Tools\Constants;
 
 class TpCommon extends Common
 {
-
     // tp版本
     protected $tp_version;
 
@@ -106,7 +105,6 @@ class TpCommon extends Common
         }
     }
 
-
     /**
      * 日志
      * 独立日志：'apart_level'=>['error','sql','debug','dfer']
@@ -120,7 +118,6 @@ class TpCommon extends Common
             Log::write($data, $identification);
         }
     }
-
 
     /**
      *

@@ -37,7 +37,6 @@ namespace Dfer\Tools;
 
 trait FilesTrait
 {
-
     /**
      * 读取文件的所有字符串
      * @param {Object} $fileN    物理路径
@@ -80,7 +79,6 @@ trait FilesTrait
         }
     }
 
-
     /**
      * 删除目录和目录下的文件，成功则返回1
      * @param {Object} $dir    目录的物理路径
@@ -122,7 +120,6 @@ trait FilesTrait
     {
         return unlink($file);
     }
-
 
     /*
      * 创建目录
@@ -227,7 +224,6 @@ trait FilesTrait
         return true;
     }
 
-
     /**
      * 遍历一个目录下的所有文件和文件夹，返回一个字符串
      * @param {Object} $dir
@@ -253,7 +249,6 @@ trait FilesTrait
         $fileArr = substr($fileArr, 0, strlen($fileArr) - 1);
         return $fileArr;
     }
-
 
     /**
      * 获取文件后缀
@@ -285,7 +280,6 @@ trait FilesTrait
             return false;
         }
     }
-
 
     /**
      * 创建一个文件，写入字符串，存在则覆盖
@@ -323,7 +317,6 @@ trait FilesTrait
 
         die(empty($rt) ? '' : $rt);
     }
-
 
     /**
      *

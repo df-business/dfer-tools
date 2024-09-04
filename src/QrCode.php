@@ -50,7 +50,6 @@ use Endroid\QrCode\Color\Color;
 
 class QrCode extends Common
 {
-
     protected static $instance;
 
     public static function instance()
@@ -100,7 +99,6 @@ class QrCode extends Common
         self::instance()->data($data);
         return $this;
     }
-
 
     /**
      * 二维码下方文字

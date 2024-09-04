@@ -37,7 +37,6 @@ namespace Dfer\Tools;
 
 class Address
 {
-
     /**
      * 省份转化为简称
      *

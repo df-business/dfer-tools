@@ -35,7 +35,7 @@
 
 namespace Dfer\Tools;
 
-use DOMDocument,Closure,Exception, Error, Throwable;
+use DOMDocument, Closure, Exception, Error, Throwable, DateTime, stdClass;
 use Dfer\Tools\Constants;
 
 class Common
@@ -117,7 +117,6 @@ class Common
         die(json_encode($return, JSON_UNESCAPED_UNICODE));
     }
 
-
     /**
      * 是微信端则返回true
      */
@@ -128,7 +127,6 @@ class Common
         }
         return true;
     }
-
 
     /**
      * http与https相互转换
@@ -145,7 +143,6 @@ class Common
             header("Location: " . $xredir);
         }
     }
-
 
     /**
      * 将时间数据转化为正常的时间格式
@@ -195,8 +192,8 @@ class Common
     public function gmtIso8601($time)
     {
         $dtStr = date("c", $time);
-        $mydatetime = new \DateTime($dtStr);
-        $expiration = $mydatetime->format(\DateTime::ISO8601);
+        $mydatetime = new DateTime($dtStr);
+        $expiration = $mydatetime->format(DateTime::ISO8601);
         $pos = strpos($expiration, '+');
         $expiration = substr($expiration, 0, $pos);
         return $expiration . "Z";
@@ -241,7 +238,6 @@ class Common
         // return $str;
     }
 
-
     /**
      * HTTP请求（支持HTTP/HTTPS，支持GET/POST）
      *
@@ -278,7 +274,7 @@ class Common
                 if (!empty($data)) {
                     $url .= '?';
                     foreach ($data as $k => $v) {
-                        $url .= \sprintf("%s=%s&", $k, $v);
+                        $url .= sprintf("%s=%s&", $k, $v);
                     }
                     $data = null;
                 }
@@ -294,7 +290,7 @@ class Common
         if (!empty($header)) {
             $header_list = [];
             foreach ($header as $k => $v) {
-                $header_list[] = \sprintf("%s:%s", $k, $v);
+                $header_list[] = sprintf("%s:%s", $k, $v);
             }
             curl_setopt($curl, CURLOPT_HTTPHEADER, $header_list);
         }
@@ -410,7 +406,6 @@ class Common
         die(file_get_contents($fileSrc));
     }
 
-
     /**
      * 将查询字符串中的参数解析为变量
      * eg:user_id=391&type=ueditor
@@ -431,7 +426,6 @@ class Common
             return $ret ?? [];
         }
     }
-
 
     /**
      * 在字符串中查找指定字符串
@@ -548,7 +542,6 @@ class Common
         return join('', $arr);
     }
 
-
     /**
      * 字符串转十六进制函数
      * @pream string $str='abc';
@@ -578,7 +571,6 @@ class Common
         return $str;
     }
 
-
     /**
      *
      * 字符串格式化
@@ -595,7 +587,6 @@ class Common
         }
         return $str;
     }
-
 
     /**
      * php调用网页头的验证功能
@@ -640,7 +631,6 @@ class Common
                 break;
         }
     }
-
 
     /**
      *
@@ -691,7 +681,6 @@ class Common
         return mb_substr($str, $b, $e);
     }
 
-
     /**
      * 获取浏览器内核信息
      */
@@ -699,7 +688,6 @@ class Common
     {
         return sprintf("%s-%s", $this->getBrowserName(), $this->getBrowserVer());
     }
-
 
     /**
      * 获取浏览器内核名称
@@ -799,7 +787,7 @@ class Common
         // 使用date格式化上个月的年月
         $previousYear = date('Y', $previousMonthDate);
         $previousMonth = date('m', $previousMonthDate);
-        $obj = new \stdClass();
+        $obj = new stdClass();
         $obj->year = $previousYear;
         $obj->month = $previousMonth;
         return $obj;
@@ -846,7 +834,6 @@ class Common
 
         return $str;
     }
-
 
     /**
      * 将数组中的元素进行html原样输出
@@ -900,7 +887,6 @@ class Common
         return array_pop($a);
     }
 
-
     /**
      * 分割字符串
      * eg:split("1|2|3","|");
@@ -912,7 +898,6 @@ class Common
         $rt = explode($char, $str);
         return $rt;
     }
-
 
     /**
      * 生成一个指定大小的数组
@@ -1063,7 +1048,6 @@ class Common
         unset($proArr);
         return $result;
     }
-
 
     /**
      * 字符串半角和全角间相互转换
@@ -1278,7 +1262,6 @@ class Common
         }
     }
 
-
     /**
      * 去掉空格，回车，换行，tab
      */
@@ -1301,7 +1284,6 @@ class Common
         return false;
     }
 
-
     /**
      * 二维数组通过key去重
      * @param {Object} $array
@@ -1321,7 +1303,6 @@ class Common
         }
         return $temp_array;
     }
-
 
     /**
      * 获取数组中指定项
@@ -1367,7 +1348,6 @@ class Common
     {
         return strtolower(preg_replace('/([a-z])([A-Z])/', "$1" . $separator . "$2", $camelCaps));
     }
-
 
     /**
      * 格式化字符串
@@ -1661,7 +1641,6 @@ class Common
         return $newString;
     }
 
-
     /**
      * 将二进制数据转化为支持URL的base64字符串
      * @param {Object} $data 二进制数据
@@ -1695,7 +1674,6 @@ class Common
         }
         return $ret;
     }
-
 
     /**
      * 执行php代码并捕获异常信息
@@ -1753,7 +1731,6 @@ class Common
 
         return $err_msg;
     }
-
 
     /**
      * 网页环境下判断当前页面是否本地域名
@@ -1826,7 +1803,6 @@ class Common
         return $list;
     }
 
-
     /**
      * 通过菜单父级id获取所有的子级id
      * eg:
@@ -1850,7 +1826,6 @@ class Common
 
         return $tree;
     }
-
 
     /**
      * 从oss获取其余尺寸的图
@@ -1891,7 +1866,6 @@ class Common
         return $file_src;
     }
 
-
     /**
      * 获取MIME_TYPE前缀
      * @param {Object} $mimeType
@@ -1905,7 +1879,6 @@ class Common
         // 如果没有斜杠，返回完整的 MIME 类型
         return $mimeType;
     }
-
 
     /**
      * 设置html中所有video的封面

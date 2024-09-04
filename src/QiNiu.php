@@ -96,7 +96,6 @@ class QiNiu
         return $auth->uploadToken(self::$_bucket);
     }
 
-
     /**
      * 七牛云上传文件
      * $fileObj = $this->request->file('file');
