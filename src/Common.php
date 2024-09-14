@@ -1053,12 +1053,12 @@ class Common
      * 字符串半角和全角间相互转换
      * 半角即英文字符，全角即中文字符
      * @param string $str 待转换的字符串
-     * @param int $type 类型。TODBC:转换为半角；TOSBC，转换为全角
+     * @param int $type 类型。Constants::TO_DBC 转换为全角  Constants::TO_SBC 转换为半角
      * @return string 返回转换后的字符串
      */
     public function convertStrType($str, $type)
     {
-        // 全角
+        // 全角（中文字符）
         $dbc = array(
             '０',
             '１',
@@ -1154,7 +1154,7 @@ class Common
             '￣',
             '｀'
         );
-        //半角
+        // 半角（英文字符）
         $sbc = array(
             '0',
             '1',
@@ -1251,10 +1251,10 @@ class Common
             '`'
         );
 
-        if ($type == 'TODBC') {
+        if ($type == Constants::TO_DBC) {
             //半角到全角
             return str_replace($sbc, $dbc, $str);
-        } elseif ($type == 'TOSBC') {
+        } elseif ($type == Constants::TO_SBC) {
             //全角到半角
             return str_replace($dbc, $sbc, $str);
         } else {
