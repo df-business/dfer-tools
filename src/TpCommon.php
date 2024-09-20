@@ -237,9 +237,11 @@ class TpCommon extends Common
     {
         $name = 'sess_' . $sessionId;
         $path = app()->getRuntimePath() . 'session' . DIRECTORY_SEPARATOR . $name;
-        $data = file_get_contents($path);
-        if (!empty($data)) {
-            return unserialize($data);
+        if (file_exists($path)) {
+            $data = file_get_contents($path);
+            if (!empty($data)) {
+                return unserialize($data);
+            }
         }
         return [];
     }
@@ -253,12 +255,15 @@ class TpCommon extends Common
     {
         $name = 'sess_' . $sessionId;
         $path = app()->getRuntimePath() . 'session' . DIRECTORY_SEPARATOR . $name;
-        if (!empty($data)) {
-            $data = serialize($data);
-            return file_put_contents($path, $data);
-        } else {
-            return unlink($path);
+        if (file_exists($path)) {
+            if (!empty($data)) {
+                $data = serialize($data);
+                return file_put_contents($path, $data);
+            } else {
+                return unlink($path);
+            }
         }
+        return false;
     }
 
     /**
