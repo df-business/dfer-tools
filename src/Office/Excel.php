@@ -37,11 +37,11 @@
 
 namespace Dfer\Tools\Office;
 
-use PhpOffice\PhpSpreadsheet\{Spreadsheet,IOFactory,Style};
+use PhpOffice\PhpSpreadsheet\{Spreadsheet, IOFactory, Style};
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
-use Dfer\Tools\Common;
+use Dfer\Tools\Statics\Common;
 
-class Excel extends Common
+class Excel
 {
     protected static $spreadsheetInstance;
     // 当前行
@@ -367,7 +367,7 @@ class Excel extends Common
     {
         self::spreadsheetInstance()->setActiveSheetIndex(0);
         $format = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
-        $contentType = $this->getMimeType($format);
+        $contentType = Common::getMimeType($format);
         $writer = IOFactory::createWriter(self::spreadsheetInstance(), ucfirst($format));
         ob_start();
         $writer->save('php://output');
