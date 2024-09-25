@@ -243,12 +243,13 @@ class Common
      *
      * 默认post
      *
-     * @param $url http://www.df.net
-     * @param $data ["a"=>123]
-     * @param $header ["Content-Type: application/json"]
-     * @param $type
+     * @param $url 网址。http://www.df.net
+     * @param $data 参数。["a"=>123]
+     * @param $type 类型。post\get\json
+     * @param $header header参数。["Content-Type: application/json"]
+     * @param $cookie cookie参数。['name'=>'xxx']
      **/
-    public function httpRequest($url, $data = null, $type = Constants::REQ_POST, $header = null)
+    public function httpRequest($url, $data = null, $type = Constants::REQ_POST, $header = null, $cookie = null)
     {
         //初始化浏览器
         $curl = curl_init();
@@ -295,6 +296,14 @@ class Common
             curl_setopt($curl, CURLOPT_HTTPHEADER, $header_list);
         }
 
+        //设置cookie。适用于需要维护会话或登录状态的场景
+        if (!empty($cookie)) {
+            $cookie_file = $this->str("{root}/data/cookie/{name}", ["root" => $this->getRootPath(), 'name' => md5($cookie['name'])]);
+            $this->writeFile(null, $cookie_file, "w+");
+            curl_setopt($curl, CURLOPT_COOKIEJAR, $cookie_file);
+            curl_setopt($curl, CURLOPT_COOKIEFILE, $cookie_file);
+        }
+
         //判断data是否有数据
         if (!empty($data)) {
             // $data应该是数组
@@ -303,12 +312,6 @@ class Common
             curl_setopt($curl, CURLOPT_POST, true);
             //设置POST的数据包
             curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($data));
-        }
-
-        // 支持https请求
-        if (1 == strpos("$" . $url, "https://")) {
-            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
         }
 
         // 当遇到location跳转时，直接抓取跳转的页面，防止出现301

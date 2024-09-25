@@ -39,18 +39,18 @@ trait FilesTrait
 {
     /**
      * 读取文件的所有字符串
-     * @param {Object} $fileN    物理路径
+     * @param {Object} $file_path    物理路径
+     * @param {Object} $replace_eol    替换换行符
      */
-    public function readFileStr($fileN)
+    public function readFile($file_path, $replace_eol = false)
     {
-        $file_path = $fileN;
         if (file_exists($file_path)) {
             $str = file_get_contents($file_path);
-            //将整个文件内容读入到一个字符串中
-            $str = str_replace("\n", "<br />", $str);
+            if ($replace_eol)
+                $str = str_replace(PHP_EOL, "<br />", $str);
             return $str;
         } else {
-            return 'file not exist';
+            return false;
         }
     }
 
@@ -290,7 +290,9 @@ trait FilesTrait
      */
     public function writeFile($str, $file_src, $type = "w")
     {
-        $this->mkDirs(dirname($file_src));
+        $file_dir = dirname($file_src);
+        $this->mkDirs($file_dir);
+        @chmod($file_dir, 0777);
         $fp = fopen($file_src, $type) or die("无法打开文件!");
         fwrite($fp, $str);
         fclose($fp);
@@ -548,9 +550,7 @@ trait FilesTrait
             [$args, 'tag' => "[{$tag} {$time}]"]
         );
         $file_dir = $this->str("{root}/data/logs/{0}", [date('Ym'), "root" => $root]);
-        $this->mkDirs($file_dir);
-        @chmod($file_dir, 0777);
-        $file_src = $this->str("{0}/{1}.log", [$file_dir, date('d')]);
+        $file_src = $this->str("{root}/data/logs/{0}/{1}.log", [$file_dir, date('d')]);
         $this->writeFile($str, $file_src, "a");
     }
 
