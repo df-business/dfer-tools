@@ -549,8 +549,7 @@ trait FilesTrait
             STR,
             [$args, 'tag' => "[{$tag} {$time}]"]
         );
-        $file_dir = $this->str("{root}/data/logs/{0}", [date('Ym'), "root" => $root]);
-        $file_src = $this->str("{root}/data/logs/{0}/{1}.log", [$file_dir, date('d')]);
+        $file_src = $this->str("{root}/data/logs/{dir}/{file}.log", ["root" => $root, "dir" => date('Ym'), "file" => date('d')]);
         $this->writeFile($str, $file_src, "a");
     }
 

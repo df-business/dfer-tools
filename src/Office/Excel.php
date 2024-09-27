@@ -427,18 +427,17 @@ class Excel
         $col_index = 0;
         // 遍历列
         for ($col = 'A'; $col <= $col_num; $col++) {
-            $col_val = isset($col_item[$col_index]) ? $col_item[$col_index] : '';
+            $col_val = $col_item[$col_index] ?? '';
             $need_origin = in_array($col_val, $origin_item);
             // 遍历行
             for ($row = $row_index; $row <= $row_num; $row++) {
                 // 把每一行的数据保存到自定义列名
-
                 if ($need_origin) {
                     // 读取原始值
-                    $list[$row - $row_index][$col_val] = $sheet->getCell($col . $row)->getValue();
+                    $list[$row - $row_index][$col_index] = $list[$row - $row_index][$col_val] = $sheet->getCell($col . $row)->getValue();
                 } else {
                     // 读取格式化之后的值(时间类型的原始值不是正常的时间格式)
-                    $list[$row - $row_index][$col_val] = $sheet->getCell($col . $row)->getFormattedValue();
+                    $list[$row - $row_index][$col_index] = $list[$row - $row_index][$col_val] = $sheet->getCell($col . $row)->getFormattedValue();
                 }
             }
             $col_index++;
