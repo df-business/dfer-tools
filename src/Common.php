@@ -2088,4 +2088,12 @@ class Common
             return 'application/octet-stream'; // 默认二进制流数据
         }
     }
+
+    /**
+     * 链接跳转
+     */
+    public function toUrl($host)
+    {
+        die(header("Location:{$host}"));
+    }
 }
