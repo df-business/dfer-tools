@@ -1438,7 +1438,7 @@ class Common
     public function endsWith($haystack, $needles)
     {
         foreach ((array)$needles as $needle) {
-            if ((string)$needle === static::substr($haystack, -static::length($needle))) {
+            if ((string)$needle === $this->substr($haystack, -$this->length($needle))) {
                 return true;
             }
         }
@@ -1473,7 +1473,7 @@ class Common
     public function random($length = 16)
     {
         $pool = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        return static::substr(str_shuffle(str_repeat($pool, $length)), 0, $length);
+        return $this->substr(str_shuffle(str_repeat($pool, $length)), 0, $length);
     }
 
     /**
@@ -1578,7 +1578,7 @@ class Common
         if (!ctype_lower($value)) {
             $value = preg_replace('/\s+/u', '', $value);
 
-            $value = static::lower(preg_replace('/(.)(?=[A-Z])/u', '$1' . $delimiter, $value));
+            $value = $this->lower(preg_replace('/(.)(?=[A-Z])/u', '$1' . $delimiter, $value));
         }
 
         return static::$snakeCache[$key][$delimiter] = $value;
@@ -1596,7 +1596,7 @@ class Common
             return static::$camelCache[$value];
         }
 
-        return static::$camelCache[$value] = lcfirst(static::studly($value));
+        return static::$camelCache[$value] = lcfirst($this->studly($value));
     }
 
     /**
