@@ -407,8 +407,9 @@ class Excel
      * @param {Object} array $col_item 自定义列名    eg:['item1', 'item2']
      * @param {Object} int $row_index    读取的初始行编号
      * @param {Object} array $origin_item    需要读取原始值的列名    eg:['item1']
+     * @param {Object} array $need_index    需要单独获取列表的index    eg:true
      */
-    public function readFile(string $fileName = 'test.xlsx', array $col_item = [], int $row_index = 3, array $origin_item = [])
+    public function readFile(string $fileName = 'test.xlsx', array $col_item = [], int $row_index = 3, array $origin_item = [], bool $need_index = false)
     {
         //设置excel格式
         $format = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
@@ -434,16 +435,23 @@ class Excel
                 // 把每一行的数据保存到自定义列名
                 if ($need_origin) {
                     // 读取原始值
-                    $list[$row - $row_index][$col_index] = $list[$row - $row_index][$col_val] = $sheet->getCell($col . $row)->getValue();
+                    $list['index'][$row - $row_index][$col_index] = $list['name'][$row - $row_index][$col_val] = $sheet->getCell($col . $row)->getValue();
                 } else {
                     // 读取格式化之后的值(时间类型的原始值不是正常的时间格式)
-                    $list[$row - $row_index][$col_index] = $list[$row - $row_index][$col_val] = $sheet->getCell($col . $row)->getFormattedValue();
+                    $list['index'][$row - $row_index][$col_index] = $list['name'][$row - $row_index][$col_val] = $sheet->getCell($col . $row)->getFormattedValue();
                 }
             }
             $col_index++;
         }
 
-        return $list;
+        if ($need_index) {
+            $obj = new stdClass();
+            $obj->index = $list['index'];
+            $obj->name = $list['name'];
+            return $obj;
+        } else {
+            return $list;
+        }
     }
 
     /**
