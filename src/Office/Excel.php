@@ -37,6 +37,7 @@
 
 namespace Dfer\Tools\Office;
 
+use stdClass;
 use PhpOffice\PhpSpreadsheet\{Spreadsheet, IOFactory, Style};
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use Dfer\Tools\Statics\Common;
