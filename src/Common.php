@@ -2096,4 +2096,43 @@ class Common
     {
         die(header("Location:{$host}"));
     }
+
+    /**
+     * 获取代码运行时长和内存占用量
+     * 计算代码运行期间相差的时间戳（微秒）和相差的内存使用量。一段代码运行期间，时间戳、内存使用量必然是不变或者增加的
+     * 使用方法:
+     * Common::codePerformance('begin'); // 记录开始标记位
+     * // ... 区间运行代码
+     * Common::codePerformance('end'); // 记录结束标签位
+     * echo Common::codePerformance('begin','end',6); // 统计区间运行时间 精确到小数后6位
+     * echo Common::codePerformance('begin','end','m'); // 统计区间内存使用情况
+     * @param string $start 开始标签
+     * @param string $end 结束标签
+     * @param integer|string $dec 小数位:时间戳保留的小数位数 m:获取内存使用量
+     * @return mixed
+     */
+    public function codePerformance($start, $end = '', $dec = 4)
+    {
+        $memory_limit_on = function_exists('memory_get_usage');
+        static $_time       =   array();
+        static $_mem        =   array();
+        if (empty($end)) {
+            // 记录时间和内存使用
+            $_time[$start]  =  microtime(TRUE);
+            $_mem[$start] = $memory_limit_on ? memory_get_usage() : null;
+        } else {
+            // 统计时间和内存使用
+            $_time[$start] = $_time[$start] ?? microtime(TRUE);
+            $_time[$end] = $_time[$end] ?? microtime(TRUE);
+            if ($memory_limit_on && $dec == 'm') {
+                $_mem[$end] = $_mem[$end] ??  memory_get_usage();
+                // 将数字格式化为带有千位分隔符和小数点的字符串
+                return number_format(($_mem[$end] - $_mem[$start]) / 1024);
+            } else {
+                // 将数字格式化为带有千位分隔符和小数点的字符串
+                return number_format(($_time[$end] - $_time[$start]), $dec);
+            }
+        }
+        return null;
+    }
 }
