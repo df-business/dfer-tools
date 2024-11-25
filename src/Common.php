@@ -325,7 +325,7 @@ class Common
 
         // 自动转到重定向之后的新地址，直到请求成功完成
         curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
-        // 要访问的 URL 的地址
+        // 要访问的地址
         curl_setopt($curl, CURLOPT_URL, $url);
         // 超时时间。表示如果请求在 50 秒内没有完成，cURL 将停止并返回一个错误
         curl_setopt($curl, CURLOPT_TIMEOUT, 50);
@@ -363,9 +363,11 @@ class Common
      * 注意：REMOTE_ADDR、REMOTE_PORT是服务端自动获取的，无法通过客户端直接修改，但是，可以通过代理的方式间接修改
      *
      * @param String $url 请求地址
+     * @param String $proxy 代理服务器地址和端口（需要在服务器部署代理服务)。http://proxy.example.com:3128
+     * @param String $proxy_user_pwd 代理服务器的用户名和密码（验证权限）。username:password
      * @return String 网页源代码
      */
-    public function httpRequestBySpider($url)
+    public function httpRequestBySpider($url, $proxy = null, $proxy_user_pwd = null)
     {
         // 伪装ua。百度蜘蛛使用的ua
         $user_agent = 'Mozilla/5.0 (compatible; Baiduspider/2.0; +http://www.baidu.com/search/spider.html)';
@@ -375,7 +377,17 @@ class Common
         $http_header = ["Connection: close", "User-Agent:{$user_agent}", "Accept-Language: zh-cn,zh-tw", "Accept:*/*", "Accept-Encoding: gzip"];
         $is_https = substr($url, 0, 8) == 'https://' ? true : false;
         $curl = curl_init();
+        // 要访问的地址
         curl_setopt($curl, CURLOPT_URL, $url);
+        // 代理服务器
+        if ($proxy) {
+            // 设置代理服务器地址和端口
+            curl_setopt($curl, CURLOPT_PROXY, $proxy);
+            if ($proxy_user_pwd) {
+                // 设置代理服务器的用户名和密码
+                curl_setopt($curl, CURLOPT_PROXYUSERPWD, $proxy_user_pwd);
+            }
+        }
         // 不包含头部信息
         curl_setopt($curl, CURLOPT_HEADER, false);
         curl_setopt($curl, CURLOPT_USERAGENT, $user_agent);
@@ -395,8 +407,11 @@ class Common
             curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
         }
         $response = curl_exec($curl);
+        if ($response === false) {
+            // 错误信息
+            $response = curl_error($curl);
+        }
         curl_close($curl);
-        // var_dump($response);
         return $response;
     }
 
