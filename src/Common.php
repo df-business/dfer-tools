@@ -241,23 +241,27 @@ class Common
     /**
      * HTTP请求（支持HTTP/HTTPS，支持GET/POST）
      *
-     * 默认post
-     *
-     * @param $url 网址。http://www.df.net
-     * @param $data 参数。["a"=>123]
-     * @param $type 类型。post\get\json
-     * @param $header header参数。["Content-Type: application/json"]
-     * @param $cookie cookie参数。['name'=>'xxx']
+     * @param String $url 网址。http://www.dfer.site
+     * @param Array $data 参数内容。["a"=>123]
+     * @param Int $type 请求类型。默认post
+     * @param Array $header header参数。["Content-Type: application/json"]
+     * @param Array $cookie cookie参数。['name'=>'xxx']
+     * @return Json json对象
      **/
     public function httpRequest($url, $data = null, $type = Constants::REQ_POST, $header = null, $cookie = null)
     {
-        //初始化浏览器
+        //初始化cURL会话
         $curl = curl_init();
         switch ($type) {
             case Constants::REQ_JSON:
+                // json字符串
                 if (!empty($data)) {
+                    // 不对非 ASCII 字符（如中文、日文等 Unicode 字符）进行转义
                     $data = json_encode($data, JSON_UNESCAPED_UNICODE);
+                    // 不包含头部信息
                     curl_setopt($curl, CURLOPT_HEADER, false);
+                    // 设置自定义的 HTTP 请求头。设置内容类型为 JSON，并指定字符集为 UTF-8
+                    // CURLOPT_HTTPHEADER 可以更精细地控制头字段。CURLOPT_USERAGENT 设置的值会被 CURLOPT_HTTPHEADER 中设置的相同头字段的值覆盖
                     curl_setopt(
                         $curl,
                         CURLOPT_HTTPHEADER,
@@ -271,6 +275,7 @@ class Common
                 }
                 break;
             case Constants::REQ_GET:
+                // get数组
                 //判断data是否有数据
                 if (!empty($data)) {
                     $url .= '?';
@@ -281,6 +286,7 @@ class Common
                 }
                 break;
             case Constants::REQ_POST:
+                // post数组
                 break;
             default:
                 # code...
@@ -293,6 +299,7 @@ class Common
             foreach ($header as $k => $v) {
                 $header_list[] = sprintf("%s:%s", $k, $v);
             }
+            // 设置自定义的 HTTP 请求头。
             curl_setopt($curl, CURLOPT_HTTPHEADER, $header_list);
         }
 
@@ -300,35 +307,37 @@ class Common
         if (!empty($cookie)) {
             $cookie_file = $this->str("{root}/data/cookie/{name}", ["root" => $this->getRootPath(), 'name' => md5($cookie['name'])]);
             $this->writeFile(null, $cookie_file, "w+");
+            // 指定一个文件名，cURL 会将服务器响应中的 Set-Cookie 头信息中的 cookie 保存到该文件中
             curl_setopt($curl, CURLOPT_COOKIEJAR, $cookie_file);
+            // 指定一个包含 cookie 信息的文件，cURL 会在发起请求时从这个文件中读取 cookie 并将其发送到服务器
             curl_setopt($curl, CURLOPT_COOKIEFILE, $cookie_file);
         }
 
         //判断data是否有数据
         if (!empty($data)) {
-            // $data应该是数组
+            // 解析数组字符串
             $data = is_array($data) ? $data : json_decode($data);
-            //设置POST请求方式
+            // 发送一个 POST 请求
             curl_setopt($curl, CURLOPT_POST, true);
-            //设置POST的数据包
+            // 指定要发送到服务器的数据
             curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($data));
         }
 
-        // 当遇到location跳转时，直接抓取跳转的页面，防止出现301
+        // 自动转到重定向之后的新地址，直到请求成功完成
         curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
-        //设置浏览器，把参数url传到浏览器的设置当中
+        // 要访问的 URL 的地址
         curl_setopt($curl, CURLOPT_URL, $url);
-        // 50s延迟
+        // 超时时间。表示如果请求在 50 秒内没有完成，cURL 将停止并返回一个错误
         curl_setopt($curl, CURLOPT_TIMEOUT, 50);
-        //禁止https协议验证ssl安全认证证书
+        // 不验证服务器证书的颁发机构（CA）
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-        //禁止https协议验证域名，0就是禁止验证域名且兼容php5.6
+        // 不检查服务器证书中的主机名是否匹配请求的主机名
         curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
 
-        // 以字符串形式返回到浏览器当中
+        // curl_exec() 将返回请求的结果作为字符串，赋值给变量，而不是直接输出到标准输出
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
 
-        // 让curl发起网络请求
+        // 执行 cURL 会话。发送请求，并等待响应
         $response = curl_exec($curl);
 
         // 出错
@@ -343,14 +352,60 @@ class Common
                 $ret = $response;
             }
         }
-        // 关闭 cURL 句柄
+        // 关闭 cURL 会话。它会释放由 $curl 句柄所关联的所有资源，包括网络连接、内存等。
         curl_close($curl);
         return $ret;
     }
 
+
+    /**
+     * 伪装成百度蜘蛛，发起HTTP请求
+     * 可以完整模拟百度蜘蛛爬取网页时的请求结构
+     * 注意：REMOTE_ADDR、REMOTE_PORT是服务端自动获取的，无法通过客户端直接修改，但是，可以通过代理的方式间接修改
+     *
+     * @param String $url 请求地址
+     * @return String 网页源代码
+     */
+    private function httpRequestBySpider($url)
+    {
+        // 伪装ua。百度蜘蛛使用的ua
+        $user_agent = 'Mozilla/5.0 (compatible; Baiduspider/2.0; +http://www.baidu.com/search/spider.html)';
+        // 请求的超时时间（秒）
+        $timeout = 8;
+        // 百度蜘蛛发起请求时，会携带HTTP请求头参数：HTTP_ACCEPT_ENCODING, HTTP_ACCEPT_LANGUAGE, HTTP_CONNECTION。请求日志显示的顺序正好数组顺序相反
+        $http_header = ["Connection: close", "User-Agent:{$user_agent}", "Accept-Language: zh-cn,zh-tw", "Accept:*/*", "Accept-Encoding: gzip"];
+        $is_https = substr($url, 0, 8) == 'https://' ? true : false;
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, $url);
+        // 不包含头部信息
+        curl_setopt($curl, CURLOPT_HEADER, false);
+        curl_setopt($curl, CURLOPT_USERAGENT, $user_agent);
+        // CURLOPT_HTTPHEADER 可以更精细地控制头字段。CURLOPT_USERAGENT 设置的值会被 CURLOPT_HTTPHEADER 中设置的相同头字段的值覆盖
+        curl_setopt($curl, CURLOPT_HTTPHEADER, $http_header);
+        curl_setopt($curl, CURLOPT_TIMEOUT, $timeout);
+        // 告诉cURL自动解码gzip压缩的响应
+        curl_setopt($curl, CURLOPT_ENCODING, "gzip");
+        // 允许重定向
+        curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
+        // 将响应作为字符串返回，而不是直接输出
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+        if ($is_https) {
+            // 验证对等方的证书是否包含有效的 CN 或 SAN 字段
+            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 2);
+            // 不会验证对等方的证书是否由受信任的 CA 签发
+            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+        }
+        $response = curl_exec($curl);
+        curl_close($curl);
+        // var_dump($response);
+        return $response;
+    }
+
+
+
     /**
      * 获取页面html
-     * @param {Object} $url 地址
+     * @param String $url 地址
      **/
     public function getHtmlByFile($url)
     {
@@ -371,8 +426,8 @@ class Common
      * 获取页面状态
      * 可判断远程文件是否存在(如果网站做过404处理，就检测不出来)
      *
-     * @param {Object} $url 地址
-     * @return {Object} false 页面不存在 true 页面存在
+     * @param String $url 地址
+     * @return Bool false 页面不存在 true 页面存在
      */
     public function getHtmlStatus($url)
     {
