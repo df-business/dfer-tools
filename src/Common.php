@@ -177,7 +177,7 @@ class Common
      * UTC即国际时间，在UTC基础上加8小时即中国时间
      * @param {Object} $time    时间戳
      */
-    function getUtcTime($time)
+    public function getUtcTime($time)
     {
         date_default_timezone_set("UTC");
         $time = date("Y-m-d\TH:i:s.z", $time) . 'Z';
@@ -357,7 +357,6 @@ class Common
         return $ret;
     }
 
-
     /**
      * 伪装成百度蜘蛛，发起HTTP请求
      * 可以完整模拟百度蜘蛛爬取网页时的请求结构
@@ -366,7 +365,7 @@ class Common
      * @param String $url 请求地址
      * @return String 网页源代码
      */
-    private function httpRequestBySpider($url)
+    public function httpRequestBySpider($url)
     {
         // 伪装ua。百度蜘蛛使用的ua
         $user_agent = 'Mozilla/5.0 (compatible; Baiduspider/2.0; +http://www.baidu.com/search/spider.html)';
@@ -400,8 +399,6 @@ class Common
         // var_dump($response);
         return $response;
     }
-
-
 
     /**
      * 获取页面html
