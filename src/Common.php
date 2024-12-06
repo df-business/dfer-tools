@@ -365,7 +365,7 @@ class Common
      * @param String $url 请求地址
      * @param String $proxy 代理服务器地址和端口（需要在服务器部署代理服务)。http://proxy.example.com:3128
      * @param String $proxy_user_pwd 代理服务器的用户名和密码（验证权限）。username:password
-     * @return String 网页源代码
+     * @return stdClass response:网页源代码  status:状态码
      */
     public function httpRequestBySpider($url, $proxy = null, $proxy_user_pwd = null)
     {
@@ -411,8 +411,40 @@ class Common
             // 错误信息
             $response = curl_error($curl);
         }
+        // 获取 HTTP 状态码
+        $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
         curl_close($curl);
-        return $response;
+        $obj = new stdClass();
+        $obj->url = $url;
+        $obj->status = $httpCode;
+        $obj->response = $response;
+        return $obj;
+    }
+
+    /**
+     * 获取页面状态
+     * 可判断远程文件是否存在(如果网站做过404处理，就检测不出来)
+     *
+     * @param String $url 地址
+     * @return Bool false 页面不存在 true 页面存在
+     */
+    public function getHtmlStatus($url)
+    {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        // 在 cURL 请求中不包括响应体（即不包括实际的页面内容）
+        curl_setopt($ch, CURLOPT_NOBODY, 1);
+        // 如果HTTP请求的结果是一个错误状态码（4xx或5xx），curl_exec 将返回 false
+        curl_setopt($ch, CURLOPT_FAILONERROR, 1);
+        // 将 cURL 获取的内容作为字符串返回，而不是直接输出
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 3);
+        $status = curl_exec($ch);
+        if ($status !== false) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -432,31 +464,6 @@ class Common
 
         $html = file_get_contents($url, 0, stream_context_create($arrContextOptions));
         return $html;
-    }
-
-    /**
-     * 获取页面状态
-     * 可判断远程文件是否存在(如果网站做过404处理，就检测不出来)
-     *
-     * @param String $url 地址
-     * @return Bool false 页面不存在 true 页面存在
-     */
-    public function getHtmlStatus($url)
-    {
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        // 在 cURL 请求中不包括响应体（即不包括实际的页面内容）
-        curl_setopt($ch, CURLOPT_NOBODY, 1);
-        // 如果 HTTP 请求返回一个错误状态码（例如 404 Not Found），curl_exec 将返回 false
-        curl_setopt($ch, CURLOPT_FAILONERROR, 1);
-        // 将 cURL 获取的内容作为字符串返回，而不是直接输出
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        $status = curl_exec($ch);
-        if ($status !== false) {
-            return true;
-        } else {
-            return false;
-        }
     }
 
     /**
