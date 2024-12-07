@@ -65,7 +65,6 @@ class Mail extends Common
     {
         $root = $this->getRootPath();
         $this->log_file = $this->str("{root}/data/logs/mail/{dir}/{file}.log", ["root" => $root, "dir" => date('Ym'), "file" => date('d')]);
-        $this->writeFile(null, $this->log_file, "a");
     }
 
     /**
@@ -407,6 +406,8 @@ class Mail extends Common
         if ($this->log_file == "") {
             return true;
         }
+
+        $this->writeFile(null, $this->log_file, "a");
         // 格式化消息，添加时间戳、当前用户和进程ID
         // 注意：get_current_user()函数在某些SAPI（如CLI）下可能不可用，且getmypid()返回的是当前PHP脚本的进程ID
         $message = date("M d H:i:s ") . get_current_user() . "[" . getmypid() . "]: " . $message;
