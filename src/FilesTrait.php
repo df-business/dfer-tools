@@ -256,6 +256,16 @@ trait FilesTrait
      */
     public function getExt($file_name)
     {
+        if(preg_match('/^https?:\/\//i', $file_name)){
+            // 是远程文件
+            // 使用 @ 运算符来抑制可能的错误消息（例如，当 URL 无效时）
+            $imageInfo = @getimagesize($file_name);
+            if ($imageInfo !== false) {
+                // 返回 MIME 类型
+                return $this->getKeyByValue($this->getMimeType(),$imageInfo['mime']);
+            }
+        }
+
         $ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
         if (!$ext) {
             $file_name = $this->removeQueryParams($file_name);

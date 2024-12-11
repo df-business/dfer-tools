@@ -1944,20 +1944,6 @@ class Common
     }
 
     /**
-     * 获取MIME_TYPE前缀
-     * @param {Object} $mimeType
-     */
-    function getMimeTypePrefix($mimeType)
-    {
-        $slashPos = strpos($mimeType, '/');
-        if ($slashPos !== false) {
-            return substr($mimeType, 0, $slashPos);
-        }
-        // 如果没有斜杠，返回完整的 MIME 类型
-        return $mimeType;
-    }
-
-    /**
      * 设置html中所有video的封面
      * @param {Object} $htmlContent html代码。eg:<html><body><video src="http://res.tye3.com/ktp_tye3/16yHwX6GA1fkedAi.mp4"></video></body></html>
      * @param {Object} $defaultCover 默认封面。eg:http://ktp.tye3.com/themes/ktp_v1/public/assets/images/temp/v_poster.jpg
@@ -2115,7 +2101,7 @@ class Common
      * @param object $fileType 文件扩展名
      * @return mixed
      **/
-    public function getMimeType($fileType)
+    public function getMimeType($fileType=null)
     {
         $mimeTypes = [
             // ********************** 文档 START **********************
@@ -2151,6 +2137,10 @@ class Common
             // **********************  应用程序 END  **********************
         ];
 
+        if($fileType===null){
+            return $mimeTypes;
+        }
+
         // 将文件类型转换为小写，以便进行不区分大小写的比较
         $fileType = strtolower($fileType);
 
@@ -2161,6 +2151,20 @@ class Common
             // 如果没有找到对应的 MIME 类型，则返回一个默认值或抛出异常
             return 'application/octet-stream'; // 默认二进制流数据
         }
+    }
+
+    /**
+     * 获取MIME_TYPE前缀
+     * @param {Object} $mimeType
+     */
+    function getMimeTypePrefix($mimeType)
+    {
+        $slashPos = strpos($mimeType, '/');
+        if ($slashPos !== false) {
+            return substr($mimeType, 0, $slashPos);
+        }
+        // 如果没有斜杠，返回完整的 MIME 类型
+        return $mimeType;
     }
 
     /**
@@ -2208,5 +2212,19 @@ class Common
             }
         }
         return null;
+    }
+
+    /**
+     * 关联数组根据值（value）来查找对应的键（key）
+     * @param {Object} $array
+     * @param {Object} $value
+     */
+    public function getKeyByValue($array, $value) {
+        foreach ($array as $key => $val) {
+            if ($val === $value) {
+                return $key;
+            }
+        }
+        return null; // 如果没有找到对应的值，返回 null
     }
 }
