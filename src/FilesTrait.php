@@ -446,6 +446,7 @@ trait FilesTrait
      **/
     public function uploadFileJson($status_code, $data = null, $edit_tool = Constants::UPLOAD_UMEDITOR_EDITOR)
     {
+        $data=$data?:['new_name'=>null,'filetype'=>null];
         extract($data);
         $msg = $this->getStatusMsg($status_code, $data);
 
