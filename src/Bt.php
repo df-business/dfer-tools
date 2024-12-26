@@ -55,6 +55,7 @@ class Bt extends Common
         // ********************** 系统管理 START **********************
         'GetSystemTotal' => '/system?action=GetSystemTotal',       //获取系统基础统计
         'GetDiskInfo' => '/system?action=GetDiskInfo',                 //获取磁盘分区信息
+        'GetDirSize' => '/files?action=GetDirSize',                 //获取目录的大小
         'GetNetWork' => '/system?action=GetNetWork',                   //获取实时状态信息(CPU、内存、网络、负载)
         'GetTaskCount' => '/ajax?action=GetTaskCount',                 //检查是否有安装任务
         'UpdatePanelCheck' => '/ajax?action=UpdatePanel',                   //检查面板更新
@@ -132,6 +133,11 @@ class Bt extends Common
 
     public function __construct($config = [])
     {
+        $this->setConfig($config);
+    }
+
+    public function setConfig($config = [])
+    {
         $this->panel_host = $config['panel_host'] ?? $this->panel_host;
         $this->secret_key = $config['secret_key'] ?? $this->secret_key;
     }
@@ -162,6 +168,18 @@ class Bt extends Common
 
         $result = $this->httpPostCookie($url, $p_data);
 
+        return $result;
+    }
+
+    /**
+     * 获取目录的大小
+     */
+    public function getDirSize($path)
+    {
+        $url = $this->getApi("GetDirSize");
+        $p_data = $this->getKeyData();
+        $p_data['path'] = $path;
+        $result = $this->httpPostCookie($url, $p_data);
         return $result;
     }
 
@@ -1316,7 +1334,7 @@ class Bt extends Common
     private function httpPostCookie($url, $data)
     {
         $name = md5($this->panel_host);
-        return $this->httpRequest($url, $data, Constants::REQ_POST, null, compact('name'));
+        return $this->httpRequest($url, $data, Constants::REQ_POST, null, compact('name'), 99);
     }
 
     /**
@@ -1325,6 +1343,9 @@ class Bt extends Common
      */
     private function getApi($key)
     {
+        if (!isset($this->api_list[$key])) {
+            die("接口不存在:$key");
+        }
         return $this->panel_host . $this->api_list[$key];
     }
 }

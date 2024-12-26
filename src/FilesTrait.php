@@ -256,13 +256,13 @@ trait FilesTrait
      */
     public function getExt($file_name)
     {
-        if(preg_match('/^https?:\/\//i', $file_name)){
+        if (preg_match('/^https?:\/\//i', $file_name)) {
             // 是远程文件
             // 使用 @ 运算符来抑制可能的错误消息（例如，当 URL 无效时）
             $imageInfo = @getimagesize($file_name);
             if ($imageInfo !== false) {
                 // 返回 MIME 类型
-                return $this->getKeyByValue($this->getMimeType(),$imageInfo['mime']);
+                return $this->getKeyByValue($this->getMimeType(), $imageInfo['mime']);
             }
         }
 
@@ -300,12 +300,20 @@ trait FilesTrait
      */
     public function writeFile($str, $file_src, $type = "w")
     {
+        $str = $str ?: '';
         $file_dir = dirname($file_src);
         $this->mkDirs($file_dir);
         @chmod($file_dir, 0777);
-        $fp = fopen($file_src, $type) or die("无法打开文件!");
-        fwrite($fp, $str);
+        $fp = fopen($file_src, $type);
+        if ($fp === false) {
+            return false;
+        }
+        $bytes_written = fwrite($fp, $str);
         fclose($fp);
+        if ($bytes_written === false || $bytes_written < strlen($str)) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -446,7 +454,7 @@ trait FilesTrait
      **/
     public function uploadFileJson($status_code, $data = null, $edit_tool = Constants::UPLOAD_UMEDITOR_EDITOR)
     {
-        $data=$data?:['new_name'=>null,'filetype'=>null];
+        $data = $data ?: ['new_name' => null, 'filetype' => null];
         extract($data);
         $msg = $this->getStatusMsg($status_code, $data);
 

@@ -248,7 +248,7 @@ class Common
      * @param Array $cookie cookie参数。['name'=>'xxx']
      * @return Json json对象
      **/
-    public function httpRequest($url, $data = null, $type = Constants::REQ_POST, $header = null, $cookie = null)
+    public function httpRequest($url, $data = null, $type = Constants::REQ_POST, $header = null, $cookie = null, $timeout = 50)
     {
         //初始化cURL会话
         $curl = curl_init();
@@ -327,8 +327,8 @@ class Common
         curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
         // 要访问的地址
         curl_setopt($curl, CURLOPT_URL, $url);
-        // 超时时间。表示如果请求在 50 秒内没有完成，cURL 将停止并返回一个错误
-        curl_setopt($curl, CURLOPT_TIMEOUT, 50);
+        // 超时时间。表示如果请求在 $timeout 秒内没有完成，cURL 将停止并返回一个错误
+        curl_setopt($curl, CURLOPT_TIMEOUT, $timeout);
         // 不验证服务器证书的颁发机构（CA）
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
         // 不检查服务器证书中的主机名是否匹配请求的主机名
@@ -2101,7 +2101,7 @@ class Common
      * @param object $fileType 文件扩展名
      * @return mixed
      **/
-    public function getMimeType($fileType=null)
+    public function getMimeType($fileType = null)
     {
         $mimeTypes = [
             // ********************** 文档 START **********************
@@ -2137,7 +2137,7 @@ class Common
             // **********************  应用程序 END  **********************
         ];
 
-        if($fileType===null){
+        if ($fileType === null) {
             return $mimeTypes;
         }
 
@@ -2219,7 +2219,8 @@ class Common
      * @param {Object} $array
      * @param {Object} $value
      */
-    public function getKeyByValue($array, $value) {
+    public function getKeyByValue($array, $value)
+    {
         foreach ($array as $key => $val) {
             if ($val === $value) {
                 return $key;
