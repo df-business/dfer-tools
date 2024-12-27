@@ -61,6 +61,11 @@ class Bt extends Common
         'UpdatePanelCheck' => '/ajax?action=UpdatePanel',                   //检查面板更新
         // **********************  系统管理 END  **********************
 
+        // ********************** 计划任务 START **********************
+        'GetCrontab' => '/crontab?action=GetCrontab',                   //计划任务列表
+        'GetLogs' => '/crontab?action=GetLogs',                   //计划任务日志
+        // **********************  计划任务 END  **********************
+
         // ********************** 网站管理 START **********************
         'WebSites' => '/data?action=getData&table=sites',         //获取网站列表
         'WebTypes' => '/site?action=get_site_types',             //获取网站分类
@@ -228,6 +233,38 @@ class Bt extends Common
         return $result;
     }
     //////////////////////////////////////////////////  系统管理 END  //////////////////////////////////////////////////
+
+    ////////////////////////////////////////////////// 计划任务 START //////////////////////////////////////////////////
+    /**
+     * 获取计划任务列表
+     */
+    public function getCrontab($count = 20, $p = 1)
+    {
+        $url = $this->getApi("GetCrontab");
+        $p_data = $this->getKeyData();
+        $p_data['count'] = $count;
+        $p_data['p'] = $p;
+        $result = $this->httpPostCookie($url, $p_data);
+        return $result;
+    }
+
+    /**
+     * 计划任务日志
+     */
+    public function getLogs($id, $day = 15)
+    {
+        $url = $this->getApi("GetLogs");
+        $p_data = $this->getKeyData();
+        $p_data['id'] = $id;
+        $end_timestamp = time();
+        // 最近15天
+        $start_timestamp = $end_timestamp - 60 * 60 * 24 * $day;
+        $p_data['start_timestamp'] = $start_timestamp;
+        $p_data['end_timestamp'] = $end_timestamp;
+        $result = $this->httpPostCookie($url, $p_data);
+        return $result;
+    }
+    //////////////////////////////////////////////////  计划任务 END  //////////////////////////////////////////////////
 
     ////////////////////////////////////////////////// 网站管理 START //////////////////////////////////////////////////
     /**
