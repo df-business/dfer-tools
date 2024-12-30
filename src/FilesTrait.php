@@ -54,30 +54,43 @@ trait FilesTrait
         }
     }
 
+    // ********************** 获取目录所有文件 START **********************
+    public $scan_files = array();
     /**
-     * 遍历目录，获取目录、文件数组
+     * 遍历目录，获取文件数组
+     * @param {Object} $dir
      */
-    public $my_scenfiles = array();
-    public $my_files = array();
-
-    public function scanDir($dir)
+    public function scanDir($dir, $exclude_dirs = [], $exclude_files = [])
     {
-        global $my_scenfiles, $my_files;
-        //  echo $dir;
         if ($handle = opendir($dir)) {
             while (($file = readdir($handle)) !== false) {
                 if ($file != ".." && $file != ".") {
-                    if (is_dir($dir . "/" . $file)) {
-                        $this->scanDir($dir . "/" . $file);
+                    $path = "{$dir}/{$file}";
+                    if (is_dir($path)) {
+                        // 目录
+                        if (in_array($file, $exclude_dirs)) continue;
+                        $this->scanDir($path);
                     } else {
-                        $my_scenfiles[] = $dir . "/" . $file;
-                        $my_files[] = $file;
+                        // 文件
+                        if (in_array($file, $exclude_files)) continue;
+                        $this->scan_files[$file] = $path;
                     }
                 }
             }
             closedir($handle);
         }
     }
+
+    /**
+     * 获取扫描结果，重置公共参数
+     */
+    public function getScanFiles()
+    {
+        $files = $this->scan_files;
+        return $files;
+    }
+    // **********************  获取目录所有文件 END  **********************
+
 
     /**
      * 删除目录和目录下的文件，成功则返回1
@@ -643,6 +656,31 @@ trait FilesTrait
         } else {
             $file_base64 = "data:{$mimeType};base64," . base64_encode($file_data);
             return $file_base64;
+        }
+    }
+
+    /**
+     * 自动加载类、库或配置文件
+     * @param String $directory 目录路径
+     * @param Array $exclude_files 排除的文件名。eg:["1.php"]
+     * @return mixed
+     **/
+    public function autoloadPhpFilesFromDirectory($directory, $exclude_dirs = [], $exclude_files = [])
+    {
+        $this->scanDir($directory, $exclude_dirs, $exclude_files);
+        $paths = $this->getScanFiles();
+        // var_dump($directory,$paths);return ;
+        if ($paths) {
+            // 循环遍历目录中的文件
+            foreach ($paths as $name => $path) {
+                // 检查文件扩展名是否为 .php
+                if (pathinfo($name, PATHINFO_EXTENSION) === 'php') {
+                    require_once $path;
+                }
+            }
+            return true;
+        } else {
+            return false;
         }
     }
 }
