@@ -278,10 +278,7 @@ class Common
                 // get数组
                 //判断data是否有数据
                 if (!empty($data)) {
-                    $url .= '?';
-                    foreach ($data as $k => $v) {
-                        $url .= sprintf("%s=%s&", $k, $v);
-                    }
+                    $url .= '?' . $this->arr2url($data);
                     $data = null;
                 }
                 break;
@@ -320,7 +317,7 @@ class Common
             // 发送一个 POST 请求
             curl_setopt($curl, CURLOPT_POST, true);
             // 指定要发送到服务器的数据
-            curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($data));
+            curl_setopt($curl, CURLOPT_POSTFIELDS, $this->arr2url($data, false));
         }
 
         // 自动转到重定向之后的新地址，直到请求成功完成
@@ -536,10 +533,19 @@ class Common
     /**
      * 数组转url参数
      * @param {Object} $data
+     * @param {Object} $encode 开启URL编码
      */
-    public function arr2url($data)
+    public function arr2url($data, $encode = true)
     {
-        return http_build_query($data);
+        if ($encode) {
+            return http_build_query($data);
+        } else {
+            $params = [];
+            foreach ($data as $k => $v) {
+                $params[] = sprintf("%s=%s", $k, $v);
+            }
+            return implode('&', $params);
+        }
     }
 
     /**
