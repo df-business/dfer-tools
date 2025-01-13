@@ -258,21 +258,18 @@ class Common
                 if (!empty($data)) {
                     // 不对非 ASCII 字符（如中文、日文等 Unicode 字符）进行转义
                     $data = json_encode($data, JSON_UNESCAPED_UNICODE);
-                    // 不包含头部信息
-                    curl_setopt($curl, CURLOPT_HEADER, false);
-                    // 设置自定义的 HTTP 请求头。设置内容类型为 JSON，并指定字符集为 UTF-8
-                    // CURLOPT_HTTPHEADER 可以更精细地控制头字段。CURLOPT_USERAGENT 设置的值会被 CURLOPT_HTTPHEADER 中设置的相同头字段的值覆盖
-                    curl_setopt(
-                        $curl,
-                        CURLOPT_HTTPHEADER,
-                        array(
-                            'Content-Type: application/json; charset=utf-8',
-                            'Content-Length:' . strlen($data),
-                            'Cache-Control: no-cache',
-                            'Pragma: no-cache'
-                        )
-                    );
                 }
+                // 不包含头部信息
+                curl_setopt($curl, CURLOPT_HEADER, false);
+                // 默认请求头
+                $header = is_array($header) ? array_merge([
+                    'Content-Type' => 'application/json; charset=utf-8',
+                    'Content-Length' => strlen($data),
+                    'Cache-Control' => 'no-cache',
+                    'Pragma' => 'no-cache'
+                ], $header) : $header;
+                // var_dump($header);                
+                curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
                 break;
             case Constants::REQ_GET:
                 // get数组
@@ -284,6 +281,15 @@ class Common
                 break;
             case Constants::REQ_POST:
                 // post数组
+                //判断data是否有数据
+                if (!empty($data)) {
+                    // 解析数组字符串
+                    $data = is_array($data) ? $data : json_decode($data);
+                    // 发送一个 POST 请求
+                    curl_setopt($curl, CURLOPT_POST, true);
+                    // 指定要发送到服务器的数据
+                    curl_setopt($curl, CURLOPT_POSTFIELDS, $this->arr2url($data, false));
+                }
                 break;
             default:
                 # code...
@@ -297,6 +303,7 @@ class Common
                 $header_list[] = sprintf("%s:%s", $k, $v);
             }
             // 设置自定义的 HTTP 请求头。
+            // CURLOPT_HTTPHEADER 可以更精细地控制头字段。CURLOPT_USERAGENT 设置的值会被 CURLOPT_HTTPHEADER 中设置的相同头字段的值覆盖
             curl_setopt($curl, CURLOPT_HTTPHEADER, $header_list);
         }
 
@@ -308,16 +315,6 @@ class Common
             curl_setopt($curl, CURLOPT_COOKIEJAR, $cookie_file);
             // 指定一个包含 cookie 信息的文件，cURL 会在发起请求时从这个文件中读取 cookie 并将其发送到服务器
             curl_setopt($curl, CURLOPT_COOKIEFILE, $cookie_file);
-        }
-
-        //判断data是否有数据
-        if (!empty($data)) {
-            // 解析数组字符串
-            $data = is_array($data) ? $data : json_decode($data);
-            // 发送一个 POST 请求
-            curl_setopt($curl, CURLOPT_POST, true);
-            // 指定要发送到服务器的数据
-            curl_setopt($curl, CURLOPT_POSTFIELDS, $this->arr2url($data, false));
         }
 
         // 自动转到重定向之后的新地址，直到请求成功完成
@@ -537,6 +534,9 @@ class Common
      */
     public function arr2url($data, $encode = true)
     {
+        if (!is_array($data)) {
+            return $data;
+        }
         if ($encode) {
             return http_build_query($data);
         } else {
