@@ -255,7 +255,7 @@ class Common
         switch ($type) {
             case Constants::REQ_JSON:
                 // json字符串
-                if (!empty($data)) {
+                if (is_array($data)) {
                     // 不对非 ASCII 字符（如中文、日文等 Unicode 字符）进行转义
                     $data = json_encode($data, JSON_UNESCAPED_UNICODE);
                 }
@@ -268,7 +268,7 @@ class Common
                     'Cache-Control' => 'no-cache',
                     'Pragma' => 'no-cache'
                 ], $header) : $header;
-                // var_dump($header);                
+                // var_dump($header);
                 curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
                 break;
             case Constants::REQ_GET:
