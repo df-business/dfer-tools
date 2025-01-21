@@ -75,7 +75,7 @@ class Storage
             $htmls = array_change_key_case($htmls);
             // 检测静态规则
             $controllerName = strtolower($controller_name);
-            $actionName     = strtolower($action_name);
+            $actionName = strtolower($action_name);
             // index:index
             if (isset($htmls["{$controllerName}:{$actionName}"])) {
                 // 某个控制器的操作的静态规则
@@ -161,7 +161,7 @@ class Storage
                 if (!is_file($cacheFile)) {
                     // 缓存不存在，则更新缓存
                     $is_valid = false;
-                } elseif (is_file($tmpl_file) && filemtime($tmpl_file) > $this->get($cacheFile, 'mtime')) {
+                } elseif ($tmpl_file && is_file($tmpl_file) && filemtime($tmpl_file) > $this->get($cacheFile, 'mtime')) {
                     // 模板文件存在，且模板文件发生变化，则更新缓存
                     $is_valid = false;
                 } elseif (!is_numeric($cacheTime) && function_exists($cacheTime)) {
@@ -313,7 +313,8 @@ class Storage
         // 没有读取过文件内容
         if (!isset($this->contents[$filename])) {
             // 不是文件则直接返回
-            if (!is_file($filename)) return false;
+            if (!is_file($filename))
+                return false;
             // 获取文件内容
             $this->contents[$filename] = file_get_contents($filename);
         }
