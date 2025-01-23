@@ -55,6 +55,7 @@ trait FilesTrait
     }
 
     // ********************** 获取目录所有文件 START **********************
+
     public $scan_files = array();
     /**
      * 遍历目录，获取文件数组
@@ -89,8 +90,8 @@ trait FilesTrait
         $files = $this->scan_files;
         return $files;
     }
-    // **********************  获取目录所有文件 END  **********************
 
+    // **********************  获取目录所有文件 END  **********************
 
     /**
      * 删除目录和目录下的文件，成功则返回1
@@ -99,29 +100,33 @@ trait FilesTrait
     public function delDir($dir)
     {
         try {
-            //先删除目录下的文件：
-            $dh = opendir($dir);
-            while ($file = readdir($dh)) {
-                if ($file != "." && $file != "..") {
-                    $fullpath = $dir . "/" . $file;
-                    if (!is_dir($fullpath)) {
-                        $rt = unlink($fullpath);
-                        if (!$rt) {
-                            return false;
+            if (is_dir($dir)) {
+                //先删除目录下的文件：
+                $dh = opendir($dir);
+                while ($file = readdir($dh)) {
+                    if ($file != "." && $file != "..") {
+                        $fullpath = $dir . "/" . $file;
+                        if (!is_dir($fullpath)) {
+                            $rt = unlink($fullpath);
+                            if (!$rt) {
+                                return false;
+                            }
+                        } else {
+                            $this->deldir($fullpath);
+                            //循环删除文件
                         }
-                    } else {
-                        $this->deldir($fullpath);
-                        //循环删除文件
                     }
                 }
+                closedir($dh);
+                //删除当前文件夹
+                return rmdir($dir);
+            } else {
+                return false;
             }
-            closedir($dh);
-            //删除当前文件夹
-            return rmdir($dir);
         } catch (Exception $e) {
-            return 0;
+            return false;
         } catch (Throwable  $e) {
-            return 0;
+            return false;
         }
     }
 
@@ -182,42 +187,6 @@ trait FilesTrait
         }
         closedir($dir);
         return true;
-    }
-
-    /**
-     * 清除文件夹
-     * @param {Object} $dir    文件夹路径
-     */
-    public function deleteDir($dir, $quiet = false)
-    {
-        if (is_dir($dir)) {
-            if ($dp = opendir($dir)) {
-                while (($file = readdir($dp)) != false) {
-                    if ($file != '.' && $file != '..') {
-                        $file = $dir . DIRECTORY_SEPARATOR . $file;
-                        if (is_dir($file)) {
-                            if (!$quiet)
-                                echo "deleting dir:" . $file . "\n";
-                            $this->deleteDir($file, $quiet);
-                        } else {
-                            try {
-                                if (!$quiet)
-                                    echo "deleting file:" . $file . "\n";
-                                unlink($file);
-                            } catch (Exception $e) {
-                            }
-                        }
-                    }
-                }
-                if (readdir($dp) == false) {
-                    closedir($dp);
-                    rmdir($dir);
-                }
-            } else {
-                if (!$quiet)
-                    echo 'Not permission' . "\n";
-            }
-        }
     }
 
     /**

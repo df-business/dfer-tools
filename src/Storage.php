@@ -118,7 +118,7 @@ class Storage
                     }
                     return (count($match) == 4) ? $match[3]($var) : $var;
                 };
-                // {$_变量名.属性名|可选修饰符}。如：{$_user.name}、{$_user.name|lastName}
+                // {$_系统变量名.属性名|函数名}。如：{$_GET.name}、{$_GET.name|func}
                 $rule = preg_replace_callback('/{\$(_\w+)\.(\w+)(?:\|(\w+))?}/', $callback, $rule);
                 // {get参数名|函数名}。如：{type|func}
                 $rule = preg_replace_callback('/{(\w+)\|(\w+)}/', function ($match) {
@@ -128,7 +128,7 @@ class Storage
                 $rule = preg_replace_callback('/{(\w+)}/', function ($match) {
                     return $_GET[$match[1]];
                 }, $rule);
-                // 特殊系统变量
+                // 内置占位符
                 $rule = str_ireplace(
                     array('{:area}', '{:controller}', '{:action}'),
                     array($area_name, $controller_name, $action_name),
@@ -151,7 +151,10 @@ class Storage
                 // 当前缓存文件
                 $html_path = $this->getRoot() . "/data/html/";
                 // 缓存文件路径
-                $cacheFile = "{$html_path}{$rule}.html";
+                if (false === strpos($rule, '.html')) {
+                    $rule = "{$rule}.html";
+                }
+                $cacheFile = "{$html_path}{$rule}";
                 // 定义全局常量
                 define('DFER_HTML_FILE', $cacheFile);
 
