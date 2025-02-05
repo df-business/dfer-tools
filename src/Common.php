@@ -246,9 +246,10 @@ class Common
      * @param Int $type 请求类型。默认post
      * @param Array $header header参数。["Content-Type: application/json"]
      * @param Array $cookie cookie参数。['name'=>'xxx']
+     * @param Int $timeout 请求的超时时间（秒）
      * @return Json json对象
      **/
-    public function httpRequest($url, $data = null, $type = Constants::REQ_POST, $header = null, $cookie = null, $timeout = 50)
+    public function httpRequest($url, $data = null, $type = Constants::REQ_POST, $header = null, $cookie = null, $timeout = 60)
     {
         //初始化cURL会话
         $curl = curl_init();
@@ -359,14 +360,13 @@ class Common
      * @param String $url 请求地址
      * @param String $proxy 代理服务器地址和端口（需要在服务器部署代理服务)。http://proxy.example.com:3128
      * @param String $proxy_user_pwd 代理服务器的用户名和密码（验证权限）。username:password
+     * @param Int $timeout 请求的超时时间（秒）
      * @return stdClass response:网页源代码  status:状态码
      */
-    public function httpRequestBySpider($url, $proxy = null, $proxy_user_pwd = null)
+    public function httpRequestBySpider($url, $proxy = null, $proxy_user_pwd = null, $timeout = 9)
     {
         // 伪装ua。百度蜘蛛使用的ua
         $user_agent = 'Mozilla/5.0 (compatible; Baiduspider/2.0; +http://www.baidu.com/search/spider.html)';
-        // 请求的超时时间（秒）
-        $timeout = 8;
         // 百度蜘蛛发起请求时，会携带HTTP请求头参数：HTTP_ACCEPT_ENCODING, HTTP_ACCEPT_LANGUAGE, HTTP_CONNECTION。请求日志显示的顺序正好数组顺序相反
         $http_header = ["Connection: close", "User-Agent:{$user_agent}", "Accept-Language: zh-cn,zh-tw", "Accept:*/*", "Accept-Encoding: gzip"];
         $is_https = substr($url, 0, 8) == 'https://' ? true : false;
