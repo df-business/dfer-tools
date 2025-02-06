@@ -51,10 +51,13 @@ use Exception;
 
 class Storage
 {
+
     // 文件内容数组。根据文件名存储文件内容
     private $contents = array();
     // 静态变量存储缓存数据
     static $_cache = array();
+
+    // ###################################### 静态缓存 START ######################################
 
     /**
      * 读取静态缓存
@@ -161,10 +164,10 @@ class Storage
                 // 检查静态HTML文件是否有效，如果无效需要重新更新
                 //静态文件有效
                 $is_valid = true;
-                if (!is_file($cacheFile)) {
+                if (!$this->has($cacheFile)) {
                     // 缓存不存在，则更新缓存
                     $is_valid = false;
-                } elseif ($tmpl_file && is_file($tmpl_file) && filemtime($tmpl_file) > $this->get($cacheFile, 'mtime')) {
+                } elseif ($tmpl_file && $this->has($tmpl_file) && filemtime($tmpl_file) > $this->get($cacheFile, 'mtime')) {
                     // 模板文件存在，且模板文件发生变化，则更新缓存
                     $is_valid = false;
                 } elseif (!is_numeric($cacheTime) && function_exists($cacheTime)) {
@@ -204,44 +207,75 @@ class Storage
         return $content;
     }
 
+    // ######################################  静态缓存 END  ######################################
+
+    // ###################################### 快速缓存 START ######################################
+
     /**
      * 快速文件数据读取和保存
      * 针对简单类型数据
      * 字符串、数组
-     * @param string $name 缓存名称。可以带路径，会自动创建目录
-     * @param mixed $value 缓存值。不为空字符串则读取
-     * @return mixed
+     * eg:
+     * 写入。fast('test','666') 或 fast('test',[666])
+     * 删除。fast('test',null)
+     * 读取。fast('test') 或 fast('test','')
+     * @param String $name 缓存名称。可以带路径，会自动创建目录
+     * @param Object $value 缓存值。支持任意对象
+     * @return Object
      */
     public function fast($name, $value = '')
     {
-        $filename = $this->getRoot() . "/data/storage/{$name}.php";
-        return $this->process($filename, $value);
+        $file_name = $this->getRoot() . "/data/fast/{$name}.php";
+        return $this->process($file_name, $value);
     }
+
+    // ######################################  快速缓存 END  ######################################
+
+    // ###################################### 数据缓存 START ######################################
+
+    /**
+     * 有时间限制的文件数据读取和保存
+     * eg:
+     * 写入。store('test','666',60) 或 store('test',[666],60)
+     * 删除。store('test',null)
+     * 读取。store('test') 或 store('test','')
+     * @param String $name 缓存名称。可以带路径，会自动创建目录
+     * @param Object $value 缓存值。支持任意对象
+     * @param Int $expire 缓存时间(秒)。读取时超过缓存时间，则删除该文件，返回false
+     * @return Object
+     */
+    public function store($name, $value = '', $expire = 0)
+    {
+        $file_name = $this->getRoot() . "/data/store/{$name}.php";
+        return $this->process($file_name, $value, $expire);
+    }
+
+    // ######################################  数据缓存 END  ######################################
 
     /**
      * 本地文件写入、读取
      */
-    public function process($filename, $value = '')
+    public function process($file_name, $value = '', $expire = null)
     {
         // ********************** 写入 START **********************
         // 缓存值不为空字符串
         if ('' !== $value) {
-            // 值为null
             if (is_null($value)) {
-                // 名称中有“*”，则返回false
-                if (false !== strpos($name, '*')) {
-                    return false;
-                } else {
-                    // 删除缓存文件
-                    unset(self::$_cache[$name]);
-                    return $this->unlink($filename, 'F');
-                }
+                // 值为null
+                // 删除缓存文件
+                unset(self::$_cache[$file_name]);
+                return $this->unlink($file_name);
             } else {
                 // 值不为null
+                $data   =   serialize($value);
+                // 设置过期时间
+                if ($expire !== null) {
+                    $data    = "<?php\n//" . sprintf('%012d', $expire) . $data . "\n?>";
+                }
                 // 写入缓存文件
-                $this->put($filename, serialize($value));
+                $this->put($file_name, $data);
                 // 缓存数据
-                self::$_cache[$name] = $value;
+                self::$_cache[$file_name] = $value;
                 return true;
             }
         }
@@ -249,14 +283,27 @@ class Storage
 
         // ********************** 读取 START **********************
         // 获取静态缓存数据，首次从文件读取之后，下次不用再次读取文件
-        if (isset(self::$_cache[$name]))
-            return self::$_cache[$name];
+        if (isset(self::$_cache[$file_name]))
+            return self::$_cache[$file_name];
         // 缓存文件存在
-        if ($this->has($filename)) {
-            // 读取缓存文件内容，并且反序列化
-            $value = unserialize($this->read($filename));
+        if ($this->has($file_name)) {
+            // 读取缓存文件内容
+            $content    =   $this->read($file_name);
+            // 需要判断过期时间
+            if (0 === strpos($content, '<?php')) {
+                $expire  =  (int)substr($content, 8, 12);
+                if ($expire != 0 && time() > filemtime($file_name) + $expire) {
+                    //缓存过期删除缓存文件
+                    $this->unlink($file_name);
+                    return false;
+                }
+                $content   =  substr($content, 20, -3);
+            }
+
+            // 反序列化
+            $value = unserialize($content);
             // 存入静态缓存数据
-            self::$_cache[$name] = $value;
+            self::$_cache[$file_name] = $value;
         } else {
             // 缓存文件不存在
             $value = false;
@@ -267,64 +314,64 @@ class Storage
 
     /**
      * 文件内容读取
-     * @param string $filename 文件名
+     * @param string $file_name 文件名
      * @return string
      */
-    private function read($filename)
+    private function read($file_name)
     {
-        return $this->get($filename, 'content');
+        return $this->get($file_name, 'content');
     }
 
     /**
      * 文件是否存在
-     * @param string $filename 文件名
+     * @param string $file_name 文件名
      * @return boolean
      */
-    private function has($filename)
+    private function has($file_name)
     {
-        return is_file($filename);
+        return is_file($file_name);
     }
 
     /**
      * 文件写入
-     * @param string $filename 文件名
+     * @param string $file_name 文件名
      * @param string $content 文件内容
      * @return boolean
      */
-    private function put($filename, $content)
+    private function put($file_name, $content)
     {
-        $dir = dirname($filename);
+        $dir = dirname($file_name);
         // 目录不存在则自动创建目录
         if (!is_dir($dir))
             mkdir($dir, 0755, true);
-        if (false === file_put_contents($filename, $content)) {
+        if (false === file_put_contents($file_name, $content)) {
             throw new Exception("快速存储写入失败");
         } else {
-            $this->contents[$filename] = $content;
+            $this->contents[$file_name] = $content;
             return true;
         }
     }
 
     /**
      * 文件信息读取
-     * @param string $filename 文件名
+     * @param string $file_name 文件名
      * @param string $name 信息名 mtime或者content
      * @return boolean
      */
-    private function get($filename, $name)
+    private function get($file_name, $name)
     {
         // 没有读取过文件内容
-        if (!isset($this->contents[$filename])) {
+        if (!isset($this->contents[$file_name])) {
             // 不是文件则直接返回
-            if (!is_file($filename))
+            if (!$this->has($file_name))
                 return false;
             // 获取文件内容
-            $this->contents[$filename] = file_get_contents($filename);
+            $this->contents[$file_name] = file_get_contents($file_name);
         }
         // 直接读取变量里的内容
-        $content = $this->contents[$filename];
+        $content = $this->contents[$file_name];
         $info = array(
-            'mtime' => filemtime($filename),
+            'mtime' => filemtime($file_name),
             'content' => $content
         );
         return $info[$name];
@@ -332,27 +379,27 @@ class Storage
 
     /**
      * 文件追加写入
-     * @param string $filename 文件名
+     * @param string $file_name 文件名
      * @param string $content 追加的文件内容
      * @return boolean
      */
-    private function append($filename, $content)
+    private function append($file_name, $content)
     {
-        if (is_file($filename)) {
-            $content = $this->read($filename) . $content;
+        if ($this->has($file_name)) {
+            $content = $this->read($file_name) . $content;
         }
-        return $this->put($filename, $content);
+        return $this->put($file_name, $content);
     }
 
     /**
      * 文件删除
-     * @param string $filename 文件名
+     * @param string $file_name 文件名
      * @return boolean
      */
-    private function unlink($filename)
+    private function unlink($file_name)
     {
-        unset($this->contents[$filename]);
-        return is_file($filename) ? unlink($filename) : false;
+        unset($this->contents[$file_name]);
+        return $this->has($file_name) ? unlink($file_name) : false;
     }
 
     /**

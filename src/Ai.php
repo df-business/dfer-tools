@@ -37,12 +37,14 @@
 namespace Dfer\Tools;
 
 use Dfer\Tools\Constants;
+use Dfer\Tools\Statics\Storage;
 
 class Ai extends Common
 {
     protected $api_key = '';
     protected $secret_key = '';
     private $debug = false;
+    static $token = '';
 
     public function __construct($config = [], $needOssClient = true)
     {
@@ -53,73 +55,91 @@ class Ai extends Common
     }
 
     // ###################################### baidu START ######################################
-    // ********************** 千帆 START **********************
+
     /**
      * 运行
      * 千帆 ModelBuilder
      * https://console.bce.baidu.com/qianfan/overview
-     * https://console.bce.baidu.com/support/?u=doc-inner&timestamp=1738743405063#/api?product=QIANFAN&project=%E5%8D%83%E5%B8%86ModelBuilder&parent=ERNIE%204.0&api=rpc%2F2.0%2Fai_custom%2Fv1%2Fwenxinworkshop%2Fchat%2Fcompletions_pro&method=post
      * @param object $var 变量
      * @return Array
      **/
-    public function runBdQf($var = null)
+    public function runBdQf($command, $type = Constants::AI_TEXT)
     {
-        $url = "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/completions_pro?access_token={$this->getTokenBdQf()}";
-        $data = [
-            'messages' => [
-                [
-                    "role" => "user",
-                    "content" => "生成100字的政府报告"
-                ]
-            ]
-        ];
+        $this->setTokenBdQf();
+        switch ($type) {
+            case Constants::AI_TEXT:
+            default:
+                // ERNIE-4.0-8K https://console.bce.baidu.com/support/?u=doc-inner&timestamp=1738743405063#/api?product=QIANFAN&project=%E5%8D%83%E5%B8%86ModelBuilder&parent=ERNIE%204.0&api=rpc%2F2.0%2Fai_custom%2Fv1%2Fwenxinworkshop%2Fchat%2Fcompletions_pro&method=post
+                $url = "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/completions_pro?access_token=" . static::$token;
+                $data = [
+                    'messages' => [
+                        [
+                            "role" => "user",
+                            "content" => $command
+                        ]
+                    ]
+                ];
+                break;
+        }
         $result = $this->httpRequest($url, $data, Constants::REQ_JSON);
         return $result;
     }
 
     /**
-     * 获取token
+     * 设置token
      * @param object $var 变量
-     * @return String
+     * @return mixed
      **/
-    public function getTokenBdQf($var = null)
+    private function setTokenBdQf($var = null)
     {
-        $url = "https://aip.baidubce.com/oauth/2.0/token";
-        $data = [
-            'grant_type' => 'client_credentials',
-            'client_id' => $this->api_key,
-            'client_secret' => $this->secret_key
-        ];
-        $result = $this->httpRequest($url, $data);
-        // var_dump($result);
-        return $result['access_token'];
+        if (empty(static::$token)) {
+            $token = Storage::store('bd_qf_token');
+            if (!$token) {
+                $url = "https://aip.baidubce.com/oauth/2.0/token";
+                $data = [
+                    'grant_type' => 'client_credentials',
+                    'client_id' => $this->api_key,
+                    'client_secret' => $this->secret_key
+                ];
+                $result = $this->httpRequest($url, $data);
+                $expires_in = $result['expires_in'];
+                $token = $result['access_token'];
+                Storage::store('bd_qf_token', $token, $expires_in);
+                // var_dump($result);die;
+            }
+            static::$token = $token;
+        }
     }
-    // **********************  千帆 END  **********************
+
     // ######################################  baidu END  ######################################
 
     // ###################################### 火山引擎 START ######################################
     /**
      * 运行
-     * 火山引擎
      * https://www.volcengine.com/
-     * https://www.volcengine.com/docs/82379/1099455
      * @param object $var 变量
      * @return Array
      **/
-    public function runVe($var = null)
+    public function runVe($command, $type = Constants::AI_TEXT)
     {
-        $url = "https://ark.cn-beijing.volces.com/api/v3/chat/completions";
+        switch ($type) {
+            case Constants::AI_TEXT:
+            default:
+                // 文本生成 https://www.volcengine.com/docs/82379/1298454
+                $url = "https://ark.cn-beijing.volces.com/api/v3/chat/completions";
+                $data = [
+                    'messages' => [
+                        [
+                            "role" => "user",
+                            "content" => $command,
+                        ]
+                    ],
+                    "model" => "ep-20250121132129-jxqnz"
+                ];
+                break;
+        }
         $header = [
             'Authorization' => "Bearer {$this->api_key}"
-        ];
-        $data = [
-            'messages' => [
-                [
-                    "role" => "user",
-                    "content" => "生成100字的政府报告",
-                ]
-            ],
-            "model" => "ep-20250121132129-jxqnz"
         ];
         $result = $this->httpRequest($url, $data, Constants::REQ_JSON, $header);
         return $result;
@@ -129,28 +149,32 @@ class Ai extends Common
     // ###################################### DeepSeek START ######################################
     /**
      * 运行
-     * 深度求索
      * https://www.deepseek.com/
-     * https://api-docs.deepseek.com/zh-cn/api/create-chat-completion
      * @param object $var 变量
      * @return Array
      **/
-    public function runDs($var = null)
+    public function runDs($command, $type = Constants::AI_TEXT)
     {
-        $url = "https://api.deepseek.com/chat/completions";
+        switch ($type) {
+            case Constants::AI_TEXT:
+            default:
+                // 对话补全 https://api-docs.deepseek.com/zh-cn/api/create-chat-completion
+                $url = "https://api.deepseek.com/chat/completions";
+                $data = [
+                    'messages' => [
+                        [
+                            "role" => "user",
+                            "content" => $command,
+                        ]
+                    ],
+                    "model" => "deepseek-chat",
+                ];
+                break;
+        }
         $header = [
             'Authorization' => "Bearer {$this->api_key}"
         ];
-        $data = [
-            'messages' => [
-                [
-                    "role" => "user",
-                    "content" => "生成100字的政府报告",
-                ]
-            ],
-            "model" => "deepseek-chat"
-        ];
-        $result = $this->httpRequest($url, $data, Constants::REQ_JSON, $header);
+        $result = $this->httpRequest($url, $data, Constants::REQ_JSON, $header, null, 9);
         return $result;
     }
     // ######################################  DeepSeek END  ######################################
