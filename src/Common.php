@@ -655,18 +655,17 @@ class Common
     }
 
     /**
-     *
      * 字符串格式化
      * eg:
-     * echo format("ddddd:v1cc:v2bb:v2bbccc:v1",array('v1'=>123,'v2'=>555));
-     *
+     *  format("ddddd{v1}cc{v2}bb{v2}bbccc{v1}",array('v1'=>123,'v2'=>555));
+     *  format("ddddd{0}cc{1}",array(123,1=>555));
+     * @param {Object} $str 原字符串
+     * @param {Object} $arr 关键词数组
      */
     public function format($str, $arr)
     {
         foreach ($arr as $key => $v) {
-            //兼容wq
-            $key = str_replace(':', '', $key);
-            $str = preg_replace("/:{$key}/", is_string($v) ? "'{$v}'" : $v, $str);
+            $str = preg_replace("/\{{$key}\}/", is_string($v) ? "'{$v}'" : $v, $str);
         }
         return $str;
     }
