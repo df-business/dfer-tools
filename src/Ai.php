@@ -128,7 +128,7 @@ class Ai extends Common
             default:
                 break;
         }
-        return $result ?: Constants::AI_TIMEOUT;
+        return $result ?: Constants::AI_ERROR;
     }
 
     /**
@@ -170,7 +170,7 @@ class Ai extends Common
             parent::debug(func_get_args());
     }
 
-    public function httpRequest($url, $data = null, $type = Constants::REQ_POST, $header = null, $cookie = null, $timeout = 30)
+    public function httpRequest($url, $data = null, $type = Constants::REQ_POST, $header = null, $cookie = null, $timeout = 100)
     {
         $result = parent::httpRequest($url, $data, $type, $header, $cookie, $timeout);
         $this->debug($result);
@@ -191,12 +191,28 @@ class Ai extends Common
     {
         switch ($type) {
             case Constants::AI_IMAGE:
+            case Constants::AI_IMAGE_V1:
+                // Stable-Diffusion-XL https://cloud.baidu.com/doc/WENXINWORKSHOP/s/Klkqubb9w
+                $this->initTokenBdQf();
+                $url = "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/text2image/sd_xl?access_token=" . static::$instances['token'];;
+                $data = [
+                    "prompt" => $command,
+                    "size" => "1024x768",
+                    "style" => "Cinematic"
+                ];
+                $result = $this->httpRequest($url, $data, Constants::REQ_JSON, $header ?? null);
+                $result = $result['data'][0]['b64_image'] ?? false;
+                if ($result) {
+                    $result = "data:image/png;base64,{$result}";
+                }
+                break;
+            case Constants::AI_IMAGE_V2:
                 // 图像 https://cloud.baidu.com/doc/WENXINWORKSHOP/s/zm696hdfq
                 $url = "https://qianfan.baidubce.com/v2/images/generations";
                 $data = [
                     "model" => "irag-1.0",
                     // 生成图片的描述。长度不超过200个字符
-                    "prompt" => $command
+                    "prompt" => $command,
                 ];
                 $header = [
                     'Authorization' => "Bearer {$this->api_key_bd_qf}"
