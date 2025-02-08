@@ -1039,14 +1039,24 @@ class Common
     }
 
     /**
-     * 将距今相隔的时间转换为秒、分钟、小时、天
-     * @param $beginDate  开始日期。时间戳或者时间字符串
-     * @return string
+     * 将某个时间点与现在相隔的时间转换为用秒、分钟、小时、天、年描述的字符串
+     *
+     * @param Object $some_time 某一个时间点的时间戳或者时间字符串
+     * @return String
      */
-    public function timeCalculation($begin_time)
+    public function timeCalculation($some_time)
     {
-        $begin_time = is_numeric($begin_time) ? $begin_time : strtotime($begin_time);
-        $subTime = time() - $begin_time;
+        $some_time = is_numeric($some_time) ? $some_time : strtotime($some_time);
+        $now_time=time();
+        if($now_time>$some_time){
+            // 已过去的时间
+            $subTime = $now_time - $some_time;
+        }else{
+            // 剩余的时间
+            $subTime = $some_time - $now_time;
+        }
+        $year = $subTime > 31536000 ? floor($subTime / 31536000) : 0;
+        $subTime -= $year * 31536000;
         $day = $subTime > 86400 ? floor($subTime / 86400) : 0;
         $subTime -= $day * 86400;
         $hour = $subTime > 3600 ? floor($subTime / 3600) : 0;
@@ -2221,8 +2231,8 @@ class Common
 
     /**
      * 关联数组根据值（value）来查找对应的键（key）
-     * @param {Object} $array
-     * @param {Object} $value
+     * @param Array $array 数组
+     * @param Object $value 某项的值
      */
     public function getKeyByValue($array, $value)
     {
@@ -2232,5 +2242,21 @@ class Common
             }
         }
         return null; // 如果没有找到对应的值，返回 null
+    }
+
+    /**
+     * 根据对象数组里的对象属性来查找对应的项
+     * @param Array $array 对象数组
+     * @param String $attr_key 属性的键名
+     * @param String $attr_value 属性的值
+     */
+    public function getItemByAttr($array, $attr_key,$attr_value)
+    {
+        foreach ($array as $item) {
+                if ($item[$attr_key] == $attr_value) {
+                    return $item;
+                }
+            }
+        return null;
     }
 }

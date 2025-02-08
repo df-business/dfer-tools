@@ -50,11 +50,18 @@ class Ai extends Common
     // 应用key
     protected $app_api_key_bd_qf = '';
     protected $app_secret_key_bd_qf = '';
+    // 模型名
+    protected $model_bd_qf = '';
+    protected $model_ve_ep = '';
+    protected $model_ve_bot = '';
+    protected $model_ds = '';
 
     protected static $instances = [];
 
     public function __construct($config = [])
     {
+        $this->debug = $config['debug'] ?? $this->debug;
+
         $this->api_key_bd_qf = $config['api_key_bd_qf'] ?? $this->api_key_bd_qf;
         $this->api_key_ve = $config['api_key_ve'] ?? $this->api_key_ve;
         $this->api_key_ds = $config['api_key_ds'] ?? $this->api_key_ds;
@@ -62,13 +69,49 @@ class Ai extends Common
         $this->app_api_key_bd_qf = $config['app_api_key_bd_qf'] ?? $this->app_api_key_bd_qf;
         $this->app_secret_key_bd_qf = $config['app_secret_key_bd_qf'] ?? $this->app_secret_key_bd_qf;
 
-        $this->debug = $config['debug'] ?? $this->debug;
+        $this->model_bd_qf = $config['model_bd_qf'] ?? $this->model_bd_qf;
+        $this->model_ve_ep = $config['model_ve_ep'] ?? $this->model_ve_ep;
+        $this->model_ve_bot = $config['model_ve_bot'] ?? $this->model_ve_bot;
+        $this->model_ds = $config['model_ds'] ?? $this->model_ds;
 
         // var_dump($config);
     }
 
+    // ********************** 智能调用 START **********************
+
     /**
-     * 运行指令
+     * 根据指令模板智能运行AI
+     * 服务无法使用时，自动切换其余的AI
+     *
+     * $rtn = $ai->commandAuto(AiCommand::NONE, ['你好']);
+     * $rtn = $ai->commandAuto(AiCommand::NONE, ['宜昌的天气'],Constants::AI_TEXT_NET);
+     * $rtn = $ai->commandAuto(AiCommand::NET_WEATHER, ['宜昌']);
+     * $rtn = $ai->commandAuto(AiCommand::ROLE_LIBAI, ['你好']);
+     *
+     * @param String $tmpl 指令模板
+     * @param String $command 指令内容
+     * @param Int $type 指令类型
+     * @return mixed
+     **/
+    public function commandAuto($tmpl, $data, $type = Constants::AI_TEXT_NET)
+    {
+        $command = $this->format($tmpl, $data);
+
+        $result = $this->runDs($command, $type);
+        if (!$result) {
+            $result = $this->runVe($command, $type);
+        }
+        if (!$result) {
+            $result = $this->runBdQf($command, $type);
+        }
+
+        return $result;
+    }
+
+    // **********************  智能调用 END  **********************
+
+    /**
+     * 根据指令模板运行AI
      *
      * $rtn = $ai->command(AiCommand::ROLE_LIBAI,['白兄好久不见']);
      * $rtn = $ai->command(AiCommand::IMG_PORTRAIT,['中国唐朝古风，写实','云想衣裳花想容，春风拂槛露华浓'],Constants::AI_IMAGE,Constants::AI_BD_QF);
@@ -83,19 +126,6 @@ class Ai extends Common
     {
         $command = $this->format($tmpl, $data);
         $result = $this->run($command, $type, $ai_type);
-        return $result;
-    }
-
-    /**
-     * 自动运行指令
-     * 超时以后，自动切换其余的AI
-     * @param object $var 变量
-     * @return mixed
-     **/
-    public function commandAuto($tmpl, $data, $type = Constants::AI_TEXT)
-    {
-        $command = $this->format($tmpl, $data);
-        $result = $this->runAuto($command, $type);
         return $result;
     }
 
@@ -132,24 +162,6 @@ class Ai extends Common
     }
 
     /**
-     * 自动运行AI
-     * 超时以后，自动切换其余的AI
-     * @param object $var 变量
-     * @return mixed
-     **/
-    public function runAuto($command, $type = Constants::AI_TEXT)
-    {
-        $result = $this->runDs($command, $type);
-        if (!$result) {
-            $result = $this->runVe($command, $type);
-        }
-        if (!$result) {
-            $result = $this->runBdQf($command, $type);
-        }
-        return $result;
-    }
-
-    /**
      * 控制台命令
      * Windows下打开链接。自动用浏览器打开图片地址
      * @param String $url 地址
@@ -161,21 +173,20 @@ class Ai extends Common
         exec($command);
     }
 
-    /**
-     * 重写父级方法
-     */
+    // ********************** 重写父级方法 START **********************
     public function debug()
     {
         if ($this->debug)
             parent::debug(func_get_args());
     }
 
-    public function httpRequest($url, $data = null, $type = Constants::REQ_POST, $header = null, $cookie = null, $timeout = 100)
+    public function httpRequest($url, $data = null, $type = Constants::REQ_POST, $header = null, $cookie = null, $timeout = 30)
     {
         $result = parent::httpRequest($url, $data, $type, $header, $cookie, $timeout);
         $this->debug($result);
         return $result;
     }
+    // **********************  重写父级方法 END  **********************
 
     // ###################################### baidu START ######################################
 
@@ -185,9 +196,10 @@ class Ai extends Common
      * https://console.bce.baidu.com/qianfan/modelcenter/model/buildIn/list
      * @param String $command 指令内容
      * @param Int $type 指令类型
+     * @param Array $option 拓展参数
      * @return Array
      **/
-    public function runBdQf($command, $type = Constants::AI_TEXT)
+    public function runBdQf($command, $type = Constants::AI_TEXT, $option = [])
     {
         switch ($type) {
             case Constants::AI_IMAGE:
@@ -197,8 +209,8 @@ class Ai extends Common
                 $url = "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/text2image/sd_xl?access_token=" . static::$instances['token'];;
                 $data = [
                     "prompt" => $command,
-                    "size" => "1024x768",
-                    "style" => "Cinematic"
+                    "size" => $option['size'] ?? "32x32",
+                    "style" => $option['style'] ?? "Cinematic"
                 ];
                 $result = $this->httpRequest($url, $data, Constants::REQ_JSON, $header ?? null);
                 $result = $result['data'][0]['b64_image'] ?? false;
@@ -210,7 +222,7 @@ class Ai extends Common
                 // 图像 https://cloud.baidu.com/doc/WENXINWORKSHOP/s/zm696hdfq
                 $url = "https://qianfan.baidubce.com/v2/images/generations";
                 $data = [
-                    "model" => "irag-1.0",
+                    "model" => $this->model_bd_qf,
                     // 生成图片的描述。长度不超过200个字符
                     "prompt" => $command,
                 ];
@@ -220,6 +232,7 @@ class Ai extends Common
                 $result = $this->httpRequest($url, $data, Constants::REQ_JSON, $header ?? null);
                 $result = $result['data'][0]['url'] ?? false;
                 break;
+            case Constants::AI_TEXT_NET:
             case Constants::AI_TEXT:
             default:
                 // ERNIE-4.0-8K https://cloud.baidu.com/doc/WENXINWORKSHOP/s/clntwmv7t
@@ -231,7 +244,8 @@ class Ai extends Common
                             "role" => "user",
                             "content" => $command
                         ]
-                    ]
+                    ],
+                    'disable_search' => false
                 ];
                 $result = $this->httpRequest($url, $data, Constants::REQ_JSON, $header ?? null);
                 $result = $result['result'] ?? false;
@@ -242,10 +256,9 @@ class Ai extends Common
 
     /**
      * 设置token
-     * @param object $var 变量
-     * @return mixed
+     * @return String
      **/
-    private function initTokenBdQf($var = null)
+    private function initTokenBdQf()
     {
         if (empty(static::$instances['token'])) {
             $token = Storage::store('bd_qf_token');
@@ -279,6 +292,19 @@ class Ai extends Common
     public function runVe($command, $type = Constants::AI_TEXT)
     {
         switch ($type) {
+            case Constants::AI_TEXT_NET:
+                // BotChatCompletions-应用调用 https://www.volcengine.com/docs/82379/1285207
+                $url = "https://ark.cn-beijing.volces.com/api/v3/bots/chat/completions";
+                $data = [
+                    'messages' => [
+                        [
+                            "role" => "user",
+                            "content" => $command,
+                        ]
+                    ],
+                    "model" => $this->model_ve_bot
+                ];
+                break;
             case Constants::AI_TEXT:
             default:
                 // 文本生成 https://www.volcengine.com/docs/82379/1298454
@@ -290,7 +316,7 @@ class Ai extends Common
                             "content" => $command,
                         ]
                     ],
-                    "model" => "ep-20250121132129-jxqnz"
+                    "model" => $this->model_ve_ep
                 ];
                 break;
         }
@@ -314,6 +340,10 @@ class Ai extends Common
     public function runDs($command, $type = Constants::AI_TEXT)
     {
         switch ($type) {
+            case Constants::AI_TEXT_NET:
+                // 暂不支持
+                return false;
+                break;
             case Constants::AI_TEXT:
             default:
                 // 对话补全 https://api-docs.deepseek.com/zh-cn/api/create-chat-completion
@@ -325,7 +355,7 @@ class Ai extends Common
                             "content" => $command,
                         ]
                     ],
-                    "model" => "deepseek-chat",
+                    "model" => $this->model_ds
                 ];
                 break;
         }

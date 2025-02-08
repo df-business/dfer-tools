@@ -118,11 +118,12 @@ class Constants
     const AI_DS = 2;
     // 文本生成
     const AI_TEXT = 0;
+    const AI_TEXT_NET = 1;
     // 图片生成
     const AI_IMAGE = 10;
     const AI_IMAGE_V1 = 11;
     const AI_IMAGE_V2 = 12;
     // 视频生成
-    const AI_VIDEO = 2;
+    const AI_VIDEO = 20;
     //////////////////////////////////////////////////  Ai END  //////////////////////////////////////////////////
 }
