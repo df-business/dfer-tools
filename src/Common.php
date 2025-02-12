@@ -499,17 +499,22 @@ class Common
     }
 
     /**
-     * 在字符串中查找指定字符串
+     * 查找指定字符串
      *
-     * eg:findstr('Hello, world!','hello')
-     * @param {Object} $str 原始字符串
-     * @param {Object} $target  被查找的字符串
+     * findStr('Hello, world!','hello')
+     * findStr('Hello, world!',['hello','world'])
+     * @param String $str 原始字符串
+     * @param Object $target  被查找的字符串或字符串数组
      * @return bool true 找到 false 未找到
      */
     public function findStr($str, $target)
     {
-        if (strpos($str, $target) !== false) {
-            return true;
+        $target = is_array($target) ? $target : [$target];
+
+        foreach ($target as $key => $value) {
+            if (strpos($str, $value) !== false) {
+                return true;
+            }
         }
 
         return false;
@@ -755,12 +760,19 @@ class Common
 
     /**
      * 截取指定两个字符之间的字符串
+     *
+     * Common::strCut('[',']','***[test]***')
+     * Common::strCut('[',']','***[test***')
+     * Common::strCut('[',']','***test]***')
+     * @param String $begin_str 开始字符串
+     * @param String $end_str 结束字符串
+     * @param String $ori_str 原始字符串
      */
-    public function strCut($begin, $end, $str)
+    public function strCut($begin_str, $end_str, $ori_str)
     {
-        $b = mb_strpos($str, $begin) + mb_strlen($begin);
-        $e = mb_strpos($str, $end) - $b;
-        return mb_substr($str, $b, $e);
+        $begin_pos = $this->findStr($ori_str, $begin_str) ? (mb_strpos($ori_str, $begin_str) + mb_strlen($begin_str)) : 0;
+        $length = $this->findStr($ori_str, $end_str) ? (mb_strpos($ori_str, $end_str) - $begin_pos) : mb_strlen($ori_str);
+        return mb_substr($ori_str, $begin_pos, $length);
     }
 
     /**
@@ -1047,11 +1059,11 @@ class Common
     public function timeCalculation($some_time)
     {
         $some_time = is_numeric($some_time) ? $some_time : strtotime($some_time);
-        $now_time=time();
-        if($now_time>$some_time){
+        $now_time = time();
+        if ($now_time > $some_time) {
             // 已过去的时间
             $subTime = $now_time - $some_time;
-        }else{
+        } else {
             // 剩余的时间
             $subTime = $some_time - $now_time;
         }
@@ -1148,7 +1160,7 @@ class Common
      * @param int $type 类型。Constants::TO_DBC 转换为全角  Constants::TO_SBC 转换为半角
      * @return string 返回转换后的字符串
      */
-    public function convertStrType($str, $type)
+    public function convertStrType($str, $type = Constants::TO_DBC)
     {
         // 全角（中文字符）
         $dbc = array(
@@ -2250,13 +2262,13 @@ class Common
      * @param String $attr_key 属性的键名
      * @param String $attr_value 属性的值
      */
-    public function getItemByAttr($array, $attr_key,$attr_value)
+    public function getItemByAttr($array, $attr_key, $attr_value)
     {
         foreach ($array as $item) {
-                if ($item[$attr_key] == $attr_value) {
-                    return $item;
-                }
+            if ($item[$attr_key] == $attr_value) {
+                return $item;
             }
+        }
         return null;
     }
 }

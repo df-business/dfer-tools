@@ -119,6 +119,7 @@ class Constants
     // 文本生成
     const AI_TEXT = 0;
     const AI_TEXT_NET = 1;
+    const AI_TEXT_ERNIE_4 = 2;
     // 图片生成
     const AI_IMAGE = 10;
     const AI_IMAGE_V1 = 11;

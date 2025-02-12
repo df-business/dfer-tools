@@ -56,6 +56,8 @@ class Ai extends Common
     protected $model_ve_bot = '';
     protected $model_ds = '';
 
+    protected $timeout = 180;
+
     protected static $instances = [];
 
     public function __construct($config = [])
@@ -73,6 +75,8 @@ class Ai extends Common
         $this->model_ve_ep = $config['model_ve_ep'] ?? $this->model_ve_ep;
         $this->model_ve_bot = $config['model_ve_bot'] ?? $this->model_ve_bot;
         $this->model_ds = $config['model_ds'] ?? $this->model_ds;
+
+        $this->timeout = $config['timeout'] ?? $this->timeout;
 
         // var_dump($config);
     }
@@ -122,7 +126,7 @@ class Ai extends Common
      * @param Int $ai_type AI类型。Constants::AI_BD_QF 千帆 | Constants::AI_VE 火山引擎 | Constants::AI_DS 深度求索（默认）
      * @return mixed
      **/
-    public function command($tmpl, $data, $type = Constants::AI_TEXT, $ai_type = Constants::AI_DS)
+    public function command($tmpl, $data, $type = Constants::AI_TEXT, $ai_type = Constants::AI_BD_QF)
     {
         $command = $this->format($tmpl, $data);
         $result = $this->run($command, $type, $ai_type);
@@ -180,9 +184,9 @@ class Ai extends Common
             parent::debug(func_get_args());
     }
 
-    public function httpRequest($url, $data = null, $type = Constants::REQ_POST, $header = null, $cookie = null, $timeout = 30)
+    public function httpRequest($url, $data = null, $type = Constants::REQ_POST, $header = null, $cookie = null, $timeout = null)
     {
-        $result = parent::httpRequest($url, $data, $type, $header, $cookie, $timeout);
+        $result = parent::httpRequest($url, $data, $type, $header, $cookie, $timeout ?: $this->timeout);
         $this->debug($result);
         return $result;
     }
@@ -232,9 +236,7 @@ class Ai extends Common
                 $result = $this->httpRequest($url, $data, Constants::REQ_JSON, $header ?? null);
                 $result = $result['data'][0]['url'] ?? false;
                 break;
-            case Constants::AI_TEXT_NET:
-            case Constants::AI_TEXT:
-            default:
+            case Constants::AI_TEXT_ERNIE_4:
                 // ERNIE-4.0-8K https://cloud.baidu.com/doc/WENXINWORKSHOP/s/clntwmv7t
                 $this->initTokenBdQf();
                 $url = "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/completions_pro?access_token=" . static::$instances['token'];
@@ -249,6 +251,27 @@ class Ai extends Common
                 ];
                 $result = $this->httpRequest($url, $data, Constants::REQ_JSON, $header ?? null);
                 $result = $result['result'] ?? false;
+                break;
+            case Constants::AI_TEXT_NET:
+            case Constants::AI_TEXT:
+            default:
+                // 对话Chat https://cloud.baidu.com/doc/WENXINWORKSHOP/s/Fm2vrveyu
+                $url = "https://qianfan.baidubce.com/v2/chat/completions";
+                $data = [
+                    "model" => "deepseek-v3",
+                    "messages" => [
+                        [
+                            "role" => "user",
+                            "content" => $command
+                        ]
+                    ],
+                    "disable_search" => false
+                ];
+                $header = [
+                    'Authorization' => "Bearer {$this->api_key_bd_qf}"
+                ];
+                $result = $this->httpRequest($url, $data, Constants::REQ_JSON, $header ?? null);
+                $result = $result['choices'][0]['message']['content'] ?? false;
                 break;
         }
         return $result;
