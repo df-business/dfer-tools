@@ -1054,11 +1054,13 @@ class Common
      * 将某个时间点与现在相隔的时间转换为用秒、分钟、小时、天、年描述的字符串
      *
      * @param Object $some_time 某一个时间点的时间戳或者时间字符串
+     * @param Int $level 显示层级。1~5
      * @return String
      */
-    public function timeCalculation($some_time)
+    public function timeCalculation($some_time, $level = 2)
     {
         $some_time = is_numeric($some_time) ? $some_time : strtotime($some_time);
+
         $now_time = time();
         if ($now_time > $some_time) {
             // 已过去的时间
@@ -1077,12 +1079,31 @@ class Common
         $subTime -= $minute * 60;
         $second = $subTime;
 
+        $yearText = $year ? $year . '年' : '';
         $dayText = $day ? $day . '天' : '';
         $hourText = $hour ? $hour . '小时' : '';
         $minuteText = $minute ? $minute . '分钟' : '';
         $secondText = $second ? $second . '秒' : '';
-        $date = $dayText . $hourText . $minuteText . $second;
-        return $dayText;
+
+        switch ($level) {
+            case 1:
+                $date = $yearText;
+                break;
+            case 2:
+                $date = $yearText . $dayText;
+                break;
+            case 3:
+                $date = $yearText . $dayText . $hourText;
+                break;
+            case 4:
+                $date = $yearText . $dayText . $hourText . $minuteText;
+                break;
+            default:
+                $date = $yearText . $dayText . $hourText . $minuteText . $secondText;
+                break;
+        }
+
+        return $date;
     }
 
     /**
