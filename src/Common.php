@@ -47,7 +47,6 @@ class Common
 
     /**
      * 简介
-     *
      **/
     public function about()
     {
@@ -57,17 +56,19 @@ class Common
     }
 
     /**
-     * 打印
-     **/
-    public function print($str = null)
+     * 对象转化为字符串，并显示出来
+     * @param Object $str
+     */
+    public function print($str)
     {
         echo json_encode($str, JSON_UNESCAPED_UNICODE) . PHP_EOL;
     }
 
     /**
      * 把mysql导出的json文本拼接成数组字符串
-     **/
-    public function mySqlJsonToArray($str = null)
+     * @param String $str json文本
+     */
+    public function mySqlJsonToArray($str)
     {
         $arr = json_decode($str);
         $item = $arr->RECORDS;
@@ -83,10 +84,10 @@ class Common
 
     /**
      * 输出json，然后终止当前请求
-     * @param {Object} $status    状态码。0:正常 其余数字:失败
-     * 比如：
-     * 100 未提交数据
-     * 101 不要重复提交数据
+     * @param Int $status 状态码。0:正常 其余数字:失败
+     * @param Array $data 数据
+     * @param String $success_msg 成功描述
+     * @param String $fail_msg 失败描述
      */
     public function showJson($status = 0, $data = array(), $success_msg = '', $fail_msg = '')
     {
@@ -104,9 +105,9 @@ class Common
     }
 
     /**
-     *    输出json数据
-     * @param {Object} $return    数据
-     * @param {Object} $to_json true:json对象 false:json字符串
+     * 输出原始json数据
+     * @param Array $return 数据
+     * @param Bool $to_json true:json对象 false:json字符串
      */
     public function showJsonBase($return = array(), $to_json = true)
     {
@@ -118,7 +119,8 @@ class Common
     }
 
     /**
-     * 是微信端则返回true
+     * 判断微信环境
+     * @return Bool true：是微信端
      */
     public function isWeixin()
     {
@@ -129,7 +131,7 @@ class Common
     }
 
     /**
-     * http与https相互转换
+     * http与https相互转换，自动跳转网页
      */
     public function httpAndhttps()
     {
@@ -151,9 +153,9 @@ class Common
      * getTime(1709091401,"Y/m/d H:i:s")
      * getTime("2024-02-28 11:36:41","Y/m/d H:i:s")
      * getTime(null,"Y/m/d H:i:s")
-     * @param {Object} $time 时间数据。int 时间戳(1709091401) string 时间字符串(2024-02-28 11:36:41)
-     * @param {Object} $type 类型
-     * @return {Object} 正常时间格式(2024-02-28 11:36:41)
+     * @param Object $time 时间数据。int 时间戳(1709091401) string 时间字符串(2024-02-28 11:36:41)
+     * @param Int $type 类型
+     * @return String 时间格式字符串。如“2024-02-28 11:36:41”
      */
     public function getTime($time = null, $type = Constants::TIME_FULL)
     {
@@ -175,7 +177,7 @@ class Common
     /**
      * 时间戳转UTC时间
      * UTC即国际时间，在UTC基础上加8小时即中国时间
-     * @param {Object} $time    时间戳
+     * @param Int $time 时间戳
      */
     public function getUtcTime($time)
     {
@@ -186,8 +188,8 @@ class Common
 
     /**
      * 将时间戳转换为一个GMT时间字符串，
-     * @param {Object} $timestamp 时间戳
-     * @return {Object} 以“ISO 8601”格式表示的GMT（格林威治标准时间）字符串，例如 "2023-09-13T12:34:56Z"
+     * @param Int $time 时间戳
+     * @return String GMT时间字符串。以“ISO 8601”格式表示的GMT（格林威治标准时间）字符串，例如 "2023-09-13T12:34:56Z"
      */
     public function gmtIso8601($time)
     {
@@ -201,7 +203,7 @@ class Common
 
     /**
      * unicode加密
-     * @param {Object} $str
+     * @param String $str
      */
     public function unicodeEncode($str)
     {
@@ -216,6 +218,10 @@ class Common
         return $unicodeStr;
     }
 
+    /**
+     * 将一个十六进制字符串转换为UTF-8编码的字符串
+     * @param String $match 十六进制字符串
+     */
     public function replaceUnicodeEscapeSequence($match)
     {
         return mb_convert_encoding(pack('H*', $match[1]), 'UTF-8', 'UCS-2BE');
@@ -223,7 +229,7 @@ class Common
 
     /**
      * unicode解密
-     * @param {Object} $unicode_str
+     * @param String $unicode_str
      */
     public function unicodeDecode($unicode_str)
     {
@@ -233,9 +239,6 @@ class Common
             return '';
         }
         return is_array($arr) ? $arr[0] : $arr;
-
-        // $str = preg_replace_callback('/\\\\u([0-9a-f]{4})/i', 'replace_unicode_escape_sequence', $name);
-        // return $str;
     }
 
     /**
@@ -289,6 +292,14 @@ class Common
                     // 发送一个 POST 请求
                     curl_setopt($curl, CURLOPT_POST, true);
                     // 指定要发送到服务器的数据
+                    curl_setopt($curl, CURLOPT_POSTFIELDS, $this->arr2url($data, true));
+                }
+                break;
+            case Constants::REQ_POST_RAW:
+                // 原样拼接post参数，只支持一维数组
+                if (!empty($data)) {
+                    $data = is_array($data) ? $data : json_decode($data);
+                    curl_setopt($curl, CURLOPT_POST, true);
                     curl_setopt($curl, CURLOPT_POSTFIELDS, $this->arr2url($data, false));
                 }
                 break;
@@ -534,8 +545,8 @@ class Common
 
     /**
      * 数组转url参数
-     * @param {Object} $data
-     * @param {Object} $encode 开启URL编码
+     * @param Array $data
+     * @param Bool $encode true:URL自动编码 false:URL原样拼接参数
      */
     public function arr2url($data, $encode = true)
     {
@@ -901,8 +912,8 @@ class Common
     }
 
     /**
-     * base64加密
-     * @param {Object} $obj
+     * base64编码之后url编码
+     * @param Object $obj
      */
     public function b64Encode($obj)
     {
@@ -914,9 +925,9 @@ class Common
     }
 
     /**
-     * base64解密
-     * @param {Object} $str
-     * @param {Object} $is_array
+     * url解码之后base64解码
+     * @param String $str
+     * @param Bool $is_array
      */
     public function b64Decode($str, $is_array = true)
     {
@@ -930,8 +941,8 @@ class Common
     }
 
     /**
-     * 将数组中的元素进行html原样输出
-     * @param {Object} $var
+     * 让对象html原样输出
+     * @param Object $var
      */
     public function iHtmlspecialchars($var)
     {
@@ -947,9 +958,9 @@ class Common
 
     /**
      * 获取当前页面的完整网址
-     * @param {Object} $getPort
+     * @param Bool $getPort true：带端口 false：不带端口
      */
-    public function getCurUrl($getPort = 0)
+    public function getCurUrl($getPort = false)
     {
         if (!$getPort) {
             return 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
@@ -961,17 +972,16 @@ class Common
 
     /**
      * 执行控制台命令
-     * @param {Object} $shell
+     * @param String $shell 命令
      */
     public function runShell($shell)
     {
-        //     echo exec('whoami');
         echo exec($shell);
     }
 
     /**
      * 获取"/"后的字符串
-     * @param {Object} $file_name
+     * @param String $file_name 文件路径
      */
     public function getLast($file_name)
     {
@@ -984,8 +994,8 @@ class Common
     /**
      * 分割字符串
      * eg:split("1|2|3","|");
-     * @param {Object} $str
-     * @param {Object} $char
+     * @param String $str
+     * @param String $char
      */
     public function split($str, $char)
     {
@@ -995,7 +1005,7 @@ class Common
 
     /**
      * 生成一个指定大小的数组
-     * @param {Object} $a
+     * @param Int $a 数组长度
      */
     public function defineArr($a)
     {
@@ -1008,7 +1018,8 @@ class Common
 
     /**
      * 对象转bool
-     **/
+     * @param Object $obj
+     */
     public function objToBool($obj)
     {
         if (is_numeric($obj)) {
@@ -1021,11 +1032,12 @@ class Common
     }
 
     /**
-     * @Description: 将时间转换为几秒前、几分钟前、几小时前、几天前
+     * 自动获取时间描述
+     * 将时间转换为几秒前、几分钟前、几小时前、几天前、几年前，优先选择最小时间差，还没到设置时间则原样返回该时间
      * @param $the_time 需要转换的时间。时间戳或者时间字符串
-     * @return string
+     * @return String
      */
-    public function timeTran($the_time)
+    public function timeCalculationAuto($the_time)
     {
         $now_time = date("Y-m-d H:i:s", time());
         $now_time = strtotime($now_time);
@@ -1043,7 +1055,11 @@ class Common
                     if ($dur < 86400) {
                         return floor($dur / 3600) . '小时前';
                     } else {
-                        return floor($dur / 86400) . '天前';
+                        if ($dur < 31536000) {
+                            return floor($dur / 86400) . '天前';
+                        } else {
+                            return floor($dur / 31536000) . '年前';
+                        }
                     }
                 }
             }
@@ -1051,6 +1067,7 @@ class Common
     }
 
     /**
+     * 任意时间（过去、现在、将来）与当前时间的间隔描述
      * 将某个时间点与现在相隔的时间转换为用秒、分钟、小时、天、年描述的字符串
      *
      * @param Object $some_time 某一个时间点的时间戳或者时间字符串
@@ -1110,9 +1127,9 @@ class Common
      * 冒泡排序
      * 默认：从大到小
      * 数值相同，则原始数组前方的靠前
-     * @param {Object} array $arr    原始数组
-     * @param {Object} $key_name    某个key
-     * @param {Object} $is_asc    排序方式。true 升序 false 降序
+     * @param Array $arr 原始数组
+     * @param String $key_name 某个key
+     * @param Bool $is_asc 排序方式。true 升序 false 降序
      */
     public function bubbleSort(array $arr, $key_name, $is_asc = false)
     {
@@ -1132,7 +1149,7 @@ class Common
 
     /**
      * 对数组的某个值降序排列，并根据顺序添加一个排序字段
-     * @param {Object} array $arr    原始数组
+     * @param Array $arr 原始数组
      * @param {Object} $key_name    某个key
      */
     public function setRankingByDesc(array $arr, $key_name)
