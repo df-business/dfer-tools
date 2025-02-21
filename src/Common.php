@@ -681,7 +681,7 @@ class Common
     public function format($str, $arr)
     {
         foreach ($arr as $key => $v) {
-            $str = preg_replace("/\{{$key}\}/", is_string($v) ? "'{$v}'" : $v, $str);
+            $str = preg_replace("/\{{$key}\}/", $v, $str);
         }
         return $str;
     }
