@@ -46,7 +46,7 @@ class Constants
     const UPLOAD_UMEDITOR_SINGLE = 0, UPLOAD_UMEDITOR_EDITOR = 1, UPLOAD_LAYUI_EDITOR = 2, UPLOAD_EDITORMD_EDITOR = 3, UPLOAD_WEB_UPLOADER = 4;
     const FILE_UPLOAD_SUCCESS = 0, FILE_SIZE_LIMIT = 100, FILE_UPLOAD_RESTRICTED = 200, FILE_TYPES_UNSUPPORTED = 300, FILE_NOT_FOUND = 400;
     const UNKOWN_ERROR = 999;
-    const NL_CRLF2BR = 0, NL_BR2CRLF = 1;
+    const NL_CRLF2BR = 0, NL_BR2CRLF = 1, NL_CRLF2P = 2;
     const OSS_SIZE_NORMAL = "", OSS_SIZE_MIDDLE = "m", OSS_SIZE_SMALL = "s";
     const TO_DBC = 0, TO_SBC = 1;
     //////////////////////////////////////////////////  Common END  //////////////////////////////////////////////////
