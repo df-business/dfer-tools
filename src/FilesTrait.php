@@ -161,7 +161,7 @@ trait FilesTrait
      * @param {Object} $strSrcDir    原始目录
      * @param {Object} $strDstDir    目标目录
      */
-    public function copyDir($strSrcDir, $strDstDir, $quiet = false)
+    public function copyDir($strSrcDir, $strDstDir, $quiet = true)
     {
         $dir = opendir($strSrcDir);
         if (!$dir) {
@@ -194,11 +194,13 @@ trait FilesTrait
      * @param {Object} $strSrc    原始路径
      * @param {Object} $strDst    目标路径
      **/
-    public function copy($strSrc, $strDst, $quiet = false)
+    public function copy($strSrc, $strDst, $quiet = true)
     {
         if (is_dir($strSrc)) {
             return $this->copyDir($strSrc, $strDst, $quiet);
         } else {
+            if (!$quiet)
+                echo "{$strSrc}=>{$strDst}\n";
             if (!copy($strSrc, $strDst)) {
                 return false;
             }
@@ -651,5 +653,40 @@ trait FilesTrait
         } else {
             return false;
         }
+    }
+
+    /**
+     * 读取配置文件的参数值
+     * @param {Object} $path 文件路径
+     * @param {Object} $key 参数名
+     * @param {Object} $index 编号
+     */
+    public function getConfigParam($path, $key, $index = 2)
+    {
+        $str = $this->readFile($path);
+        $pattern = "/('{$key}'\s*=>\s*)(\d+)(,)/";
+        preg_match($pattern, $str, $matches);
+        // var_dump($matches);
+        if ($index === null) {
+            return $matches;
+        }
+        return $matches[$index] ?? 0;
+    }
+
+    /**
+     * 设置配置文件的参数值
+     * @param {Object} $path 文件路径
+     * @param {Object} $key 参数名
+     * @param {Object} $value 参数名
+     */
+    public function setConfigParam($path, $key, $value)
+    {
+        $str = $this->readFile($path);
+        $list = $this->getConfigParam($path, $key, null);
+        $ori = $list[0];
+        unset($list[0]);
+        $list[2] = $value;
+        $new_str = $this->strReplace($str, [$ori], [implode('', $list)]);
+        return $this->writeFile($new_str, $path);
     }
 }
