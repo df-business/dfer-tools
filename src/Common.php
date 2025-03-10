@@ -2329,4 +2329,15 @@ class Common
         }
         return null;
     }
+
+    /**
+     * 数字转换为对应的字母
+     * @param Int $number 数字
+     * @return String 英文字母
+     **/
+    public function numberToLetter($number = null)
+    {
+        // 将数字转换为对应的字母，A的ASCII码值为65
+        return chr(64 + $number);
+    }
 }

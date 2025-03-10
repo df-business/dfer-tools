@@ -408,50 +408,64 @@ class Excel
      * @param {Object} array $col_item 自定义列名    eg:['item1', 'item2']
      * @param {Object} int $row_index    读取的初始行编号
      * @param {Object} array $origin_item    需要读取原始值的列名    eg:['item1']
-     * @param {Object} array $need_index    需要单独获取列表的index    eg:true
      */
-    public function readFile(string $fileName = 'test.xlsx', array $col_item = [], int $row_index = 3, array $origin_item = [], bool $need_index = false)
+    public function readFile(string $fileName = 'test.xlsx', array $col_item = [], int $row_index = 3, array $origin_item = [])
     {
-        //设置excel格式
+        // 设置excel格式
         $format = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
         $reader = IOFactory::createReader(ucfirst($format));
-        //载入excel文件
+        // 载入excel文件
         $excel = $reader->load($fileName);
-        //读取第一张表
+        // 读取第一张表
         $sheet = $excel->getSheet(0);
-        //获取文件总行数
+        // 获取文件总行数
         $row_num = $sheet->getHighestRow();
-        //获取文件总列数
-        $col_num = $sheet->getHighestColumn();
 
-        //数组形式获取表格数据
+        // 数组形式获取表格数据
         $list = [];
         $col_index = 0;
-        // 遍历列
-        for ($col = 'A'; $col <= $col_num; $col++) {
-            $col_val = $col_item[$col_index] ?? '';
-            $need_origin = in_array($col_val, $origin_item);
-            // 遍历行
-            for ($row = $row_index; $row <= $row_num; $row++) {
-                // 把每一行的数据保存到自定义列名
-                if ($need_origin) {
-                    // 读取原始值
-                    $list['index'][$row - $row_index][$col_index] = $list['name'][$row - $row_index][$col_val] = $sheet->getCell($col . $row)->getValue();
-                } else {
-                    // 读取格式化之后的值(时间类型的原始值不是正常的时间格式)
-                    $list['index'][$row - $row_index][$col_index] = $list['name'][$row - $row_index][$col_val] = $sheet->getCell($col . $row)->getFormattedValue();
-                }
-            }
-            $col_index++;
-        }
 
-        if ($need_index) {
+        if (empty($col_item)) {
+            // 自动根据活跃的行、列读取数据
+            // 获取文件总列数
+            $col_num = $sheet->getHighestColumn();
+            // 遍历列
+            for ($col = 'A'; $col <= $col_num; $col++) {
+                // 遍历行
+                for ($row = $row_index; $row <= $row_num; $row++) {
+                    // 读取格式化之后的值(时间类型的原始值不是正常的时间格式)
+                    $list['index'][$row - $row_index][$col_index] = $sheet->getCell($col . $row)->getFormattedValue();
+                }
+                $col_index++;
+            }
+            return $list;
+        } else {
+            // 有自定义列名
+            $col_num = Common::numberToLetter(count($col_item));
+            // var_dump($col_num);
+            // 遍历列
+            for ($col = 'A'; $col <= $col_num; $col++) {
+                $col_val = $col_item[$col_index];
+                // 需要读取原始值
+                $need_origin = in_array($col_val, $origin_item);
+                // 遍历行
+                for ($row = $row_index; $row <= $row_num; $row++) {
+                    // 把每一行的数据保存到自定义列名
+                    if ($need_origin) {
+                        // 读取原始值
+                        $list['index'][$row - $row_index][$col_index] = $list['name'][$row - $row_index][$col_val] = $sheet->getCell($col . $row)->getValue();
+                    } else {
+                        // 读取格式化之后的值(时间类型的原始值不是正常的时间格式)
+                        $list['index'][$row - $row_index][$col_index] = $list['name'][$row - $row_index][$col_val] = $sheet->getCell($col . $row)->getFormattedValue();
+                    }
+                }
+                $col_index++;
+            }
+            // var_dump($list);
             $obj = new stdClass();
             $obj->index = $list['index'];
             $obj->name = $list['name'];
             return $obj;
-        } else {
-            return $list;
         }
     }
 
