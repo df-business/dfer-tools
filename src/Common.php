@@ -427,29 +427,81 @@ class Common
     }
 
     /**
-     * 获取页面状态
-     * 可判断远程文件是否存在(如果网站做过404处理，就检测不出来)
+     * 获取网络地址的访问状态
+     * 可判断远程文件是否存在
+     * 服务器响应速度太慢或者主动屏蔽请求，可会导致BY_HEADER、BY_CONTENT陷入长时间等待，而BY_CURL可以通过设置超时来避免这种情况
      *
-     * @param String $url 地址
-     * @return Bool false 页面不存在 true 页面存在
+     * @param String $url 访问地址
+     * @param Int $type 请求方式。默认BY_CURL（可以更精确地设置请求，以及获取响应信息）
+     * @return Object 编码 可访问 false 无法访问
      */
-    public function getHtmlStatus($url)
+    public function getHtmlStatus($url, $type = Constants::BY_CURL)
     {
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        // 在 cURL 请求中不包括响应体（即不包括实际的页面内容）
-        curl_setopt($ch, CURLOPT_NOBODY, 1);
-        // 如果HTTP请求的结果是一个错误状态码（4xx或5xx），curl_exec 将返回 false
-        curl_setopt($ch, CURLOPT_FAILONERROR, 1);
-        // 将 cURL 获取的内容作为字符串返回，而不是直接输出
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 3);
-        $status = curl_exec($ch);
-        if ($status !== false) {
-            return true;
-        } else {
-            return false;
+        $result = false;
+        switch ($type) {
+            case Constants::BY_HEADER:
+                // 获取 URL 的头部信息
+                $headers = @get_headers($url);
+                if ($headers !== false) {
+                    // 提取 HTTP 状态码
+                    $result = substr($headers[0], 9, 3);
+                }
+                break;
+            case Constants::BY_CONTENT:
+                // 创建流上下文，忽略 SSL 证书验证（仅测试用）
+                $context = stream_context_create([
+                    "ssl" => [
+                        "verify_peer" => false,
+                        "verify_peer_name" => false,
+                    ],
+                ]);
+
+                // 尝试读取 URL 内容
+                $response = @file_get_contents($url, false, $context);
+
+                if ($response !== false) {
+                    // 获取内容长度
+                    $result = strlen($response);
+                }
+                break;
+            case Constants::BY_CURL:
+            default:
+                // 初始化 cURL
+                $ch = curl_init($url);
+
+                // 设置 cURL 选项
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // 返回结果而不直接输出
+                curl_setopt($ch, CURLOPT_NOBODY, true);         // 只获取头部信息，不下载内容
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // 忽略 SSL 证书验证（仅测试用）
+                curl_setopt($ch, CURLOPT_TIMEOUT, 3);          // 设置超时时间（秒）
+
+                // 执行请求
+                curl_exec($ch);
+
+                // 检查错误码
+                $err_no = curl_errno($ch);
+                switch ($err_no) {
+                    case 0:
+                        // 请求成功完成，没有错误。
+                        // 获取 HTTP 状态码
+                        $result = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                        break;
+                    case 6:
+                        // 无法解析主机名（DNS 解析失败）。
+                        // 该地址无法访问
+                        break;
+                    case 28:
+                    // 操作超时（请求未在指定时间内完成）。
+                    // 代表地址访问成功，只是服务器响应速度太慢（可能是服务器主动拦截不正常的请求或者访问量太大导致服务器暂时瘫痪）
+                    default:
+                        $result = $err_no;
+                        break;
+                }
+                // 关闭 cURL 资源
+                curl_close($ch);
+                break;
         }
+        return $result;
     }
 
     /**
@@ -1558,7 +1610,7 @@ class Common
      */
     public function contains($haystack, $needles)
     {
-        foreach ((array)$needles as $needle) {
+        foreach ((array) $needles as $needle) {
             if ($needle != '' && mb_strpos($haystack, $needle) !== false) {
                 return true;
             }
@@ -1576,8 +1628,8 @@ class Common
      */
     public function endsWith($haystack, $needles)
     {
-        foreach ((array)$needles as $needle) {
-            if ((string)$needle === $this->substr($haystack, -$this->length($needle))) {
+        foreach ((array) $needles as $needle) {
+            if ((string) $needle === $this->substr($haystack, -$this->length($needle))) {
                 return true;
             }
         }
@@ -1594,7 +1646,7 @@ class Common
      */
     public function startsWith($haystack, $needles)
     {
-        foreach ((array)$needles as $needle) {
+        foreach ((array) $needles as $needle) {
             if ($needle != '' && mb_strpos($haystack, $needle) === 0) {
                 return true;
             }
@@ -1851,7 +1903,7 @@ class Common
     {
         try {
             // 执行传入的代码
-            eval($code);
+            eval ($code);
         } catch (Exception $e) {
             // 处理异常
             echo "捕获到异常: " . $e->getMessage() . "\n";
@@ -2145,7 +2197,7 @@ class Common
             unset($list[$key]);
         }
 
-        $obj = new class($minValue, $origin_list, $list) {
+        $obj = new class ($minValue, $origin_list, $list) {
             public $remove_value, $origin_list, $list;
 
             public function __construct($remove_value, $origin_list, $list)
@@ -2277,18 +2329,18 @@ class Common
     public function codePerformance($start, $end = '', $dec = 4)
     {
         $memory_limit_on = function_exists('memory_get_usage');
-        static $_time       =   array();
-        static $_mem        =   array();
+        static $_time = array();
+        static $_mem = array();
         if (empty($end)) {
             // 记录时间和内存使用
-            $_time[$start]  =  microtime(TRUE);
+            $_time[$start] = microtime(TRUE);
             $_mem[$start] = $memory_limit_on ? memory_get_usage() : null;
         } else {
             // 统计时间和内存使用
             $_time[$start] = $_time[$start] ?? microtime(TRUE);
             $_time[$end] = $_time[$end] ?? microtime(TRUE);
             if ($memory_limit_on && $dec == 'm') {
-                $_mem[$end] = $_mem[$end] ??  memory_get_usage();
+                $_mem[$end] = $_mem[$end] ?? memory_get_usage();
                 // 将数字格式化为带有千位分隔符和小数点的字符串
                 return number_format(($_mem[$end] - $_mem[$start]) / 1024);
             } else {
