@@ -130,6 +130,11 @@ trait FilesTrait
         }
     }
 
+    public function deleteDir($dir)
+    {
+        return $this->delDir($dir);
+    }
+
     /**
      * 删除单个文件
      * @param {Object} $file
