@@ -56,25 +56,30 @@ trait FilesTrait
 
     // ********************** 获取目录所有文件 START **********************
 
-    public $scan_files = array();
+    // 扫描结果
+    static $scan_result = [];
+
     /**
      * 遍历目录，获取文件数组
-     * @param {Object} $dir
+     * @param String $path 路径名
+     * @param Array $exclude_dirs 排除的目录名。eg:["123"]
+     * @param Array $exclude_files 排除的文件名。eg:["1.php"]
+     * @return mixed
      */
-    public function scanDir($dir, $exclude_dirs = [], $exclude_files = [])
+    public function scanDir($path, $exclude_dirs = [], $exclude_files = [])
     {
-        if ($handle = opendir($dir)) {
-            while (($file = readdir($handle)) !== false) {
-                if ($file != ".." && $file != ".") {
-                    $path = "{$dir}/{$file}";
-                    if (is_dir($path)) {
+        if ($handle = opendir($path)) {
+            while (($name = readdir($handle)) !== false) {
+                if ($name != ".." && $name != ".") {
+                    $path_new = "{$path}/{$name}";
+                    if (is_dir($path_new)) {
                         // 目录
-                        if (in_array($file, $exclude_dirs)) continue;
-                        $this->scanDir($path);
+                        if (in_array($name, $exclude_dirs)) continue;
+                        $this->scanDir($path_new);
                     } else {
                         // 文件
-                        if (in_array($file, $exclude_files)) continue;
-                        $this->scan_files[$file] = $path;
+                        if (in_array($name, $exclude_files)) continue;
+                        self::$scan_result[$name] = $path_new;
                     }
                 }
             }
@@ -83,13 +88,101 @@ trait FilesTrait
     }
 
     /**
-     * 获取扫描结果，重置公共参数
+     * 获取扫描结果
+     * @return Array 文件数组
      */
-    public function getScanFiles()
+    public function getScanResult()
     {
-        $files = $this->scan_files;
+        $files = self::$scan_result;
+        // 重置文件数组
+        self::$scan_result = [];
         return $files;
     }
+
+    /**
+     * 自动加载类、库或配置文件
+     * @param String $directory 目录路径
+     * @param Array $exclude_dirs 排除的目录名。eg:["123"]
+     * @param Array $exclude_files 排除的文件名。eg:["1.php"]
+     * @return Bool true 成功 false 失败
+     **/
+    public function autoloadPhpFilesFromDirectory($directory, $exclude_dirs = [], $exclude_files = [])
+    {
+        $this->scanDir($directory, $exclude_dirs, $exclude_files);
+        $paths = $this->getScanResult();
+        // var_dump($directory,$paths);return ;
+        if ($paths) {
+            // 循环遍历目录中的文件
+            foreach ($paths as $name => $path) {
+                // 检查文件扩展名是否为 .php
+                if (pathinfo($name, PATHINFO_EXTENSION) === 'php') {
+                    require_once $path;
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * 遍历一个目录下的所有文件和文件夹
+     * @param String $dir 路径名
+     * @return Array 文件树状图数组
+     */
+    public function getTreeFromDir($dir)
+    {
+        $list_tree = [];
+        $list = scandir($dir);
+        foreach ($list as $key => $name) {
+            if ($name == '..' || $name == '.') {
+                continue;
+            }
+            if (is_file("{$dir}{$name}")) {
+                // 文件
+                $list_tree[] = [
+                    'name' => $name,
+                    'src' => "{$dir}{$name}"
+                ];
+            } else {
+                // 目录
+                $list_new = $this->getTreeFromDir("{$dir}{$name}/");
+                $list_tree[] = [
+                    'name' => $name,
+                    'src' => "{$dir}{$name}",
+                    'children' => $list_new,
+                ];
+            }
+        }
+        return $list_tree;
+    }
+
+    /**
+     * 获取目录中文件修改时间最新的一个文件的文件名
+     * @param String $directory 目录路径
+     * @return String 文件名
+     **/
+    public function getNewestFileFromDir($directory)
+    {
+        $latestFile = '';
+        $latestTime = 0;
+
+        foreach (scandir($directory) as $file) {
+            if (in_array($file, ['.', '..'])) {
+                // 跳过当前目录和上级目录
+                continue;
+            }
+            $filePath = $directory . '/' . $file;
+            $mtime = filemtime($filePath);
+            if ($mtime > $latestTime) {
+                $latestTime = $mtime;
+                $latestFile = $file;
+            }
+        }
+        return $latestFile;
+    }
+
+
 
     // **********************  获取目录所有文件 END  **********************
 
@@ -213,31 +306,7 @@ trait FilesTrait
         return true;
     }
 
-    /**
-     * 遍历一个目录下的所有文件和文件夹，返回一个字符串
-     * @param {Object} $dir
-     * @return {String} easyUI的json字符串
-     */
-    public function getNextTree($dir)
-    {
-        $fileArr = '';
-        $dirArr = '';
-        $list = scandir($dir);
-        foreach ($list as $key => $val) {
-            if ($val == '..' || $val == '.') {
-                continue;
-            }
-            if (is_file($dir . $val)) {
-                $fileArr = $fileArr . '{"text":"' . $val . '","src":"' . $dir . $val . '"},';
-            } else {
-                $files = $this->getNextTree($dir . $val . '/');
-                $dirArr = $dirArr . '{"text":"' . $val . '","src":"' . $dir . $val . '","children":[' . $files . '],"state":"closed"},';
-            }
-        }
-        $fileArr = $dirArr . $fileArr;
-        $fileArr = substr($fileArr, 0, strlen($fileArr) - 1);
-        return $fileArr;
-    }
+
 
     /**
      * 获取文件后缀
@@ -509,28 +578,7 @@ trait FilesTrait
         return $list;
     }
 
-    /**
-     * 获取目录中最新修改的文件名
-     * @param {Object} $directory 你要读取的目录路径
-     **/
-    public function getNewestFileName($directory = null)
-    {
-        $latestFile = '';
-        $latestTime = 0;
 
-        foreach (scandir($directory) as $file) {
-            if (in_array($file, ['.', '..'])) {
-                continue; // 跳过当前目录和上级目录
-            }
-            $filePath = $directory . '/' . $file;
-            $mtime = filemtime($filePath);
-            if ($mtime > $latestTime) {
-                $latestTime = $mtime;
-                $latestFile = $file;
-            }
-        }
-        return $latestFile;
-    }
 
     /**
      * 输出调试信息到日志文件
@@ -632,31 +680,6 @@ trait FilesTrait
         } else {
             $file_base64 = "data:{$mimeType};base64," . base64_encode($file_data);
             return $file_base64;
-        }
-    }
-
-    /**
-     * 自动加载类、库或配置文件
-     * @param String $directory 目录路径
-     * @param Array $exclude_files 排除的文件名。eg:["1.php"]
-     * @return mixed
-     **/
-    public function autoloadPhpFilesFromDirectory($directory, $exclude_dirs = [], $exclude_files = [])
-    {
-        $this->scanDir($directory, $exclude_dirs, $exclude_files);
-        $paths = $this->getScanFiles();
-        // var_dump($directory,$paths);return ;
-        if ($paths) {
-            // 循环遍历目录中的文件
-            foreach ($paths as $name => $path) {
-                // 检查文件扩展名是否为 .php
-                if (pathinfo($name, PATHINFO_EXTENSION) === 'php') {
-                    require_once $path;
-                }
-            }
-            return true;
-        } else {
-            return false;
         }
     }
 
