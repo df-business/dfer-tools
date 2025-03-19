@@ -188,9 +188,10 @@ trait FilesTrait
 
     /**
      * 删除目录和目录下的文件，成功则返回1
-     * @param {Object} $dir    目录的物理路径
+     * @param String $dir    目录的物理路径
+     * @param Bool $quiet    静默操作
      */
-    public function delDir($dir)
+    public function delDir($dir, $quiet = true)
     {
         try {
             if (is_dir($dir)) {
@@ -200,18 +201,22 @@ trait FilesTrait
                     if ($file != "." && $file != "..") {
                         $fullpath = $dir . "/" . $file;
                         if (!is_dir($fullpath)) {
+                            if (!$quiet)
+                                echo "删除 {$fullpath}\n";
                             $rt = unlink($fullpath);
                             if (!$rt) {
                                 return false;
                             }
                         } else {
-                            $this->deldir($fullpath);
                             //循环删除文件
+                            $this->deldir($fullpath);
                         }
                     }
                 }
                 closedir($dh);
                 //删除当前文件夹
+                if (!$quiet)
+                    echo "删除 {$dir}\n";
                 return rmdir($dir);
             } else {
                 return false;
@@ -223,9 +228,14 @@ trait FilesTrait
         }
     }
 
-    public function deleteDir($dir)
+    /**
+     * 删除目录
+     * @param String $dir
+     * @param Bool $quiet    静默操作
+     */
+    public function deleteDir($dir, $quiet = true)
     {
-        return $this->delDir($dir);
+        return $this->delDir($dir, $quiet);
     }
 
     /**
@@ -256,8 +266,9 @@ trait FilesTrait
 
     /**
      * 覆盖文件夹的内容
-     * @param {Object} $strSrcDir    原始目录
-     * @param {Object} $strDstDir    目标目录
+     * @param String $strSrcDir    原始目录
+     * @param String $strDstDir    目标目录
+     * @param Bool $quiet    静默操作
      */
     public function copyDir($strSrcDir, $strDstDir, $quiet = true)
     {
@@ -270,7 +281,7 @@ trait FilesTrait
         }
         while (false !== ($file = readdir($dir))) {
             if (!$quiet)
-                echo $file . "\n";
+                echo "目录 {$file}\n";
             if (($file != '.') && ($file != '..')) {
                 if (is_dir($strSrcDir . DIRECTORY_SEPARATOR . $file)) {
                     if (!$this->copyDir($strSrcDir . DIRECTORY_SEPARATOR . $file, $strDstDir . DIRECTORY_SEPARATOR . $file, $quiet)) {
@@ -289,8 +300,9 @@ trait FilesTrait
 
     /**
      * 通用复制
-     * @param {Object} $strSrc    原始路径
-     * @param {Object} $strDst    目标路径
+     * @param String $strSrc    原始路径
+     * @param String $strDst    目标路径
+     * @param Bool $quiet    静默操作
      **/
     public function copy($strSrc, $strDst, $quiet = true)
     {
@@ -298,7 +310,7 @@ trait FilesTrait
             return $this->copyDir($strSrc, $strDst, $quiet);
         } else {
             if (!$quiet)
-                echo "{$strSrc}=>{$strDst}\n";
+                echo "文件 {$strSrc}=>{$strDst}\n";
             if (!copy($strSrc, $strDst)) {
                 return false;
             }
