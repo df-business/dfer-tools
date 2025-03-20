@@ -729,4 +729,53 @@ trait FilesTrait
         $new_str = $this->strReplace($str, [$ori], [implode('', $list)]);
         return $this->writeFile($new_str, $path);
     }
+
+    /**
+     * 记录网站请求里的agent信息
+     * @param String $site 站点信息
+     */
+    public function agentWrite()
+    {
+        $site = $_SERVER['HTTP_HOST'];
+        $agent = strtolower($_SERVER["HTTP_USER_AGENT"]);
+        if (!empty($agent)) {
+            // 项目根目录
+            $root = "/www/wwwroot/api.dfer.site";
+            $str = $site . PHP_EOL . $agent . PHP_EOL . PHP_EOL;
+            // 记录当天的请求
+            $file_src = $this->str("{root}/data/agent/{file}.log", ["root" => $root, "file" => date('Ymd')]);
+            $this->writeFile($str, $file_src, "a");
+        }
+    }
+
+    /**
+     * 读取agent记录
+     */
+    public function agentRead()
+    {
+        // 项目根目录
+        $root = "/www/wwwroot/api.dfer.site";
+        // 获取昨天的记录
+        $time = date('Ymd', strtotime('-1 day'));
+        $file_src = $this->str("{root}/data/agent/{file}.log", ["root" => $root, "file" =>  $time]);
+        $str = $this->readFile($file_src);
+        // var_dump($file_src,$str);
+        $result = [];
+        if ($str !== false) {
+            $list = explode(PHP_EOL . PHP_EOL, $str);
+            foreach ($list as $key => $value) {
+                $item = explode(PHP_EOL, $value);
+                // var_dump($item);
+                if (count($item) > 1) {
+                    $result[] = [
+                        'site' => $item[0],
+                        'agent' => $item[1],
+                        'time' => $time
+                    ];
+                }
+            }
+        }
+
+        return $result;
+    }
 }

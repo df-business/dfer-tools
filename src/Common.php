@@ -40,8 +40,6 @@ use Dfer\Tools\Constants;
 
 class Common
 {
-    // 静态属性，保存单例实例
-    private static $instance;
 
     use ImgTrait, FilesTrait;
 
@@ -491,8 +489,8 @@ class Common
                         // 该地址无法访问
                         break;
                     case 28:
-                    // 操作超时（请求未在指定时间内完成）。
-                    // 代表地址访问成功，只是服务器响应速度太慢（可能是服务器主动拦截不正常的请求或者访问量太大导致服务器暂时瘫痪）
+                        // 操作超时（请求未在指定时间内完成）。
+                        // 代表地址访问成功，只是服务器响应速度太慢（可能是服务器主动拦截不正常的请求或者访问量太大导致服务器暂时瘫痪）
                     default:
                         $result = $err_no;
                         break;
@@ -1903,7 +1901,7 @@ class Common
     {
         try {
             // 执行传入的代码
-            eval ($code);
+            eval($code);
         } catch (Exception $e) {
             // 处理异常
             echo "捕获到异常: " . $e->getMessage() . "\n";
@@ -2197,7 +2195,7 @@ class Common
             unset($list[$key]);
         }
 
-        $obj = new class ($minValue, $origin_list, $list) {
+        $obj = new class($minValue, $origin_list, $list) {
             public $remove_value, $origin_list, $list;
 
             public function __construct($remove_value, $origin_list, $list)
