@@ -126,10 +126,10 @@ class Ai extends Common
      * @param Int $ai_type AI类型。Constants::AI_BD_QF 千帆 | Constants::AI_VE 火山引擎 | Constants::AI_DS 深度求索（默认）
      * @return mixed
      **/
-    public function command($tmpl, $data, $type = Constants::AI_TEXT, $ai_type = Constants::AI_BD_QF)
+    public function command($tmpl, $data, $type = Constants::AI_TEXT, $ai_type = Constants::AI_BD_QF, $option = [])
     {
         $command = $this->format($tmpl, $data);
-        $result = $this->run($command, $type, $ai_type);
+        $result = $this->run($command, $type, $ai_type, $option);
         return $result;
     }
 
@@ -148,11 +148,11 @@ class Ai extends Common
      * @param Int $ai_type AI类型。Constants::AI_BD_QF 千帆 | Constants::AI_VE 火山引擎 | Constants::AI_DS 深度求索（默认）
      * @return Array
      **/
-    public function run($command, $type = Constants::AI_TEXT, $ai_type = Constants::AI_DS)
+    public function run($command, $type = Constants::AI_TEXT, $ai_type = Constants::AI_DS, $option = [])
     {
         switch ($ai_type) {
             case Constants::AI_BD_QF:
-                $result = $this->runBdQf($command, $type);
+                $result = $this->runBdQf($command, $type, $option);
                 break;
             case Constants::AI_VE:
                 $result = $this->runVe($command, $type);
@@ -162,7 +162,7 @@ class Ai extends Common
             default:
                 break;
         }
-        return $result ?: Constants::AI_ERROR;
+        return $result;
     }
 
     /**
@@ -187,7 +187,7 @@ class Ai extends Common
     public function httpRequest($url, $data = null, $type = Constants::REQ_POST, $header = null, $cookie = null, $timeout = null)
     {
         $result = parent::httpRequest($url, $data, $type, $header, $cookie, $timeout ?: $this->timeout);
-        $this->debug($result);
+        $this->debug($url, $data, $type, $header, $result);
         return $result;
     }
     // **********************  重写父级方法 END  **********************
@@ -213,7 +213,7 @@ class Ai extends Common
                 $url = "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/text2image/sd_xl?access_token=" . static::$instances['token'];;
                 $data = [
                     "prompt" => $command,
-                    "size" => $option['size'] ?? "32x32",
+                    "size" => $option['size'] ?? "1024x768",
                     "style" => $option['style'] ?? "Cinematic"
                 ];
                 $result = $this->httpRequest($url, $data, Constants::REQ_JSON, $header ?? null);

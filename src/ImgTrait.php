@@ -38,30 +38,68 @@ namespace Dfer\Tools;
 trait ImgTrait
 {
     /**
-     * 将图片对象保存到服务器
-     * @param {Object} $base64_image_content    要保存的Base64
-     * @param {Object} $path    要保存的路径
+     * 保存Base64编码的图片
+     * @param String $base64String
      */
-    public function base64ImageContent($base64_image_content, $path)
+    public function saveBase64Image($base64String)
     {
-        $dir = "data/upload/base64/";
-        $err = 'error';
-        //匹配出图片的格式
-        if (preg_match('/^(data:\s*image\/(\w+);base64,)/', $base64_image_content, $result)) {
-            $type = $result[2];
-            //      echo $new_file;
-            if (!file_exists($dir)) {
-                //检查是否有该文件夹，如果没有就创建，并给予读写权限
-                mkdir($dir, 0700);
-            }
-            $new_file = $dir . $path . ".{$type}";
-            if (file_put_contents($new_file, base64_decode(str_replace($result[1], '', $base64_image_content)))) {
-                return '/' . $new_file;
+        // 检查是否是 Base64 编码的图片
+        if (preg_match('/^data:image\/(\w+);base64,/', $base64String, $matches)) {
+            // 获取图片类型（如：png, jpeg, gif）
+            $imageType = $matches[1];
+
+            // 保存路径
+            $saveDir = "upload" . DIRECTORY_SEPARATOR . "base64" . DIRECTORY_SEPARATOR . "image" . DIRECTORY_SEPARATOR . $this->getTime(null, "Y") . DIRECTORY_SEPARATOR . $this->getTime(null, "m");
+            $this->mkDirs($saveDir);
+            $outputFilePath = $this->str("{0}/{1}.{2}", [$saveDir, $this->generateShortUUID() . '.' . date("dHis"), $imageType]);
+
+            // 去掉 Base64 字符串的前缀
+            $base64Data = substr($base64String, strpos($base64String, ',') + 1);
+
+            // var_dump($base64Data);die;
+
+            // 解码 Base64 字符串
+            $imageData = base64_decode($base64Data);
+
+            if ($imageData !== false) {
+                // 将图片数据保存到指定位置
+                if (file_put_contents($outputFilePath, $imageData)) {
+                    return $outputFilePath;
+                } else {
+                    return false;
+                }
             } else {
-                return $err;
+                return false;
             }
         } else {
-            return $err;
+            return false;
+        }
+    }
+
+    /**
+     * 保存网络图片到本地
+     * @param String $imageUrl 图片url
+     */
+    function saveImageFromUrl($imageUrl)
+    {
+
+        // 获取图片数据
+        $imageData = file_get_contents($imageUrl);
+        if ($imageData === false) {
+            return "无法获取网络图片";
+        }
+        $imageType = $this->getExt($imageUrl);
+
+        // 保存路径
+        $saveDir = "upload" . DIRECTORY_SEPARATOR . "url" . DIRECTORY_SEPARATOR . "image" . DIRECTORY_SEPARATOR . $this->getTime(null, "Y") . DIRECTORY_SEPARATOR . $this->getTime(null, "m");
+        $this->mkDirs($saveDir);
+        $outputFilePath = $this->str("{0}/{1}.{2}", [$saveDir, $this->generateShortUUID() . '.' . date("dHis"), $imageType]);
+
+        // 保存图片
+        if (file_put_contents($outputFilePath, $imageData)) {
+            return $outputFilePath;
+        } else {
+            return false;
         }
     }
 
