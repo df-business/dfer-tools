@@ -36,7 +36,7 @@
 
 namespace Dfer\Tools;
 
-use Exception,Error,Closure;
+use Exception, Error, Closure;
 use OSS\OssClient;
 use OSS\Core\OssException;
 use Dfer\Tools\Constants;
@@ -244,7 +244,7 @@ class AliOss extends Common
     {
         $this->debug('processSave', $this->post_arr);
         // 文件类型。text、image、video、application
-        $mime_type = $this->getMimeTypePrefix($this->post_arr['mimeType']);
+        $file_type = $this->getMimeTypePrefix($this->post_arr['mimeType']);
         // 文件在oss中的路径
         $file_src = $this->post_arr['filePath'];
 
@@ -259,7 +259,7 @@ class AliOss extends Common
 
         // ********************** 移动文件 START **********************
         // 转移上传的文件到指定目录。根据类型、年、月设置上传目录
-        $file_src_new = $dirname . DIRECTORY_SEPARATOR . $mime_type . DIRECTORY_SEPARATOR . $this->getTime(null, "Y") . DIRECTORY_SEPARATOR . $this->getTime(null, "m") . DIRECTORY_SEPARATOR . $basename;
+        $file_src_new = $dirname . DIRECTORY_SEPARATOR . $file_type . DIRECTORY_SEPARATOR . $this->getTime(null, "Y") . DIRECTORY_SEPARATOR . $this->getTime(null, "m") . DIRECTORY_SEPARATOR . $basename;
         $result[] = $this->copyFileOss($file_src, $file_src_new);
         // 删除原始文件
         $this->delFileOss($file_src);
@@ -290,7 +290,7 @@ class AliOss extends Common
                     $file_src_new = $file_src;
                 } else {
                     // 保存到新路径
-                    $file_src_new = $dirname . DIRECTORY_SEPARATOR . $mime_type . DIRECTORY_SEPARATOR . $this->getTime(null, "Y") . DIRECTORY_SEPARATOR . $this->getTime(null, "m") . DIRECTORY_SEPARATOR . $value . DIRECTORY_SEPARATOR . $basename;
+                    $file_src_new = $dirname . DIRECTORY_SEPARATOR . $file_type . DIRECTORY_SEPARATOR . $this->getTime(null, "Y") . DIRECTORY_SEPARATOR . $this->getTime(null, "m") . DIRECTORY_SEPARATOR . $value . DIRECTORY_SEPARATOR . $basename;
                 }
                 $result[] = $this->saveFileOss($file_src, $file_src_new, $key, $is_async);
             }
@@ -319,7 +319,7 @@ class AliOss extends Common
         }
 
         // 调用回调函数
-        $callback_function($status,$this->post_arr);
+        $callback_function($status, $this->post_arr);
 
         switch ($type) {
             case 'webuploader':
@@ -425,7 +425,7 @@ class AliOss extends Common
     }
 
     /**
-     * 通过路径上传文件到oss
+     * 通过服务器路径上传文件到oss
      * @param {Object} $filePath 服务器上的文件路径
      * @param {Object} $saveDir oss保存目录
      */
@@ -443,6 +443,83 @@ class AliOss extends Common
             unlink($filePath);
         }
         return $save_file_name;
+    }
+
+    /**
+     * 通过表单post上传文件到oss
+     * @param {Object} $filePath 服务器上的文件路径
+     * @param {Object} $saveDir oss保存目录
+     */
+    public function uploadFileOssByPost()
+    {
+        try {
+            // 解构数组为变量
+            extract($_FILES['file']);
+            $file_ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+            $file_type = $this->getMimeTypePrefix($type);
+            $save_dir = $this->dir . $file_type . DIRECTORY_SEPARATOR . $this->getTime(null, "Y") . DIRECTORY_SEPARATOR . $this->getTime(null, "m");
+            $src = $this->str("{0}/{1}.{2}", [$save_dir, uniqid('post.', true), $file_ext]);
+            // 上传到 OSS
+            $this->ossClient->uploadFile($this->bucket, $src, $tmp_name);
+            $host = $this->host;
+            return compact('host', 'src');
+        } catch (OssException $exception) {
+            $this->debug($exception);
+            return false;
+        }
+    }
+
+    /**
+     * 通过url上传文件到oss
+     * @param {Object} $filePath 服务器上的文件路径
+     * @param {Object} $saveDir oss保存目录
+     */
+    public function uploadFileOssByUrl($imageUrl)
+    {
+        try {
+            // 下载图片
+            $imageData = file_get_contents($imageUrl);
+            $file_ext = $this->getExt($imageUrl);
+            $file_type = $this->getMimeTypePrefix($this->getMimeType($file_ext));
+            $save_dir = $this->dir . $file_type . DIRECTORY_SEPARATOR . $this->getTime(null, "Y") . DIRECTORY_SEPARATOR . $this->getTime(null, "m");
+            $src = $this->str("{0}/{1}.{2}", [$save_dir, uniqid('url.', true), $file_ext]);
+            // 上传到 OSS
+            $this->ossClient->putObject($this->bucket, $src, $imageData);
+            $host = $this->host;
+            return compact('host', 'src');
+        } catch (OssException $exception) {
+            $this->debug($exception);
+            return false;
+        }
+    }
+
+    /**
+     * 通过base64字符串保存文件到oss
+     * @param {Object} $base64String base64字符串
+     */
+    public function uploadFileOssByBase64($base64String)
+    {
+        try {
+            if (preg_match('/^data:(\w+)\/(\w+);base64,/', $base64String, $matches)) {
+                $file_type = $matches[1];
+                $file_ext = $matches[2];
+                // 去掉 Base64 字符串的前缀
+                $base64Data = substr($base64String, strpos($base64String, ',') + 1);
+                // 解码 Base64 字符串
+                $imageData = base64_decode($base64Data);
+                $save_dir = $this->dir . $file_type . DIRECTORY_SEPARATOR . $this->getTime(null, "Y") . DIRECTORY_SEPARATOR . $this->getTime(null, "m");
+                $src = $this->str("{0}/{1}.{2}", [$save_dir, uniqid('base64.', true), $file_ext]);
+                // 上传到 OSS
+                $this->ossClient->putObject($this->bucket, $src, $imageData);
+                $host = $this->host;
+                return compact('host', 'src');
+            } else {
+                return false;
+            }
+        } catch (OssException $exception) {
+            $this->debug($exception);
+            return false;
+        }
     }
 
     /**
@@ -469,7 +546,7 @@ class AliOss extends Common
      */
     public function copyFileOss($from_src, $to_src)
     {
-        $this->debug($this->bucket,$this->ossClient,$from_src,$to_src);
+        $this->debug($this->bucket, $this->ossClient, $from_src, $to_src);
         //判断object是否存在
         $doesExist = $this->ossClient->doesObjectExist($this->bucket, $from_src);
         if ($doesExist) {

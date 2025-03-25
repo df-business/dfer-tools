@@ -44,20 +44,17 @@ trait ImgTrait
     public function saveBase64Image($base64String)
     {
         // 检查是否是 Base64 编码的图片
-        if (preg_match('/^data:image\/(\w+);base64,/', $base64String, $matches)) {
-            // 获取图片类型（如：png, jpeg, gif）
-            $imageType = $matches[1];
+        if (preg_match('/^data:(\w+)\/(\w+);base64,/', $base64String, $matches)) {
+            $file_type = $matches[1];
+            $file_ext = $matches[2];
 
             // 保存路径
-            $saveDir = "upload" . DIRECTORY_SEPARATOR . "base64" . DIRECTORY_SEPARATOR . "image" . DIRECTORY_SEPARATOR . $this->getTime(null, "Y") . DIRECTORY_SEPARATOR . $this->getTime(null, "m");
+            $saveDir = "upload" . DIRECTORY_SEPARATOR . "base64" . DIRECTORY_SEPARATOR . $file_type . DIRECTORY_SEPARATOR . $this->getTime(null, "Y") . DIRECTORY_SEPARATOR . $this->getTime(null, "m");
             $this->mkDirs($saveDir);
-            $outputFilePath = $this->str("{0}/{1}.{2}", [$saveDir, $this->generateShortUUID() . '.' . date("dHis"), $imageType]);
+            $outputFilePath = $this->str("{0}/{1}.{2}", [$saveDir, $this->generateShortUUID() . '.' . date("dHis"), $file_ext]);
 
             // 去掉 Base64 字符串的前缀
             $base64Data = substr($base64String, strpos($base64String, ',') + 1);
-
-            // var_dump($base64Data);die;
-
             // 解码 Base64 字符串
             $imageData = base64_decode($base64Data);
 
