@@ -44,6 +44,22 @@ class Common
     use ImgTrait, FilesTrait;
 
     /**
+     * 调用不存在的公共方法
+     * @param String $method 方法名
+     * @param Object $args 参数
+     */
+    public function __call($method, $args)
+    {
+        if (strpos($method, 'debug') === 0) {
+            // 方法名以 debug 开头。比如：debugDfer
+            $file_name = $this->snake(substr($method, strlen('debug')));
+            $args_new = array_merge([$file_name], $args);
+            // 使用展开操作符。将参数原样传递出去
+            $this->debug(...$args_new);
+        }
+    }
+
+    /**
      * 简介
      **/
     public function about()

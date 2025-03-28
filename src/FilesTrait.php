@@ -594,11 +594,25 @@ trait FilesTrait
 
     /**
      * 输出调试信息到日志文件
-     * @param {Object} 自动获取所有参数
+     * @param Object 自动获取所有参数
      **/
     public function debug()
     {
-        $args = $this->str(func_get_args());
+        // 获取此方法的调用来源
+        $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+        if (isset($trace[1]['function']) && $trace[1]['function'] === '__call') {
+            $args_origin = func_get_args();
+            // 第一个参数
+            $file_name = $args_origin[0];
+            $file_name = date('d') . ".{$file_name}";
+            // 第二个及之后的所有参数（如果存在）
+            $args_new = array_slice($args_origin, 1);
+            $args = $this->str($args_new);
+        } else {
+            $file_name = date('d');
+            $args = $this->str(func_get_args());
+        }
+
         $time = $this->getTime(time());
         // 项目根目录
         $root = $this->getRootPath();
@@ -617,7 +631,7 @@ trait FilesTrait
             STR,
             [$args, 'tag' => "[{$tag} {$time}]"]
         );
-        $file_src = $this->str("{root}/data/logs/{dir}/{file}.log", ["root" => $root, "dir" => date('Ym'), "file" => date('d')]);
+        $file_src = $this->str("{root}/data/logs/{dir}/{file}.log", ["root" => $root, "dir" => date('Ym'), "file" => $file_name]);
         $this->writeFile($str, $file_src, "a");
     }
 
