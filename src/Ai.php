@@ -178,16 +178,16 @@ class Ai extends Common
     }
 
     // ********************** 重写父级方法 START **********************
-    public function debug()
+    public function debugAi()
     {
         if ($this->debug)
-            parent::debug(func_get_args());
+            parent::debugAi(func_get_args());
     }
 
     public function httpRequest($url, $data = null, $type = Constants::REQ_POST, $header = null, $cookie = null, $timeout = null)
     {
         $result = parent::httpRequest($url, $data, $type, $header, $cookie, $timeout ?: $this->timeout);
-        $this->debug($url, $data, $type, $header, $result);
+        $this->debugAi($url, $data, $type, $header, $result);
         return $result;
     }
     // **********************  重写父级方法 END  **********************
@@ -213,8 +213,8 @@ class Ai extends Common
                 $url = "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/text2image/sd_xl?access_token=" . static::$instances['token'];;
                 $data = [
                     "prompt" => $command,
-                    "size" => $option['size'] ?? "1024x768",
-                    "style" => $option['style'] ?? "Cinematic"
+                    "size" => $option['size'] ?? "1024x576",
+                    "style" => $option['style'] ?? "Base"
                 ];
                 $result = $this->httpRequest($url, $data, Constants::REQ_JSON, $header ?? null);
                 $result = $result['data'][0]['b64_image'] ?? false;
