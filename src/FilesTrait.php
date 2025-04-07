@@ -746,16 +746,19 @@ trait FilesTrait
 
     /**
      * 记录网站请求里的agent信息
-     * @param String $site 站点信息
+     * @param String $site_root 日志保存目录
      */
-    public function agentWrite()
+    public function agentWrite($site_root = 'api.dfer.site')
     {
-        $site = $_SERVER['HTTP_HOST'];
-        $agent = strtolower($_SERVER["HTTP_USER_AGENT"]);
-        if (!empty($agent)) {
+        // var_dump($_SERVER);
+        $accept = strtolower($_SERVER["HTTP_ACCEPT"]);
+        $user_agent = strtolower($_SERVER["HTTP_USER_AGENT"]);
+        $host = $_SERVER['HTTP_HOST'];
+        $remote_addr = $_SERVER['REMOTE_ADDR'];
+        if (!empty($_SERVER)) {
             // 项目根目录
-            $root = "/www/wwwroot/api.dfer.site";
-            $str = $site . PHP_EOL . $agent . PHP_EOL . PHP_EOL;
+            $root = "/www/wwwroot/{$site_root}";
+            $str = $accept . PHP_EOL . $user_agent . PHP_EOL . $host . PHP_EOL . $remote_addr . PHP_EOL . PHP_EOL;
             // 记录当天的请求
             $file_src = $this->str("{root}/data/agent/{file}.log", ["root" => $root, "file" => date('Ymd')]);
             $this->writeFile($str, $file_src, "a");
@@ -782,8 +785,10 @@ trait FilesTrait
                 // var_dump($item);
                 if (count($item) > 1) {
                     $result[] = [
-                        'site' => $item[0],
-                        'agent' => $item[1],
+                        'accept' => $item[0],
+                        'user_agent' => $item[1],
+                        'host' => $item[2],
+                        'remote_addr' => $item[3],
                         'time' => $time
                     ];
                 }
