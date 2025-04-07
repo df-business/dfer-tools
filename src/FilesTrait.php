@@ -751,10 +751,12 @@ trait FilesTrait
     public function agentWrite($site_root = 'api.dfer.site')
     {
         // var_dump($_SERVER);
-        $accept = strtolower($_SERVER["HTTP_ACCEPT"]??'--'?:'--');
-        $user_agent = strtolower($_SERVER["HTTP_USER_AGENT"]??'--'?:'--');
-        $host = $_SERVER['HTTP_HOST']??'--'?:'--';
-        $remote_addr = $_SERVER['REMOTE_ADDR']??'--'?:'--';
+        $undefined="无";
+        $empty="空";
+        $accept = strtolower($_SERVER["HTTP_ACCEPT"]??$undefined?:$empty);
+        $user_agent = strtolower($_SERVER["HTTP_USER_AGENT"]??$undefined?:$empty);
+        $host = $_SERVER['HTTP_HOST']??$undefined?:$empty;
+        $remote_addr = $_SERVER['REMOTE_ADDR']??$undefined?:$empty;
         if (!empty($_SERVER)) {
             // 项目根目录
             $root = "/www/wwwroot/{$site_root}";
