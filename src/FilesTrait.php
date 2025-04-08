@@ -769,13 +769,14 @@ trait FilesTrait
 
     /**
      * 读取agent记录
+     * @param String $day 统计的时间。默认获取昨天的记录
      */
-    public function agentRead()
+    public function agentRead($day='-1')
     {
         // 项目根目录
         $root = "/www/wwwroot/api.dfer.site";
         // 获取昨天的记录
-        $time = date('Ymd', strtotime('-1 day'));
+        $time = date('Ymd', strtotime("{$day} day"));
         $file_src = $this->str("{root}/data/agent/{file}.log", ["root" => $root, "file" =>  $time]);
         $str = $this->readFile($file_src);
         // var_dump($file_src,$str);
