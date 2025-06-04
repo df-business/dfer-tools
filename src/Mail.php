@@ -3,7 +3,9 @@
 /**
  * +----------------------------------------------------------------------
  * | 电子邮件类
- * |    https://help.aliyun.com/document_detail/36576.html
+ * | 支持：企业邮箱（阿里云、qq）。不支持：个人邮箱。
+ * |    aliyun https://help.aliyun.com/document_detail/36576.html
+ * |    qq https://open.work.weixin.qq.com/help2/pc/19886?person_id=1
  * +----------------------------------------------------------------------
  *                                            ...     .............
  *                                          ..   .:!o&*&&&&&ooooo&; .
@@ -36,16 +38,25 @@
 
 namespace Dfer\Tools;
 
+use Exception, Error, Closure;
 use Dfer\Tools\Constants;
+use Dfer\Tools\Statics\{Storage};
 
 class Mail extends Common
 {
+    private $smtp_host = 'ssl://smtp.qiye.aliyun.com';
+    private $smtp_port = 465;
+    private $pop_host = 'ssl://pop.qiye.aliyun.com';
+    private $pop_port = 995;
+    private $imap_host = 'ssl://imap.qiye.aliyun.com';
+    private $imap_port = 993;
+
+    private $tag = 0;
+    private $keyword_filters = [];
+    private $sender_filters = [];
+
     //调试开关。打印调试信息，存储运行日志
     private $debug = false;
-    // 服务器地址（默认：SMTP协议）
-    private $server_host = 'ssl://smtp.qiye.aliyun.com';
-    // 服务器端口号（默认：加密）
-    private $server_port = 465;
     // 身份验证
     private $auth = true;
     // 登录账号
@@ -64,18 +75,25 @@ class Mail extends Common
     public function __construct()
     {
         $root = $this->getRootPath();
-        $this->log_file = $this->str("{root}/data/logs/mail/{dir}/{file}.log", ["root" => $root, "dir" => date('Ym'), "file" => date('d')]);
+        $this->log_file = $this->str("{root}/data/logs/{dir}/{file}.mail.log", ["root" => $root, "dir" => date('Ym'), "file" => date('d')]);
     }
 
     /**
      * 设置默认参数
-     * @param {Object} $config
+     * @param Array $config
      */
     public function setDefaultConfig($config)
     {
+        $this->smtp_host = $config['smtp_host'] ?? $this->smtp_host;
+        $this->smtp_port = $config['smtp_port'] ?? $this->smtp_port;
+        $this->pop_host = $config['pop_host'] ?? $this->pop_host;
+        $this->pop_port = $config['pop_port'] ?? $this->pop_port;
+        $this->imap_host = $config['imap_host'] ?? $this->imap_host;
+        $this->imap_port = $config['imap_port'] ?? $this->imap_port;
+        $this->keyword_filters = $config['keyword_filters'] ?? $this->keyword_filters;
+        $this->sender_filters = $config['sender_filters'] ?? $this->sender_filters;
+
         $this->debug = $config['debug'] ?? $this->debug;
-        $this->server_port = $config['server_port'] ?? $this->server_port;
-        $this->server_host = $config['server_host'] ?? $this->server_host;
         $this->account = $config['account'] ?? $this->account;
         $this->password = $config['password'] ?? $this->password;
         $this->log_file = $config['log_file'] ?? $this->log_file;
@@ -85,14 +103,161 @@ class Mail extends Common
     }
 
     /**
+     * 重写父级方法
+     */
+    public function debug()
+    {
+        if ($this->debug)
+            parent::debugMail(func_get_args());
+    }
+
+    /**
+     * 写入日志
+     * @param String $message
+     */
+    public function logWrite($message)
+    {
+        if (!$this->debug) {
+            return false;
+        }
+        // 检查log_file属性是否为空字符串，如果为空则不写入日志，直接返回true
+        if ($this->log_file == "") {
+            return true;
+        }
+
+        $this->writeFile(null, $this->log_file, "a");
+        // 格式化消息，添加时间戳、当前用户和进程ID
+        // 注意：get_current_user()函数在某些SAPI（如CLI）下可能不可用，且getmypid()返回的是当前PHP脚本的进程ID
+        $message = date("H:i:s") . get_current_user() . "[" . getmypid() . "]: " . $message;
+
+        // 检查日志文件是否存在，以及是否能以追加模式打开
+        if (!@file_exists($this->log_file) || !($fp = @fopen($this->log_file, "a"))) {
+            // 如果文件不存在或无法打开，则输出警告信息，并返回false
+            echo "警告：无法打开日志文件 \"" . $this->log_file . "\"\n";
+            return false;
+        }
+        // 对文件进行独占锁定，以避免并发写入时的数据竞争
+        flock($fp, LOCK_EX);
+        // 将格式化后的消息写入文件
+        fputs($fp, $message);
+        // 关闭文件句柄
+        fclose($fp);
+        // 返回true，表示日志写入成功
+        return true;
+    }
+
+    /**
+     * 加工抓取到的邮件数据
+     * @param String $response 源码内容
+     * @return mixed
+     **/
+    public function getData($response)
+    {
+        // $this->debug($response);
+        $subject = '';
+        if (preg_match('/Subject: (.+?)(?=\n\S+:|$)/s', $response, $matches)) {
+            $subject = trim($matches[1]);
+
+            // 提取所有编码部分（兼容 utf-8、gb18030、gbk 等）
+            if (preg_match_all('/=\?([a-zA-Z0-9-]+)\?B\?([^?]+)\?=/', $subject, $matches)) {
+                $charsets = $matches[1]; // 编码类型（如 utf-8、gb18030）
+                $base64_parts = $matches[2]; // Base64 部分
+                $decoded_subject = '';
+
+                foreach ($base64_parts as $i => $base64) {
+                    $decoded_part = base64_decode($base64);
+                    // 转换为目标编码（如 UTF-8）
+                    if (function_exists('mb_convert_encoding')) {
+                        $decoded_part = mb_convert_encoding($decoded_part, 'UTF-8', $charsets[$i]);
+                    }
+                    $decoded_subject .= $decoded_part;
+                }
+
+                // 如果成功解码，替换原主题
+                if (!empty($decoded_subject)) {
+                    $subject = $decoded_subject;
+                }
+            }
+        }
+        $from = '';
+        if (preg_match('/From: .*<([^>]+)>/', $response, $matches)) {
+            $from = trim($matches[1]);
+        }
+        $body_list = [];
+        if (preg_match('/BODY\[1\] \{\d+\}\s*([\s\S]+?)\s*\)/', $response, $matches)) {
+            // 处理纯文本
+            $base64_content = $matches[1];
+            // 去除换行符
+            $base64_cleaned = preg_replace('/\s+/', '', $base64_content);
+            // 解码
+            $decoded_content = base64_decode($base64_cleaned);
+            $body_list[] = $decoded_content;
+        } else if (preg_match_all('/Content-Transfer-Encoding: base64\s*\n\s*\n([\s\S]+?)\n------=/', $response, $matches)) {
+            // 处理`纯文本+html`
+            foreach ($matches[1] as $base64_content) {
+                // 去除空白字符
+                $base64_cleaned = preg_replace('/\s+/', '', $base64_content);
+                // 解码 base64
+                $decoded_content = base64_decode($base64_cleaned);
+                $body_list[] = $decoded_content;
+            }
+        } else if (preg_match('/X-QQ-RECHKSPAM: 0\s*\n\s*\n([\s\S]+?)\s*\)/', $response, $matches)) {
+            // 处理这种格式的正文
+            $text_content = $matches[1];
+            // 去除多余空白字符
+            $cleaned_content = trim($text_content);
+            $body_list[] = $cleaned_content;
+        } else if (preg_match('/X-QQ-RECHKSPAM: 0\s*\n\s*\n([\s\S]+?)(?=\n\S+:|$)/s', $response, $matches)) {
+            // 检查内容是否可能是 Base64 编码
+            $content = trim($matches[1]);
+            // 尝试 Base64 解码（如果内容符合 Base64 特征）
+            if (preg_match('/^[A-Za-z0-9+\/=]+$/', $content)) {
+                $decoded_content = base64_decode($content);
+                if ($decoded_content !== false) {
+                    $body_list[] = $decoded_content;
+                } else {
+                    $body_list[] = $content; // 如果解码失败，保留原始内容
+                }
+            } else {
+                $body_list[] = $content; // 如果不是 Base64，直接存储
+            }
+        }
+
+        $body = $body_list[0] ?? '';
+        // 检查筛选条件
+        $keywordMatch = false;
+        foreach ($this->keyword_filters ?? [] as $keyword) {
+            if (stripos($subject, $keyword) !== false) {
+                $keywordMatch = true;
+                break;
+            }
+        }
+        $senderMatch = false;
+        foreach ($this->sender_filters ?? [] as $filter) {
+            if (strtolower($from) === strtolower($filter)) {
+                $senderMatch = true;
+                break;
+            }
+        }
+        // $this->debug(compact('subject','from','body_list'));
+        if ($keywordMatch && $senderMatch) {
+            $result = (object)compact('subject', 'from', 'body');
+            return $result;
+        }
+        return false;
+    }
+
+    // ###################################### SMTP START ######################################
+
+    /**
      * 发送邮件
-     * @param {Object} $mail_to 收件人邮箱
-     * @param {Object} $mail_subject    邮件主题
-     * @param {Object} $mail_content    邮件内容
-     * @param {Object} $mail_format 邮件格式（HTML/TXT）
-     * @param {Object} $cc  抄送。将邮件的副本同时发送给除了主收件人以外的其他收件人，支持多个邮件(用逗号分隔)，如：a@qq.com,b@qq.com
-     * @param {Object} $bcc 密送。将邮件发送给除了主收件人和抄送收件人以外的其他收件人，且这些密送收件人的身份对其他收件人是隐藏的，支持多个邮件(用逗号分隔)，如：a@qq.com,b@qq.com
-     * @param {Object} $extend_header   附加头部信息
+     * @param String $mail_to 收件人邮箱
+     * @param String $mail_subject    邮件主题
+     * @param String $mail_content    邮件内容
+     * @param Int $mail_format 邮件格式（HTML/TXT）
+     * @param String $cc  抄送。将邮件的副本同时发送给除了主收件人以外的其他收件人，支持多个邮件(用逗号分隔)，如：a@qq.com,b@qq.com
+     * @param String $bcc 密送。将邮件发送给除了主收件人和抄送收件人以外的其他收件人，且这些密送收件人的身份对其他收件人是隐藏的，支持多个邮件(用逗号分隔)，如：a@qq.com,b@qq.com
+     * @param String $extend_header   附加头部信息
      */
     public function send($mail_to, $mail_subject, $mail_content, $mail_format = Constants::HTML, $cc = "", $bcc = "", $extend_header = "")
     {
@@ -158,8 +323,6 @@ class Mail extends Common
 
             // 尝试打开与SMTP服务器的连接。
             if (!$this->smtpSockOpen($mail_address)) {
-                // 如果连接失败，记录错误日志，并将发送状态设置为false。
-                $this->logWrite("错误：无法发送电子邮件至 {$mail_address}\n");
                 $sent = false;
                 continue;
             }
@@ -169,8 +332,6 @@ class Mail extends Common
                 // 如果发送成功，记录日志。
                 $this->logWrite("电子邮件已发送至 <{$mail_address}>\n");
             } else {
-                // 如果发送失败，记录错误日志，并将发送状态设置为false。
-                $this->logWrite("错误：无法发送电子邮件至 <{$mail_address}>\n");
                 $sent = false;
             }
 
@@ -178,7 +339,7 @@ class Mail extends Common
             fclose($this->sock_obj);
 
             // 记录断开连接的日志。
-            $this->logWrite("已断开与远程主机的连接\n");
+            $this->logWrite("已断开 {$this->smtp_host}\n");
         }
         // 返回最终的发送状态。
         return $sent;
@@ -186,10 +347,10 @@ class Mail extends Common
 
     /**
      * 通过SMTP发送邮件
-     * @param {Object} $mail_from
-     * @param {Object} $mail_to
-     * @param {Object} $mail_header
-     * @param {Object} $mail_content
+     * @param String $mail_from
+     * @param String $mail_to
+     * @param String $mail_header
+     * @param String $mail_content
      */
     public function smtpSend($mail_from, $mail_to, $mail_header, $mail_content)
     {
@@ -198,50 +359,50 @@ class Mail extends Common
 
         // 发送HELO命令给SMTP服务器，并检查是否成功
         if (!$this->smtpPutCmd("HELO", $helo)) {
-            return $this->smtpError("发送HELO命令");
+            return false;
         }
 
         // 如果启用了SMTP认证
         if ($this->auth) {
             // 发送AUTH LOGIN命令，并附带经过base64编码的账户名
             if (!$this->smtpPutCmd("AUTH LOGIN", base64_encode($this->account))) {
-                return $this->smtpError("发送AUTH LOGIN命令");
+                return false;
             }
 
             // 发送空命令（实际上是AUTH LOGIN流程的第二步），并附带经过base64编码的密码
             if (!$this->smtpPutCmd("", base64_encode($this->password))) {
-                return $this->smtpError("发送密码认证命令");
+                return false;
             }
         }
 
         // 发送MAIL FROM命令，指定发件人地址
         if (!$this->smtpPutCmd("MAIL", "FROM:<{$mail_from}>")) {
-            return $this->smtpError("发送`MAIL FROM`命令");
+            return false;
         }
 
         // 发送RCPT TO命令，指定收件人地址
         if (!$this->smtpPutCmd("RCPT", "TO:<{$mail_to}>")) {
-            return $this->smtpError("发送`RCPT TO`命令");
+            return false;
         }
 
         // 发送DATA命令，表示接下来的数据是邮件内容
         if (!$this->smtpPutCmd("DATA")) {
-            return $this->smtpError("发送DATA命令");
+            return false;
         }
 
         // 发送邮件的头部和内容
         if (!$this->smtpPutCmd("{$mail_header}\r\n{$mail_content}", null, false)) {
-            return $this->smtpError("发送消息");
+            return false;
         }
 
         // 发送邮件内容结束标记
         if (!$this->smtpPutCmd("\r\n.")) {
-            return $this->smtpError("发送 `<CR><LF>.<CR><LF> [EOM]`");
+            return false;
         }
 
         // 发送QUIT命令，优雅地关闭与SMTP服务器的连接
         if (!$this->smtpPutCmd("QUIT")) {
-            return $this->smtpError("发送QUIT命令");
+            return false;
         }
         // 如果所有命令都成功发送，则返回true表示邮件发送成功
         return true;
@@ -249,12 +410,12 @@ class Mail extends Common
 
     /**
      * 打开与SMTP服务器的连接
-     * @param {Object} $mail_address
+     * @param String $mail_address
      */
     public function smtpSockOpen($mail_address)
     {
         // 检查是否指定了服务器主机名
-        if ($this->server_host) {
+        if ($this->smtp_host) {
             // 如果指定了，则尝试连接到指定的中继主机
             return $this->smtpSockOpenRelay();
         } else {
@@ -269,26 +430,26 @@ class Mail extends Common
     public function smtpSockOpenRelay()
     {
         // 记录尝试连接的日志信息
-        $this->logWrite("尝试连接 " . $this->server_host . ":" . $this->server_port . "\n");
+        $this->logWrite("尝试连接 {$this->smtp_host}:{$this->smtp_port}\n");
         // 尝试打开到中继主机的socket连接
-        $this->sock_obj = @pfsockopen($this->server_host, $this->server_port, $errno, $errstr, $this->time_out);
+        $this->sock_obj = @pfsockopen($this->smtp_host, $this->smtp_port, $errno, $errstr, $this->time_out);
         // 检查连接是否成功以及SMTP服务器是否响应正常
         if (!($this->sock_obj && $this->smtpResponse())) {
             // 如果连接失败或SMTP服务器响应不正常，则记录错误信息
-            $this->logWrite("错误：无法连接到中继主机 " . $this->server_host . "\n");
+            $this->logWrite("错误：无法连接到中继主机 " . $this->smtp_host . "\n");
             $this->logWrite("错误：{$errstr} ({$errno})\n");
             // 返回false表示连接失败
             return false;
         }
         // 如果连接成功且SMTP服务器响应正常，则记录成功信息
-        $this->logWrite("已连接到中继主机 " . $this->server_host . "\n");
+        $this->logWrite("已连接到 {$this->smtp_host}\n");
         // 返回true表示连接成功
         return true;
     }
 
     /**
      * 通过邮件地址获取MX记录并连接到相应的SMTP服务器
-     * @param {Object} $mail_address
+     * @param String $mail_address
      */
     public function smtpSockOpenMx($mail_address)
     {
@@ -304,9 +465,9 @@ class Mail extends Common
         // 遍历MX记录中的主机名
         foreach ($mx_host_list as $host) {
             // 记录尝试连接的日志信息
-            $this->logWrite("尝试连接 {$host}:" . $this->server_port . "\n");
+            $this->logWrite("尝试连接mx主机 {$host}:" . $this->smtp_port . "\n");
             // 尝试打开到MX主机的socket连接
-            $this->sock_obj = @pfsockopen($host, $this->server_port, $errno, $errstr, $this->time_out);
+            $this->sock_obj = @pfsockopen($host, $this->smtp_port, $errno, $errstr, $this->time_out);
             // 检查连接是否成功以及SMTP服务器是否响应正常
             if (!($this->sock_obj && $this->smtpResponse())) {
                 // 如果连接失败或SMTP服务器响应不正常，则记录警告信息
@@ -321,16 +482,16 @@ class Mail extends Common
             return true;
         }
         // 如果无法连接到任何MX主机，则记录错误信息
-        $this->logWrite("错误：无法连接到任何mx主机(" . implode(", ", $mx_host_list) . ")\n");
+        $this->logWrite("无法连接到任何mx主机(" . implode(", ", $mx_host_list) . ")\n");
         // 返回false表示连接失败
         return false;
     }
 
     /**
      * 向SMTP服务器发送命令
-     * @param {Object} $cmd
-     * @param {Object} $arg
-     * @param {Object} $need_response   需要返回响应结果
+     * @param String $cmd
+     * @param String $arg
+     * @param Bool $need_response   需要返回响应结果
      */
     public function smtpPutCmd($cmd, $arg = null, $need_response = true)
     {
@@ -347,8 +508,8 @@ class Mail extends Common
 
     /**
      * 将构建好的邮件头信息和邮件内容发送给SMTP服务器
-     * @param {Object} $mail_header 邮件头信息
-     * @param {Object} $mail_content    邮件内容
+     * @param String $mail_header 邮件头信息
+     * @param String $mail_content    邮件内容
      */
     public function smtpMessage($mail_header, $mail_content)
     {
@@ -375,7 +536,7 @@ class Mail extends Common
             fputs($this->sock_obj, "QUIT\r\n");
             // 从服务器读取最后的响应（虽然这个响应可能不是QUIT命令的直接回应，但通常用于清理）
             fgets($this->sock_obj, 512);
-            $this->logWrite("错误：远程主机返回 \"{$response}\"\n");
+            // $this->logWrite("错误：远程主机返回 \"{$response}\"\n");
             // 返回false，表示SMTP服务器的响应不是成功的
             return false;
         }
@@ -384,53 +545,8 @@ class Mail extends Common
     }
 
     /**
-     * 写入smtp错误日志
-     * @param {Object} $string
-     */
-    public function smtpError($string)
-    {
-        $this->logWrite("错误: 在 {$string} 的时候发生错误\n");
-        return false;
-    }
-
-    /**
-     * 写入日志
-     * @param {Object} $message
-     */
-    public function logWrite($message)
-    {
-        if (!$this->debug) {
-            return false;
-        }
-        // 检查log_file属性是否为空字符串，如果为空则不写入日志，直接返回true
-        if ($this->log_file == "") {
-            return true;
-        }
-
-        $this->writeFile(null, $this->log_file, "a");
-        // 格式化消息，添加时间戳、当前用户和进程ID
-        // 注意：get_current_user()函数在某些SAPI（如CLI）下可能不可用，且getmypid()返回的是当前PHP脚本的进程ID
-        $message = date("M d H:i:s ") . get_current_user() . "[" . getmypid() . "]: " . $message;
-
-        // 检查日志文件是否存在，以及是否能以追加模式打开
-        if (!@file_exists($this->log_file) || !($fp = @fopen($this->log_file, "a"))) {
-            // 如果文件不存在或无法打开，则输出警告信息，并返回false
-            echo "警告：无法打开日志文件 \"" . $this->log_file . "\"\n";
-            return false;
-        }
-        // 对文件进行独占锁定，以避免并发写入时的数据竞争
-        flock($fp, LOCK_EX);
-        // 将格式化后的消息写入文件
-        fputs($fp, $message);
-        // 关闭文件句柄
-        fclose($fp);
-        // 返回true，表示日志写入成功
-        return true;
-    }
-
-    /**
      * 删除电子邮件地址中的注释部分
-     * @param {Object} $mail_address 邮件地址
+     * @param String $mail_address 邮件地址
      */
     public function clearRemark($mail_address)
     {
@@ -443,9 +559,10 @@ class Mail extends Common
         }
         return $mail_address;
     }
+
     /**
      * 清理和提取邮件地址
-     * @param {Object} $mail_address  邮件地址
+     * @param String $mail_address  邮件地址
      */
     public function getMailAddress($mail_address)
     {
@@ -456,4 +573,206 @@ class Mail extends Common
         // 返回处理后的$mail_address，此时它应该只包含邮件地址的核心部分，且没有空格、制表符、回车符和换行符
         return $mail_address;
     }
+
+    // ######################################  SMTP END  ######################################
+
+    // ###################################### IMAP START ######################################
+
+    /**
+     * 监听新邮件
+     * 经测试，建立连接达到一分钟之后，服务器会主动关闭连接，需要重新建立监听
+     *
+     * 对于 LOGIN、CHECK、NOOP 等简单命令可以使用单次读取。通常单行内返回完整结果，适合 fgets() 单次读取
+     * 对于 SELECT、SEARCH、FETCH 、IDLE 等复杂命令应该使用循环读取。会返回多行数据，必须循环读取直到匹配结束标记，
+     * @param object $var 变量
+     * @return mixed
+     **/
+    public function monitorMail(Closure $callback)
+    {
+        $timeout = 0;
+        // 设置 php 超时
+        set_time_limit($timeout);
+
+        while (true) {
+            // 连接邮箱的IMAP服务
+            $socket = fsockopen("ssl://{$this->imap_host}", $this->imap_port, $errno, $errstr, 30);
+            if (!$socket) {
+                $this->debug("无法连接IMAP服务器", $errno, $errstr);
+                die();
+            }
+            // 设置 socket 超时
+            stream_set_timeout($socket, $timeout);
+            // 读取服务器欢迎消息
+            fgets($socket);
+            // 登录
+            $tag = $this->getTag();
+            fwrite($socket, "{$tag} LOGIN {$this->account} {$this->password}\r\n");
+            $response = fgets($socket);
+            $this->debug($response);
+            if (strpos($response, "{$tag} OK") === false) {
+                $this->debug("登录失败");
+                die();
+            }
+            // 选择收件箱
+            $tag = $this->getTag();
+            fwrite($socket, "{$tag} SELECT INBOX\r\n");
+            while ($line = fgets($socket)) {
+                if (strpos($line, "{$tag} OK") !== false) break;
+            }
+            // 进入IDLE模式。实时监听邮箱的新邮件通知（无需轮询）
+            $tag = $this->getTag();
+            fwrite($socket, "{$tag} IDLE\r\n");
+            $response = fgets($socket);
+
+            if (trim($response) !== '+ idling') {
+                $this->debug("无法进入IDLE模式");
+                die();
+            }
+            // 监听服务器通知
+            while ($line = fgets($socket)) {
+                $this->debug('读取邮件数据');
+                if (strpos($line, 'EXISTS') !== false) {
+                    // 有新邮件到达
+                    $this->debug('新邮件到达');
+                    // 退出IDLE模式获取邮件。必须先用 DONE 退出 IDLE 模式 才能执行其他命令（如 SEARCH、FETCH），这是 IMAP 协议的设计规范
+                    fwrite($socket, "DONE\r\n");
+                    // 获取未读邮件
+                    $tag = $this->getTag();
+                    fwrite($socket, "{$tag} SEARCH UNSEEN\r\n");
+                    $response = "";
+                    while ($line = fgets($socket)) {
+                        $response .= $line;
+                        if (strpos($line, "{$tag} OK") !== false) break;
+                    }
+                    // 处理新邮件...
+                    $this->debug($response);
+
+                    // 邮件ID列表
+                    $unseen_ids = [];
+                    // 获取匹配的邮件ID。匹配符合 `* SEARCH 某内容` 格式的字符串，并提取 `某内容`
+                    if (preg_match('/\* SEARCH (.+)/', $response, $matches)) {
+                        $unseen_ids = explode(' ', trim($matches[1]));
+                    }
+
+                    $unseen_id = $unseen_ids[0];
+
+                    $tag = $this->getTag();
+                    fwrite($socket, "{$tag} FETCH {$unseen_id} BODY.PEEK[]\r\n");
+                    $response = "";
+                    while ($line = fgets($socket)) {
+                        $response .= $line;
+                        if (strpos($line, "{$tag} OK") !== false) break;
+                    }
+
+                    $emailContent = $response;
+
+                    // 标记邮件为已读
+                    $tag = $this->getTag();
+                    fwrite($socket, "{$tag} STORE {$unseen_id} +FLAGS (\\Seen)\r\n");
+                    $response = fgets($socket);
+
+                    $data = $this->getData($emailContent);
+                    if ($data) {
+                        $filteredEmail = [
+                            'subject' => $data->subject,
+                            'from' => $data->from,
+                            'body' => $data->body,
+                            'uid' => $unseen_id
+                        ];
+                        // $this->debug($filteredEmail);
+                        $callback($filteredEmail);
+                    }
+
+                    break;
+                }
+            }
+            fclose($socket);
+            $this->tag = 0;
+            $this->debug("重置");
+        }
+    }
+
+    /**
+     * 生成命令标签
+     * @return string 唯一标签
+     */
+    private function getTag()
+    {
+        return 'A' . ++$this->tag;
+    }
+
+    // ######################################  IMAP END  ######################################
+
+    // ###################################### POP START ######################################
+
+    /**
+     * 检查邮件
+     * @param Closure $callback 回调函数
+     * @param String $cache_name 缓存文件名。保存于：`/data/fast/`
+     * @return mixed
+     **/
+    public function checkMail(Closure $callback, $cache_name = 'mail')
+    {
+        // 使用pfsockopen创建持久连接
+        $socket = @pfsockopen("ssl://{$this->pop_host}", $this->pop_port, $errno, $errstr, 30);
+        if (!$socket) die("连接失败: $errstr ($errno)");
+
+        // 读取欢迎消息
+        $response = fgets($socket);
+
+        // POP3认证
+        fputs($socket, "USER {$this->account}\r\n");
+        $response = fgets($socket);
+        if (substr($response, 0, 3) != '+OK') die("USER命令失败: $response");
+
+        fputs($socket, "PASS {$this->password}\r\n");
+        $response = fgets($socket);
+        if (substr($response, 0, 3) != '+OK') die("PASS命令失败: $response");
+
+        // 获取UIDL列表（唯一标识符列表）
+        fputs($socket, "UIDL\r\n");
+        $uids = [];
+        while (($response = fgets($socket)) != ".\r\n") {
+            if (preg_match('/^(\d+)\s+(.+)/', $response, $matches)) {
+                $uids[$matches[1]] = $matches[2]; // 邮件编号 => 唯一标识符
+            }
+        }
+        $processedUids = Storage::fast($cache_name) ?: [];
+        foreach ($uids as $emailNum => $uid) {
+            // 检查是否是新邮件
+            if (in_array($uid, $processedUids)) {
+                // 跳过已处理的邮件
+                continue;
+            }
+            $this->debug($uid);
+            // 获取邮件内容
+            fputs($socket, "RETR $emailNum\r\n");
+            $emailContent = '';
+            while (($line = fgets($socket)) !== false) {
+                if (trim($line) == ".") break;
+                $emailContent .= $line;
+            }
+            $data = $this->getData($emailContent);
+            if ($data) {
+                $filteredEmail = [
+                    'subject' => $data->subject,
+                    'from' => $data->from,
+                    'body' => $data->body,
+                    'uid' => $uid
+                ];
+                // $this->debug($filteredEmail);
+                $callback($filteredEmail);
+                $processedUids[] = $uid;
+            } else {
+                continue;
+            }
+        }
+        Storage::fast($cache_name, $processedUids);
+        // 关闭连接
+        fputs($socket, "QUIT\r\n");
+    }
+
+    // ######################################  POP END  ######################################
+
+
 }
