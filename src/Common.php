@@ -322,16 +322,21 @@ class Common
                 break;
         }
 
-        //设置header头
-        if (!empty($header)) {
-            $header_list = [];
-            foreach ($header as $k => $v) {
-                $header_list[] = sprintf("%s:%s", $k, $v);
-            }
-            // 设置自定义的 HTTP 请求头。
-            // CURLOPT_HTTPHEADER 可以更精细地控制头字段。CURLOPT_USERAGENT 设置的值会被 CURLOPT_HTTPHEADER 中设置的相同头字段的值覆盖
-            curl_setopt($curl, CURLOPT_HTTPHEADER, $header_list);
+        // 默认伪装成baidu爬虫
+        if (empty($header)) {
+            $header = [
+                "User-Agent" => 'Mozilla/5.0 (compatible; Baiduspider/2.0; +http://www.baidu.com/search/spider.html)'
+            ];
         }
+
+        //设置header头
+        $header_list = [];
+        foreach ($header as $k => $v) {
+            $header_list[] = sprintf("%s:%s", $k, $v);
+        }
+        // 设置自定义的 HTTP 请求头。
+        // CURLOPT_HTTPHEADER 可以更精细地控制头字段。CURLOPT_USERAGENT 设置的值会被 CURLOPT_HTTPHEADER 中设置的相同头字段的值覆盖
+        curl_setopt($curl, CURLOPT_HTTPHEADER, $header_list);
 
         //设置cookie。适用于需要维护会话或登录状态的场景
         if (!empty($cookie)) {
