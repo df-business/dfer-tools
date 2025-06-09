@@ -4,8 +4,11 @@
  * +----------------------------------------------------------------------
  * | 电子邮件类
  * | 支持：企业邮箱（阿里云、qq）。不支持：个人邮箱。
- * |    aliyun https://help.aliyun.com/document_detail/36576.html
- * |    qq https://open.work.weixin.qq.com/help2/pc/19886?person_id=1
+ * |    aliyun
+ * |        https://help.aliyun.com/document_detail/36576.html
+ * |    qq
+ * |        https://open.work.weixin.qq.com/help2/pc/19886?person_id=1
+ * |        https://exmail.qq.com/login
  * +----------------------------------------------------------------------
  *                                            ...     .............
  *                                          ..   .:!o&*&&&&&ooooo&; .
@@ -105,7 +108,7 @@ class Mail extends Common
     /**
      * 重写父级方法
      */
-    public function debug()
+    public function debugMail()
     {
         if ($this->debug)
             parent::debugMail(func_get_args());
@@ -153,7 +156,7 @@ class Mail extends Common
      **/
     public function getData($response)
     {
-        // $this->debug($response);
+        $this->debugMail($response);
         $subject = '';
         if (preg_match('/Subject: (.+?)(?=\n\S+:|$)/s', $response, $matches)) {
             $subject = trim($matches[1]);
@@ -199,6 +202,15 @@ class Mail extends Common
                 $base64_cleaned = preg_replace('/\s+/', '', $base64_content);
                 // 解码 base64
                 $decoded_content = base64_decode($base64_cleaned);
+
+                // 尝试检测编码
+                $encoding = mb_detect_encoding($decoded_content, ['UTF-8', 'GBK', 'GB2312', 'BIG5'], true);
+
+                // 如果检测不到或不是UTF-8，尝试转换为UTF-8
+                if ($encoding !== 'UTF-8') {
+                    $decoded_content = mb_convert_encoding($decoded_content, 'UTF-8', $encoding ?: 'GBK');
+                }
+
                 $body_list[] = $decoded_content;
             }
         } else if (preg_match('/X-QQ-RECHKSPAM: 0\s*\n\s*\n([\s\S]+?)\s*\)/', $response, $matches)) {
@@ -223,6 +235,7 @@ class Mail extends Common
             }
         }
 
+        // var_dump($body_list);
         $body = $body_list[0] ?? '';
         // 检查筛选条件
         $keywordMatch = false;
@@ -239,7 +252,7 @@ class Mail extends Common
                 break;
             }
         }
-        // $this->debug(compact('subject','from','body_list'));
+        // $this->debugMail(compact('subject','from','body_list'));
         if ($keywordMatch && $senderMatch) {
             $result = (object)compact('subject', 'from', 'body');
             return $result;
@@ -597,7 +610,7 @@ class Mail extends Common
             // 连接邮箱的IMAP服务
             $socket = fsockopen("ssl://{$this->imap_host}", $this->imap_port, $errno, $errstr, 30);
             if (!$socket) {
-                $this->debug("无法连接IMAP服务器", $errno, $errstr);
+                $this->debugMail("无法连接IMAP服务器", $errno, $errstr);
                 die();
             }
             // 设置 socket 超时
@@ -608,9 +621,9 @@ class Mail extends Common
             $tag = $this->getTag();
             fwrite($socket, "{$tag} LOGIN {$this->account} {$this->password}\r\n");
             $response = fgets($socket);
-            $this->debug($response);
+            $this->debugMail($response);
             if (strpos($response, "{$tag} OK") === false) {
-                $this->debug("登录失败");
+                $this->debugMail("登录失败");
                 die();
             }
             // 选择收件箱
@@ -625,15 +638,15 @@ class Mail extends Common
             $response = fgets($socket);
 
             if (trim($response) !== '+ idling') {
-                $this->debug("无法进入IDLE模式");
+                $this->debugMail("无法进入IDLE模式");
                 die();
             }
             // 监听服务器通知
             while ($line = fgets($socket)) {
-                $this->debug('读取邮件数据');
+                $this->debugMail('读取邮件数据');
                 if (strpos($line, 'EXISTS') !== false) {
                     // 有新邮件到达
-                    $this->debug('新邮件到达');
+                    $this->debugMail('新邮件到达');
                     // 退出IDLE模式获取邮件。必须先用 DONE 退出 IDLE 模式 才能执行其他命令（如 SEARCH、FETCH），这是 IMAP 协议的设计规范
                     fwrite($socket, "DONE\r\n");
                     // 获取未读邮件
@@ -645,7 +658,7 @@ class Mail extends Common
                         if (strpos($line, "{$tag} OK") !== false) break;
                     }
                     // 处理新邮件...
-                    $this->debug($response);
+                    $this->debugMail($response);
 
                     // 邮件ID列表
                     $unseen_ids = [];
@@ -654,33 +667,35 @@ class Mail extends Common
                         $unseen_ids = explode(' ', trim($matches[1]));
                     }
 
-                    $unseen_id = $unseen_ids[0];
+                    if (count($unseen_ids) > 0) {
+                        $unseen_id = $unseen_ids[0];
 
-                    $tag = $this->getTag();
-                    fwrite($socket, "{$tag} FETCH {$unseen_id} BODY.PEEK[]\r\n");
-                    $response = "";
-                    while ($line = fgets($socket)) {
-                        $response .= $line;
-                        if (strpos($line, "{$tag} OK") !== false) break;
-                    }
+                        $tag = $this->getTag();
+                        fwrite($socket, "{$tag} FETCH {$unseen_id} BODY.PEEK[]\r\n");
+                        $response = "";
+                        while ($line = fgets($socket)) {
+                            $response .= $line;
+                            if (strpos($line, "{$tag} OK") !== false) break;
+                        }
 
-                    $emailContent = $response;
+                        $emailContent = $response;
 
-                    // 标记邮件为已读
-                    $tag = $this->getTag();
-                    fwrite($socket, "{$tag} STORE {$unseen_id} +FLAGS (\\Seen)\r\n");
-                    $response = fgets($socket);
+                        // 标记邮件为已读
+                        $tag = $this->getTag();
+                        fwrite($socket, "{$tag} STORE {$unseen_id} +FLAGS (\\Seen)\r\n");
+                        $response = fgets($socket);
 
-                    $data = $this->getData($emailContent);
-                    if ($data) {
-                        $filteredEmail = [
-                            'subject' => $data->subject,
-                            'from' => $data->from,
-                            'body' => $data->body,
-                            'uid' => $unseen_id
-                        ];
-                        // $this->debug($filteredEmail);
-                        $callback($filteredEmail);
+                        $data = $this->getData($emailContent);
+                        if ($data) {
+                            $filteredEmail = [
+                                'subject' => $data->subject,
+                                'from' => $data->from,
+                                'body' => $data->body,
+                                'uid' => $unseen_id
+                            ];
+                            // $this->debugMail($filteredEmail);
+                            $callback($filteredEmail);
+                        }
                     }
 
                     break;
@@ -688,7 +703,7 @@ class Mail extends Common
             }
             fclose($socket);
             $this->tag = 0;
-            $this->debug("重置");
+            $this->debugMail("重置");
         }
     }
 
@@ -744,7 +759,7 @@ class Mail extends Common
                 // 跳过已处理的邮件
                 continue;
             }
-            $this->debug($uid);
+            $this->debugMail($uid);
             // 获取邮件内容
             fputs($socket, "RETR $emailNum\r\n");
             $emailContent = '';
@@ -760,7 +775,7 @@ class Mail extends Common
                     'body' => $data->body,
                     'uid' => $uid
                 ];
-                // $this->debug($filteredEmail);
+                // $this->debugMail($filteredEmail);
                 $callback($filteredEmail);
                 $processedUids[] = $uid;
             } else {
