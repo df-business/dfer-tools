@@ -162,7 +162,7 @@ class Mail extends Common
             $subject = trim($matches[1]);
 
             // 提取所有编码部分（兼容 utf-8、gb18030、gbk 等）
-            if (preg_match_all('/=\?([a-zA-Z0-9-]+)\?B\?([^?]+)\?=/', $subject, $matches)) {
+            if (preg_match_all('/=\?([a-zA-Z0-9-]+)\?B\?([^?]+)\?=/i', $subject, $matches)) {
                 $charsets = $matches[1]; // 编码类型（如 utf-8、gb18030）
                 $base64_parts = $matches[2]; // Base64 部分
                 $decoded_subject = '';
@@ -187,15 +187,8 @@ class Mail extends Common
             $from = trim($matches[1]);
         }
         $body_list = [];
-        if (preg_match('/BODY\[1\] \{\d+\}\s*([\s\S]+?)\s*\)/', $response, $matches)) {
-            // 处理纯文本
-            $base64_content = $matches[1];
-            // 去除换行符
-            $base64_cleaned = preg_replace('/\s+/', '', $base64_content);
-            // 解码
-            $decoded_content = base64_decode($base64_cleaned);
-            $body_list[] = $decoded_content;
-        } else if (preg_match_all('/Content-Transfer-Encoding: base64\s*\n\s*\n([\s\S]+?)\n------=/', $response, $matches)) {
+        if (preg_match_all('/Content-Transfer-Encoding: base64\s*\n\s*\n([\s\S]+?)\n------=/', $response, $matches)) {
+            // 匹配 Content-Transfer-Encoding: base64 后，经过空行，到 \n------= 前的 Base64 内容
             // 处理`纯文本+html`
             foreach ($matches[1] as $base64_content) {
                 // 去除空白字符
@@ -213,6 +206,10 @@ class Mail extends Common
 
                 $body_list[] = $decoded_content;
             }
+        } else if (preg_match_all('/Content-Transfer-Encoding:\s*([^\n]+)\s*\n\s*\n([\s\S]+?)\n-/', $response, $matches)) {
+            // 匹配 `Content-Transfer-Encoding: {1}（如 8bit、base64）` 后，经过两个换行符（可能含空白字符），到 `\n-` 的{2}
+            $body_list[] = $matches[2];
+            // var_dump($matches);die;
         } else if (preg_match('/X-QQ-RECHKSPAM: 0\s*\n\s*\n([\s\S]+?)\s*\)/', $response, $matches)) {
             // 处理这种格式的正文
             $text_content = $matches[1];
@@ -233,6 +230,14 @@ class Mail extends Common
             } else {
                 $body_list[] = $content; // 如果不是 Base64，直接存储
             }
+        } else if (preg_match('/BODY\[1\] \{\d+\}\s*([\s\S]+?)\s*\)/', $response, $matches)) {
+            // 处理纯文本
+            $base64_content = $matches[1];
+            // 去除换行符
+            $base64_cleaned = preg_replace('/\s+/', '', $base64_content);
+            // 解码
+            $decoded_content = base64_decode($base64_cleaned);
+            $body_list[] = $decoded_content;
         }
 
         // var_dump($body_list);
@@ -252,8 +257,9 @@ class Mail extends Common
                 break;
             }
         }
-        // $this->debugMail(compact('subject','from','body_list'));
-        if ($keywordMatch && $senderMatch) {
+        $this->debugMail(compact('keywordMatch', 'senderMatch', 'subject', 'from'));
+        // 发件人或者主题符合要求
+        if ($keywordMatch || $senderMatch) {
             $result = (object)compact('subject', 'from', 'body');
             return $result;
         }
