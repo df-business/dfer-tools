@@ -208,8 +208,10 @@ class Mail extends Common
             }
         } else if (preg_match_all('/Content-Transfer-Encoding:\s*([^\n]+)\s*\n\s*\n([\s\S]+?)\n-/', $response, $matches)) {
             // 匹配 `Content-Transfer-Encoding: {1}（如 8bit、base64）` 后，经过两个换行符（可能含空白字符），到 `\n-` 的{2}
-            $body_list[] = $matches[2];
-            // var_dump($matches);die;
+            foreach ($matches[2] as $content) {
+                $body_list[] = $content;
+            }
+            // var_dump($body_list);die;
         } else if (preg_match('/X-QQ-RECHKSPAM: 0\s*\n\s*\n([\s\S]+?)\s*\)/', $response, $matches)) {
             // 处理这种格式的正文
             $text_content = $matches[1];
@@ -240,7 +242,7 @@ class Mail extends Common
             $body_list[] = $decoded_content;
         }
 
-        // var_dump($body_list);
+        // var_dump($body_list);die;
         $body = $body_list[0] ?? '';
         // 检查筛选条件
         $keywordMatch = false;
