@@ -170,12 +170,10 @@ class Excel
     /**
      * 设置标签标题
      * @param {Object} string $sheetTitle    sheet栏目标题
-     * @param {Object} bool $hasContentTitle    是否开启内容标题
      */
-    public function setTitle(string $sheetTitle, bool $hasContentTitle = false)
+    public function setTitle(string $sheetTitle)
     {
         $index = $this->sheetIndex;
-        $this->hasContentTitle = $hasContentTitle;
 
         if ($index > 0) {
             self::spreadsheetInstance()->createSheet($index);
@@ -184,7 +182,6 @@ class Excel
         }
         $sheet = self::spreadsheetInstance()->getActiveSheet();
         $sheet->setTitle($sheetTitle);
-        $this->setTableTitle($sheetTitle);
 
         $this->sheetIndex++;
 
@@ -196,15 +193,17 @@ class Excel
      * @param {Object} string $tableTitle    标题
      * @param {Object} int $height    行高
      */
-    public function setTableTitle(string $tableTitle, int $height = 20)
+    public function setTableTitle(string $tableTitle = "", int $height = 35)
     {
-        if ($this->hasContentTitle) {
-            $sheet = self::spreadsheetInstance()->getActiveSheet();
-            $sheet->setCellValue('A1', $tableTitle);
-            // 设置行样式
-            $sheet->getRowDimension($this->currentRow)->setRowHeight($height);
-            $this->currentRow += 1;
+        $this->hasContentTitle = true;
+        $sheet = self::spreadsheetInstance()->getActiveSheet();
+        if (empty($tableTitle)) {
+            $tableTitle = $sheet->getTitle();
         }
+        $sheet->setCellValue('A1', $tableTitle);
+        // 设置行样式
+        $sheet->getRowDimension($this->currentRow)->setRowHeight($height);
+        $this->currentRow += 1;
         return $this;
     }
 
