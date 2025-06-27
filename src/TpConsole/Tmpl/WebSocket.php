@@ -70,33 +70,29 @@ class WebSocket extends WebSocketCommand
     public function init()
     {
         global $argv;
-        try {
-            $port = $this->input->getOption('port');
-            // 应用层通信协议和侦听地址
-            $this->host = "websocket://0.0.0.0:{$port}";
-            $this->count = $this->input->getOption('count');
-            $argv = [];
-            $action = $this->input->getArgument('action');
-            $mode = $this->input->getOption('mode');
-            array_unshift($argv, 'think', $action);
-            switch ($mode) {
-                case 'd':
-                    // 后台运行，关闭终端不受影响。eg:php think dfer:test -m d
-                    $argv[] = '-d';
-                    $this->debug = false;
-                    break;
-                case 'g':
-                    // 优雅地停止。eg:php think dfer:test stop -m g
-                    $argv[] = '-g';
-                    break;
-                default:
-                    break;
-            }
-            $this->logInit();
-            $this->service();
-        } catch (ErrorException $e) {
-            $this->tpPrint(sprintf("\n%s\n\n%s %s", $e->getMessage(), $e->getFile(), $e->getLine()));
+        $port = $this->input->getOption('port');
+        // 应用层通信协议和侦听地址
+        $this->host = "websocket://0.0.0.0:{$port}";
+        $this->count = $this->input->getOption('count');
+        $argv = [];
+        $action = $this->input->getArgument('action');
+        $mode = $this->input->getOption('mode');
+        array_unshift($argv, 'think', $action);
+        switch ($mode) {
+            case 'd':
+                // 后台运行，关闭终端不受影响。eg:php think dfer:test -m d
+                $argv[] = '-d';
+                $this->debug = false;
+                break;
+            case 'g':
+                // 优雅地停止。eg:php think dfer:test stop -m g
+                $argv[] = '-g';
+                break;
+            default:
+                break;
         }
+        $this->logInit();
+        $this->service();
     }
 
     public function service()
