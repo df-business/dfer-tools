@@ -44,16 +44,14 @@ class Tp8 extends Common
     private $debug = false;
     // 数据库模型
     private $db_model = null;
-    // 日志文件路径
-    private $log_file = "";
+    // 项目根路径
+    private $root = "";
 
     public function __construct()
     {
         // 取消 PHP 最大执行时间限制
         set_time_limit(0);
-        $root = $this->getRootPath();
-        $this->log_file = $this->str("{root}/data/logs/{dir}/{file}.tp8.log", ["root" => $root, "dir" => date('Ym'), "file" => date('d')]);
-        ini_set('error_log', $this->log_file);
+        $this->root = $this->getRootPath();
     }
 
     /**
@@ -91,13 +89,13 @@ class Tp8 extends Common
                 $retryCount++;
                 $lastError = $e;
 
-                // 记录错误
-                $this->logDatabaseError($e, $retryCount, $maxRetries);
-
                 if ($this->debug)
                     echo "重试 {$retryCount}/{$maxRetries}" . PHP_EOL;
-                // 以微秒为单位进行延迟。退避策略：1000ms, 2000ms ...
-                usleep(1000 * 1000 * $retryCount);
+                // 以微秒为单位进行延迟。退避策略：9s, 18s ... 72s
+                usleep(9 * 1000 * 1000 * $retryCount);
+
+                // 记录错误
+                $this->logDatabaseError($e, $retryCount, $maxRetries);
             }
         }
 
@@ -115,8 +113,11 @@ class Tp8 extends Common
      * @param {Object} int $retryCount
      * @param {Object} int $maxRetries
      */
-    protected function logDatabaseError(PDOException $e, int $retryCount, int $maxRetries)
+    protected function logDatabaseError(PDOException $e, int $retryCount = 0, int $maxRetries = 9)
     {
+
+        ini_set('error_log', $this->str("{root}/data/logs/{dir}/{file}.tp8.log", ["root" => $this->root, "dir" => date('Ym'), "file" => date('d')]));
+
         // 记录详细错误信息
         $e = sprintf(
             "数据库操作失败 (尝试 %d/%d)\nSQL: %s\n详情:%s",
