@@ -1866,18 +1866,19 @@ class Common
 
     /**
      * 换行符转化
+     * 文本换行符与html格式换行互转
      * @param {Object} $str    字符串
-     * @param {Object} $type   类型
+     * @param {Object} $type   类型。NL_CRLF2BR 文本转html换行 NL_CRLF2P 文本转html段落 NL_BR2CRLF html转文本换行
      */
     public function newlineConversion($str, $type = Constants::NL_CRLF2BR)
     {
         switch ($type) {
             case Constants::NL_CRLF2BR:
-                // 文件换行符转html换行符
+                // 文本换行符转html换行符
                 $ret = str_replace(PHP_EOL, "<br />", $str);
                 break;
             case Constants::NL_CRLF2P:
-                // 换行符转段落
+                // 文本换行符转html段落（p标签）
                 $list = explode(PHP_EOL, $str);
                 $p_list = [];
                 foreach ($list as $key => $value) {
@@ -1888,7 +1889,7 @@ class Common
                 $ret = implode('', $p_list);
                 break;
             case Constants::NL_BR2CRLF:
-                // html换行符转文件换行符
+                // html换行符转文本换行符
                 // 匹配任何形式的br标签，不区分大小写以及标签中的空格
                 $ret = preg_replace('/<br\\s*?\/??>/i', PHP_EOL, $str);
                 break;
