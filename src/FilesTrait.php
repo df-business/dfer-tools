@@ -54,7 +54,7 @@ trait FilesTrait
         }
     }
 
-    // ********************** 获取目录所有文件 START **********************
+    // *************** ******* 获取目录所有文件 START **********************
 
     // 扫描结果
     static $scan_result = [];
@@ -181,8 +181,6 @@ trait FilesTrait
         }
         return $latestFile;
     }
-
-
 
     // **********************  获取目录所有文件 END  **********************
 
@@ -317,8 +315,6 @@ trait FilesTrait
         }
         return true;
     }
-
-
 
     /**
      * 获取文件后缀
@@ -590,8 +586,6 @@ trait FilesTrait
         return $list;
     }
 
-
-
     /**
      * 输出调试信息到日志文件
      * @param Object 自动获取所有参数
@@ -800,4 +794,17 @@ trait FilesTrait
 
         return $result;
     }
+
+    /**
+     * 获取当前插件版本号
+     * @param {Object} $var 变量
+     **/
+    public function getVersion($var = null)
+    {
+        $root = dirname(__DIR__, 1);
+        $file_src = $root.DIRECTORY_SEPARATOR."version";
+        $str = $this->readFile($file_src);
+        return $str;
+    }
+
 }
