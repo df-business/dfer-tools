@@ -2417,12 +2417,13 @@ class Common
      * 将数组中所有的“null”或空值转化为null
      * @param {Object} $data
      */
-    public function convertNullStringToNull($data) {
+    public function convertNullStringToNull($data)
+    {
         if (is_array($data)) {
             return  array_map([$this, 'convertNullStringToNull'], $data);
         }
 
-        if ($data=== 'null'||empty($data)) {
+        if ($data === 'null' || empty($data)) {
             return null;
         }
 
@@ -2432,7 +2433,8 @@ class Common
     /**
      * 判断数组是否都是数字
      */
-    public function isAllNumeric(array $array): bool {
+    public function isAllNumeric(array $array): bool
+    {
         return !empty($array) && count(array_filter($array, 'is_numeric')) === count($array);
     }
 
@@ -2457,7 +2459,7 @@ class Common
         // 清除错误缓存
         libxml_clear_errors();
         $images = $dom->getElementsByTagName('img');
-       foreach ($images as $img) {
+        foreach ($images as $img) {
             $src = $img->getAttribute('src');
             // 检查是否已经是绝对URL
             if (!preg_match('/^https?:\/\//', $src)) {

@@ -69,7 +69,7 @@ class AliOss extends Common
 
     public function __construct($config = [])
     {
-        if($config)
+        if ($config)
             $this->setConfig($config);
     }
 
