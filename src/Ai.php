@@ -60,7 +60,15 @@ class Ai extends Common
 
     protected static $instances = [];
 
+    ////////////////////////////////////////////////// 初始化 START //////////////////////////////////////////////////
+
     public function __construct($config = [])
+    {
+        if($config)
+            $this->setConfig($config);
+    }
+
+    public function setConfig($config = [])
     {
         $this->debug = $config['debug'] ?? $this->debug;
 
@@ -78,8 +86,10 @@ class Ai extends Common
 
         $this->timeout = $config['timeout'] ?? $this->timeout;
 
-        // var_dump($config);
+        return $this;
     }
+
+    //////////////////////////////////////////////////  初始化 END  //////////////////////////////////////////////////
 
     // ********************** 智能调用 START **********************
 

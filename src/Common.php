@@ -2412,4 +2412,73 @@ class Common
         // 将数字转换为对应的字母，A的ASCII码值为65
         return chr(64 + $number);
     }
+
+    /**
+     * 将数组中所有的“null”或空值转化为null
+     * @param {Object} $data
+     */
+    public function convertNullStringToNull($data) {
+        if (is_array($data)) {
+            return  array_map([$this, 'convertNullStringToNull'], $data);
+        }
+
+        if ($data=== 'null'||empty($data)) {
+            return null;
+        }
+
+        return $data;
+    }
+
+    /**
+     * 判断数组是否都是数字
+     */
+    public function isAllNumeric(array $array): bool {
+        return !empty($array) && count(array_filter($array, 'is_numeric')) === count($array);
+    }
+
+    /**
+     * 设置html里图片的域名
+     * @param {Object} $htmlContent html代码
+     * @param {Object} $domain  域名
+     */
+    public function setHtmlImgDomain($htmlContent, $domain)
+    {
+        if (empty($htmlContent)) {
+            return $htmlContent;
+        }
+        // 捕获html的格式错误
+        libxml_use_internal_errors(true);
+        // 创建一个 DOMDocument 对象
+        $dom = new DOMDocument();
+        // 加载 HTML 内容。支持中文显示
+        $dom->loadHTML(mb_convert_encoding($htmlContent, 'HTML-ENTITIES', 'UTF-8'));
+        // 获取所有错误
+        $errors = libxml_get_errors();
+        // 清除错误缓存
+        libxml_clear_errors();
+        $images = $dom->getElementsByTagName('img');
+       foreach ($images as $img) {
+            $src = $img->getAttribute('src');
+            // 检查是否已经是绝对URL
+            if (!preg_match('/^https?:\/\//', $src)) {
+                // 如果src以斜杠开头，直接拼接域名
+                if (strpos($src, '/') === 0) {
+                    $newSrc = $domain . $src;
+                } else {
+                    $newSrc = $domain . '/' . $src;
+                }
+                $img->setAttribute('src', $newSrc);
+            }
+        }
+        // 获取 body 元素
+        $body = $dom->getElementsByTagName('body')->item(0);
+        // 获取body元素内的所有子节点的HTML内容
+        $bodyHtml = [];
+        foreach ($body->childNodes as $childNode) {
+            $bodyHtml[] = $dom->saveHTML($childNode);
+        }
+        $newHtml = implode("", $bodyHtml);
+        // 输出修改后的 HTML
+        return $newHtml;
+    }
 }

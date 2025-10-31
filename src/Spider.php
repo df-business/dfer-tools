@@ -44,9 +44,7 @@ use Dfer\Tools\Constants;
 
 class Spider extends Common
 {
-    /**
-     * 自动初始化
-     */
+
     public function __construct()
     {
     }

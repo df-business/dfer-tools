@@ -47,22 +47,27 @@ class DingTalk extends Common
     protected $corp_id = '';
     protected $sso_secret = '';
 
-    /**
-     * 自动初始化
-     *
-     *    Config::get('dingding.appkey', '')
-     * @return mixed
-     **/
-    public function __construct($appkey, $appsecret, $agent_id, $user_id, $corp_id, $sso_secret)
+    ////////////////////////////////////////////////// 初始化 START //////////////////////////////////////////////////
+
+    public function __construct($config = [])
     {
-        $this->appkey = $appkey;
-        $this->appsecret = $appsecret;
-        $this->agent_id = $agent_id;
-        $this->user_id = $user_id;
-        $this->corp_id = $corp_id;
-        $this->sso_secret = $sso_secret;
-        $this->token = $this->getToken();
+        if($config)
+            $this->setConfig($config);
     }
+
+    public function setConfig($config = [])
+    {
+        $this->appkey = $config['appkey'] ?? $this->appkey;
+        $this->appsecret = $config['appsecret'] ?? $this->appsecret;
+        $this->agent_id = $config['agent_id'] ?? $this->agent_id;
+        $this->user_id = $config['user_id'] ?? $this->user_id;
+        $this->corp_id = $config['corp_id'] ?? $this->corp_id;
+        $this->sso_secret = $config['sso_secret'] ?? $this->sso_secret;
+        $this->token = $this->getToken();
+        return $this;
+    }
+
+    //////////////////////////////////////////////////  初始化 END  //////////////////////////////////////////////////
 
     // ********************** Android接口 START **********************
 

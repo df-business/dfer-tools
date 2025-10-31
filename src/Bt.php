@@ -136,16 +136,20 @@ class Bt extends Common
         // **********************  插件管理 END  **********************
     );
 
+    ////////////////////////////////////////////////// 初始化 START //////////////////////////////////////////////////
     public function __construct($config = [])
     {
-        $this->setConfig($config);
+        if($config)
+            $this->setConfig($config);
     }
 
     public function setConfig($config = [])
     {
         $this->panel_host = $config['panel_host'] ?? $this->panel_host;
         $this->secret_key = $config['secret_key'] ?? $this->secret_key;
+        return $this;
     }
+    //////////////////////////////////////////////////  初始化 END  //////////////////////////////////////////////////
 
     ////////////////////////////////////////////////// 系统管理 START //////////////////////////////////////////////////
     /**

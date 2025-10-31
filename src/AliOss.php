@@ -65,7 +65,15 @@ class AliOss extends Common
     // 回调返回的参数
     private $post_arr = [];
 
-    public function __construct($config = [], $needOssClient = true)
+    ////////////////////////////////////////////////// 初始化 START //////////////////////////////////////////////////
+
+    public function __construct($config = [])
+    {
+        if($config)
+            $this->setConfig($config);
+    }
+
+    public function setConfig($config = [])
     {
         $this->access_id = $config['access_id'] ?? $this->access_id;
         $this->access_key = $config['access_key'] ?? $this->access_key;
@@ -80,10 +88,15 @@ class AliOss extends Common
 
         $this->debug = $config['debug'] ?? $this->debug;
 
+        $needOssClient = $config['needOssClient'] ?? true;
+
         if ($needOssClient) {
             $this->ossClientInit();
         }
+
+        return $this;
     }
+    //////////////////////////////////////////////////  初始化 END  //////////////////////////////////////////////////
 
     ////////////////////////////////////////////////// 核心方法 START //////////////////////////////////////////////////
 

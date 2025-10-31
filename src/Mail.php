@@ -75,17 +75,22 @@ class Mail extends Common
     // 超时时间（秒）
     private $time_out = 30;
 
-    public function __construct()
+    ////////////////////////////////////////////////// 初始化 START //////////////////////////////////////////////////
+
+    public function __construct($config = [])
     {
         $root = $this->getRootPath();
         $this->log_file = $this->str("{root}/data/logs/{dir}/{file}.mail.log", ["root" => $root, "dir" => date('Ym'), "file" => date('d')]);
+
+        if($config)
+            $this->setConfig($config);
     }
 
     /**
      * 设置默认参数
      * @param Array $config
      */
-    public function setDefaultConfig($config)
+    public function setConfig($config)
     {
         $this->smtp_host = $config['smtp_host'] ?? $this->smtp_host;
         $this->smtp_port = $config['smtp_port'] ?? $this->smtp_port;
@@ -104,6 +109,8 @@ class Mail extends Common
         $this->auth = $config['auth'] ?? $this->auth;
         return $this;
     }
+
+    //////////////////////////////////////////////////  初始化 END  //////////////////////////////////////////////////
 
     /**
      * 重写父级方法
