@@ -2414,7 +2414,8 @@ class Common
     }
 
     /**
-     * 将数组中所有的“null”或空值转化为null
+     * 将数组中所有的“null”字符串或空字符串转化为null
+     * 用来兼容vue
      * @param {Object} $data
      */
     public function convertNullStringToNull($data)
@@ -2423,7 +2424,7 @@ class Common
             return  array_map([$this, 'convertNullStringToNull'], $data);
         }
 
-        if ($data === 'null' || empty($data)) {
+        if ($data === 'null' || $this->trimAll($data)=="") {
             return null;
         }
 
