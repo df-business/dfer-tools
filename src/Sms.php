@@ -48,6 +48,7 @@ namespace Dfer\Tools;
 use Exception, Error, Closure;
 use Dfer\Tools\Constants;
 use Overtrue\EasySms\EasySms;
+use Overtrue\EasySms\Exceptions\NoGatewayAvailableException;
 
 class Sms extends Common
 {
@@ -145,19 +146,28 @@ class Sms extends Common
      */
     public function send($mobile, $data, $template_key, $gateways = [])
     {
-        $template_key_list = explode('.', $template_key);
-        if (count($template_key_list) < 2) {
-            $template_key_list[1] = $template_key_list[0];
-            $template_key_list[0] = null;
+        $result = false;
+        try {
+            $template_key_list = explode('.', $template_key);
+            if (count($template_key_list) < 2) {
+                $template_key_list[1] = $template_key_list[0];
+                $template_key_list[0] = null;
+            }
+            $gateway_name = $template_key_list[0] ?? 'aliyun';
+            $template_name = $template_key_list[1] ?? 'login';
+            $params = [
+                'template' => $this->config['gateways'][$gateway_name]['templates'][$template_name],
+                'data' => $data
+            ];
+            $result = $this->smsInstance->send($mobile, $params, $gateways);
+            $this->debugSms($result);
+        } catch (NoGatewayAvailableException $exception) {
+            $err_msg = $exception->getExceptions();
+            $this->debugSms($mobile, $err_msg);
+        } catch (Exception $exception) {
+            $err_msg = $exception->getMessage();
+            $this->debugSms($mobile, $err_msg);
         }
-        $gateway_name = $template_key_list[0] ?? 'aliyun';
-        $template_name = $template_key_list[1] ?? 'login';
-        $params = [
-            'template' => $this->config['gateways'][$gateway_name]['templates'][$template_name],
-            'data' => $data
-        ];
-        $result = $this->smsInstance->send($mobile, $params, $gateways);
-        $this->debugSms($result);
         return $result;
     }
 
