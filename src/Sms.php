@@ -160,13 +160,13 @@ class Sms extends Common
                 'data' => $data
             ];
             $result = $this->smsInstance->send($mobile, $params, $gateways);
-            $this->debugSms($result);
+            $this->debugSms($mobile, $data, $template_key, $gateways, $result);
         } catch (NoGatewayAvailableException $exception) {
             $err_msg = $exception->getExceptions();
-            $this->debugSms($mobile, $err_msg);
+            $this->debugSms($mobile, $data, $template_key, $gateways, $err_msg);
         } catch (Exception $exception) {
             $err_msg = $exception->getMessage();
-            $this->debugSms($mobile, $err_msg);
+            $this->debugSms($mobile, $data, $template_key, $gateways, $err_msg);
         }
         return $result;
     }
