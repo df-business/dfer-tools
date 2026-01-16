@@ -53,15 +53,10 @@ use Exception, stdClass, Redis;
 class RedisClient
 {
     private $redis;
-    private $host;
-    private $port;
-    private $password;
-    private $database;
-    private $prefix;
     private $isConnected = false;
     private $transaction = null;
     // 默认配置
-    private $defaultConfig = [
+    private $config = [
         'host' => '127.0.0.1',
         'port' => 6379,
         'password' => null,
@@ -79,7 +74,7 @@ class RedisClient
      */
     public function __construct(array $config = [])
     {
-        if($config)
+        if ($config)
             $this->setConfig($config);
     }
 
@@ -91,27 +86,24 @@ class RedisClient
     {
         // var_dump($config);
         // 合并配置
-        $config = array_merge($this->defaultConfig, $config);
+        $this->config = array_merge($this->config, $config);
+        return $this;
+    }
 
-        // 检查Redis扩展是否安装
-        if (!extension_loaded('redis')) {
-            throw new Exception('Redis扩展未安装');
+    private function redis()
+    {
+        if (is_null($this->redis)) {
+            // 检查Redis扩展是否安装
+            if (!extension_loaded('redis')) {
+                throw new Exception('Redis扩展未安装');
+            }
+            // 创建Redis实例
+            $this->redis = new Redis();
+            // 连接Redis
+            $this->connect($this->config);
         }
 
-        // 创建Redis实例
-        $this->redis = new Redis();
-
-        // 保存配置
-        $this->host = $config['host'];
-        $this->port = $config['port'];
-        $this->password = $config['password'];
-        $this->database = $config['database'];
-        $this->prefix = $config['prefix'];
-
-        // 连接Redis
-        $this->connect($config);
-
-        return $this;
+        return $this->redis;
     }
 
     /**
@@ -182,7 +174,7 @@ class RedisClient
      */
     public function getRedis(): Redis
     {
-        return $this->redis;
+        return $this->redis();
     }
 
     /**
@@ -192,7 +184,7 @@ class RedisClient
      */
     private function getKey(string $key): string
     {
-        return $this->prefix . $key;
+        return $this->config['prefix'] . $key;
     }
 
     /**
@@ -202,7 +194,7 @@ class RedisClient
     public function ping(): bool
     {
         try {
-            $response = $this->redis->ping();
+            $response = $this->redis()->ping();
             return $response === true || $response === '+PONG' || $response === 'PONG';
         } catch (Exception $e) {
             $this->isConnected = false;
@@ -217,7 +209,7 @@ class RedisClient
      */
     public function multi(int $mode = Redis::MULTI): self
     {
-        $this->transaction = $this->redis->multi($mode);
+        $this->transaction = $this->redis()->multi($mode);
         return $this;
     }
 
@@ -277,9 +269,9 @@ class RedisClient
         }
 
         if ($expire > 0) {
-            return $this->redis->setex($key, $expire, $value);
+            return $this->redis()->setex($key, $expire, $value);
         } else {
-            return $this->redis->set($key, $value);
+            return $this->redis()->set($key, $value);
         }
     }
 
@@ -292,7 +284,7 @@ class RedisClient
     public function get(string $key, bool $assoc = false)
     {
         $key = $this->getKey($key);
-        $value = $this->redis->get($key);
+        $value = $this->redis()->get($key);
 
         if ($value === false) {
             return null;
@@ -323,7 +315,7 @@ class RedisClient
             return $this->getKey($key);
         }, $keys);
 
-        return $this->redis->del($keys);
+        return $this->redis()->del($keys);
     }
 
     /**
@@ -334,7 +326,7 @@ class RedisClient
     public function exists(string $key): bool
     {
         $key = $this->getKey($key);
-        return $this->redis->exists($key);
+        return $this->redis()->exists($key);
     }
 
     /**
@@ -346,7 +338,7 @@ class RedisClient
     public function expire(string $key, int $seconds)
     {
         $key = $this->getKey($key);
-        return $this->redis->expire($key, $seconds);
+        return $this->redis()->expire($key, $seconds);
     }
 
     /**
@@ -364,7 +356,7 @@ class RedisClient
             $value = json_encode($value, JSON_UNESCAPED_UNICODE);
         }
 
-        return $this->redis->hSet($key, $field, $value);
+        return $this->redis()->hSet($key, $field, $value);
     }
 
     /**
@@ -377,7 +369,7 @@ class RedisClient
     public function hGet(string $key, string $field, bool $assoc = false)
     {
         $key = $this->getKey($key);
-        $value = $this->redis->hGet($key, $field);
+        $value = $this->redis()->hGet($key, $field);
 
         if ($value === false) {
             return null;
@@ -402,7 +394,7 @@ class RedisClient
     public function hIncrBy(string $key, string $field, int $increment = 1)
     {
         $key = $this->getKey($key);
-        return $this->redis->hIncrBy($key, $field, $increment);
+        return $this->redis()->hIncrBy($key, $field, $increment);
     }
 
     /**
@@ -415,7 +407,7 @@ class RedisClient
     public function hIncrByFloat(string $key, string $field, float $increment): float
     {
         $key = $this->getKey($key);
-        return $this->redis->hIncrByFloat($key, $field, $increment);
+        return $this->redis()->hIncrByFloat($key, $field, $increment);
     }
 
     /**
@@ -427,7 +419,7 @@ class RedisClient
     public function hGetAll(string $key, bool $assoc = false): array
     {
         $key = $this->getKey($key);
-        $data = $this->redis->hGetAll($key);
+        $data = $this->redis()->hGetAll($key);
 
         if (!$assoc || empty($data)) {
             return $data;
@@ -458,7 +450,7 @@ class RedisClient
             $fields = [$fields];
         }
 
-        return $this->redis->hDel($key, ...$fields);
+        return $this->redis()->hDel($key, ...$fields);
     }
 
     /**
@@ -470,7 +462,7 @@ class RedisClient
     public function hExists(string $key, string $field): bool
     {
         $key = $this->getKey($key);
-        return $this->redis->hExists($key, $field);
+        return $this->redis()->hExists($key, $field);
     }
 
     /**
@@ -487,7 +479,7 @@ class RedisClient
             $value = json_encode($value, JSON_UNESCAPED_UNICODE);
         }
 
-        return $this->redis->lPush($key, $value);
+        return $this->redis()->lPush($key, $value);
     }
 
     /**
@@ -504,7 +496,7 @@ class RedisClient
             $value = json_encode($value, JSON_UNESCAPED_UNICODE);
         }
 
-        return $this->redis->rPush($key, $value);
+        return $this->redis()->rPush($key, $value);
     }
 
     /**
@@ -518,7 +510,7 @@ class RedisClient
     public function lRange(string $key, int $start = 0, int $end = -1, bool $assoc = false): array
     {
         $key = $this->getKey($key);
-        $list = $this->redis->lRange($key, $start, $end);
+        $list = $this->redis()->lRange($key, $start, $end);
 
         if (!$assoc || empty($list)) {
             return $list;
@@ -552,7 +544,7 @@ class RedisClient
             }
         }
 
-        return $this->redis->sAdd($key, ...$members);
+        return $this->redis()->sAdd($key, ...$members);
     }
 
     /**
@@ -564,7 +556,7 @@ class RedisClient
     public function sMembers(string $key, bool $assoc = false): array
     {
         $key = $this->getKey($key);
-        $members = $this->redis->sMembers($key);
+        $members = $this->redis()->sMembers($key);
 
         if (!$assoc || empty($members)) {
             return $members;
@@ -592,9 +584,9 @@ class RedisClient
         $key = $this->getKey($key);
 
         if ($value == 1) {
-            return $this->redis->incr($key);
+            return $this->redis()->incr($key);
         } else {
-            return $this->redis->incrBy($key, $value);
+            return $this->redis()->incrBy($key, $value);
         }
     }
 
@@ -609,9 +601,9 @@ class RedisClient
         $key = $this->getKey($key);
 
         if ($value == 1) {
-            return $this->redis->decr($key);
+            return $this->redis()->decr($key);
         } else {
-            return $this->redis->decrBy($key, $value);
+            return $this->redis()->decrBy($key, $value);
         }
     }
 
@@ -623,7 +615,7 @@ class RedisClient
     public function ttl(string $key): int
     {
         $key = $this->getKey($key);
-        return $this->redis->ttl($key);
+        return $this->redis()->ttl($key);
     }
 
     /**
@@ -632,7 +624,7 @@ class RedisClient
      */
     public function flushDB(): bool
     {
-        return $this->redis->flushDB();
+        return $this->redis()->flushDB();
     }
 
     /**
@@ -641,7 +633,7 @@ class RedisClient
      */
     public function info(): array
     {
-        return $this->redis->info();
+        return $this->redis()->info();
     }
 
     /**
@@ -650,7 +642,7 @@ class RedisClient
     public function close(): void
     {
         if ($this->isConnected) {
-            $this->redis->close();
+            $this->redis()->close();
             $this->isConnected = false;
         }
     }

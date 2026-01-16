@@ -39,7 +39,8 @@
 
 namespace Dfer\Tools;
 
-use Exception, stdClass, Redis;
+use Exception, stdClass;
+use Dfer\Tools\Statics\{RedisClient};
 
 class SiteProtect extends Common
 {
@@ -87,8 +88,8 @@ class SiteProtect extends Common
      * @param array $config 配置数组
      */
     public function __construct($config = [])
-    {   
-        if($config)
+    {
+        if ($config)
             $this->setConfig($config);
     }
 
@@ -99,38 +100,12 @@ class SiteProtect extends Common
     public function setConfig($config)
     {
         $this->config = array_merge($this->config, $config);
-        $this->initRedis();
+        RedisClient::setConfig([
+            'host' => $this->config['redis_host'],
+            'port' => $this->config['redis_port'],
+            'password' => $this->config['redis_password'],
+        ]);
         return $this;
-    }
-
-    /**
-     * 初始化Redis连接
-     */
-    private function initRedis()
-    {
-        if (!class_exists('Redis')) {
-            $this->logSiteProtect('频率限制检测', 'Redis扩展未安装，使用文件缓存降级');
-            return;
-        }
-
-        try {
-            $this->redis = new Redis();
-            $connected = $this->redis->connect(
-                $this->config['redis_host'],
-                $this->config['redis_port'],
-                1 // 1秒超时
-            );
-
-            if ($connected && $this->config['redis_password']) {
-                $this->redis->auth($this->config['redis_password']);
-            }
-
-            // 测试连接
-            $this->redis->ping();
-        } catch (Exception $e) {
-            $this->logSiteProtect('频率限制检测', 'Redis连接失败: ' . $e->getMessage());
-            $this->redis = null;
-        }
     }
 
     // **********************  初始化 END  **********************
@@ -179,22 +154,20 @@ class SiteProtect extends Common
         }
 
         $identifier = $identifier ?: $this->getClientIP();
-        // 特定时间范围内共用一个时间窗口值
-        $windowKey = floor(time() / $this->config['rate_window']);
-        $this->serverCacheKey = "rate:{$identifier}:{$windowKey}";
 
-        if ($this->redis) {
-            // Redis - O(1)时间复杂度
-            $pipe = $this->redis->multi(Redis::PIPELINE);
+        $domain = $_SERVER['HTTP_HOST'];
+        $this->serverCacheKey = "rate:{$identifier}:{$domain}";
+
+        if (RedisClient::getRedis()) {
+            // Redis
             // 累加。不存在则先创建并设为0再加1
-            $pipe->hIncrBy($this->serverCacheKey, 'count', 1);
-            // 设置过期时间
-            $pipe->expire($this->serverCacheKey, $this->config['rate_window']);
-            // 执行管道中的所有命令。返回一个数组，包含每个命令的返回值
-            $result = $pipe->exec();
-            $count = $result[0];
+            $count = RedisClient::hIncrBy($this->serverCacheKey, 'count', 1);
+            if ($count == 1) {
+                // 设置过期时间。只有首次需要添加过期时间，在该时间范围内累加次数，超期之后自动重新开始
+                RedisClient::expire($this->serverCacheKey, $this->config['rate_window']);
+            }
         } else {
-            // 文件缓存 - O(n)但更简单
+            // 文件缓存
             $filePath = sys_get_temp_dir() . '/' . md5($this->serverCacheKey) . '.cnt';
             // var_dump($filePath);
             $count = 1;
@@ -214,15 +187,18 @@ class SiteProtect extends Common
             }
         }
 
+
         $remaining = max(0, $this->config['rate_limit'] - $count);
+        // 特定时间范围内共用一个时间窗口值
+        $windowKey = floor(time() / $this->config['rate_window']);
         $resetTime = ($windowKey + 1) * $this->config['rate_window'];
 
         $this->generateJS();
 
         return [
-            $count <= $this->config['rate_limit'],
-            $remaining,
-            $resetTime - time()
+            $count <= $this->config['rate_limit'], //超限状态
+            $remaining, //剩余次数
+            $resetTime - time() //剩余时间（秒）
         ];
     }
 
@@ -259,7 +235,7 @@ class SiteProtect extends Common
         $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
 
         // var_dump($userAgent);
-        foreach ($this->config['whitelist_uas'] as $ua=>$title) {
+        foreach ($this->config['whitelist_uas'] as $ua => $title) {
             // 不区分大小写
             if (stripos(strtolower($userAgent), strtolower($ua)) !== false) {
                 // $this->logSiteProtect('UA检测', $userAgent);
@@ -280,13 +256,13 @@ class SiteProtect extends Common
     private function generateJS()
     {
         // 当前运行次数
-        $count = $this->redis->hGet($this->serverCacheKey, 'count');
+        $count = RedisClient::hGet($this->serverCacheKey, 'count');
         if ($this->config['js_challenge_enabled'] && $count == 1) {
             // 随机生成token
             $challengeId = bin2hex(random_bytes(8));
             $token = hash('sha256', $challengeId . microtime());
             // 设置token
-            $this->redis->hSet($this->serverCacheKey, 'token', $token);
+            RedisClient::hSet($this->serverCacheKey, 'token', $token);
 
             $cookieKey = $this->config['js_challenge_key'];
             // 生成JS代码
@@ -311,12 +287,12 @@ class SiteProtect extends Common
      */
     public function checkJS()
     {
-        $count = $this->redis->hGet($this->serverCacheKey, 'count');
+        $count = RedisClient::hGet($this->serverCacheKey, 'count');
         if ($this->config['js_challenge_enabled'] && $count > 1) {
             $cookieKey = $this->config['js_challenge_key'];
             if (isset($_COOKIE[$cookieKey]) && strlen($_COOKIE[$cookieKey]) === 64) {
                 $storedToken = $_COOKIE[$cookieKey] ?? false;
-                $token = $this->redis->hGet($this->serverCacheKey, 'token');
+                $token = RedisClient::hGet($this->serverCacheKey, 'token');
                 // 安全地比较字符串
                 return $storedToken && hash_equals($storedToken, $token);
             }
