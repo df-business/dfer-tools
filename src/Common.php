@@ -56,6 +56,10 @@ class Common
             $args_new = array_merge([$file_name], $args);
             // 使用展开操作符。将参数原样传递出去
             $this->debug(...$args_new);
+        }else if (strpos($method, 'log') === 0) {
+            $file_name = $this->snake(substr($method, strlen('log')));
+            $args_new = array_merge([$file_name], $args);
+            $this->log(...$args_new);
         }
     }
 
@@ -75,7 +79,19 @@ class Common
      */
     public function print($str)
     {
-        echo json_encode($str, JSON_UNESCAPED_UNICODE) . PHP_EOL;
+        echo $this->json($str) . PHP_EOL;
+    }
+
+    /**
+     * json对象与字符串互转
+     * 支持中文直接显示
+     * @param object $data 数据
+     * @param bool $encode true 编码 false 解码
+     * @return mixed
+     **/
+    public function json($data,$encode=true)
+    {
+        return $encode?json_encode($data, JSON_UNESCAPED_UNICODE):json_decode($data,true);
     }
 
     /**
@@ -185,6 +201,47 @@ class Common
             // 将时间字符串转化为时间戳，格式化之后转化为正常的时间格式
             //date_default_timezone_set('Asia/Shanghai'); //设置为东八区上海时间
             return date($format, strtotime($time));
+        }
+    }
+
+    /**
+     * 时间调整方法
+     * 根据某个时间自由增、减时间，获得新的时间
+     * 如：
+     *  adjustTime('2024-01-15 14:30:00', '-24 hours')
+     *  adjustTime('now', '+1 day', 'timestamp')
+     *  adjustTime(1705293000, '-2 hours')
+     *  adjustTime(1705293000, '', 'Y-m-d')
+     *  adjustTime('2024-01-15 14:30:00', '-1 week', null)->format('Y年m月d日 H:i:s')
+     *  adjustTime()
+     * @param mixed $time 时间参数（时间戳或时间字符串）
+     * @param string $modify 时间调整表达式（如：+1 day, -24 hours, +30 minutes, -30 seconds）
+     * @param string $format 输出格式（null返回DateTime对象，'timestamp'返回时间戳）
+     * @return mixed 根据format参数返回对应格式，默认返回时间字符串
+     */
+    public function adjustTime($time = 'now', string $modify = '', string $format = 'Y-m-d H:i:s')
+    {
+        // 创建DateTime对象
+        if (is_numeric($time)) {
+            // 处理时间戳
+            $dateTime = (new DateTime())->setTimestamp($time);
+        } else {
+            // 处理时间字符串或'now'
+            $dateTime = new DateTime($time);
+        }
+
+        // 应用时间调整
+        if (!empty($modify)) {
+            $dateTime->modify($modify);
+        }
+
+        // 返回指定格式
+        if ($format === null) {
+            return $dateTime; // 返回DateTime对象
+        } elseif ($format === 'timestamp') {
+            return $dateTime->getTimestamp(); // 返回时间戳
+        } else {
+            return $dateTime->format($format); // 返回格式化字符串
         }
     }
 
@@ -677,10 +734,9 @@ class Common
     }
 
     /**
-     * 将字符串转换成二进制
-     * @param type $str
-     * @return type
-     *
+     * 字符串转二进制
+     * @param String $str 字符串
+     * @return String 二进制字符串
      */
     public function strToBin($str)
     {
@@ -697,14 +753,13 @@ class Common
     }
 
     /**
-     * 二进制转换成字符串
-     * @param type $str
-     * @return type
-     *
+     * 二进制转字符串
+     * @param String $bin 二进制字符串
+     * @return String
      */
-    public function binToStr($str)
+    public function binToStr($bin)
     {
-        $arr = explode(' ', $str);
+        $arr = explode(' ', $bin);
         foreach ($arr as &$v) {
             $v = pack("H" . strlen(base_convert($v, 2, 16)), base_convert($v, 2, 16));
         }
@@ -713,9 +768,9 @@ class Common
     }
 
     /**
-     * 字符串转十六进制函数
-     * @pream string $str='abc';
-     *
+     * 字符串转十六进制
+     * @param String $str 字符串
+     * @return String 十六进制字符串
      */
     public function strToHex($str)
     {
@@ -728,9 +783,9 @@ class Common
     }
 
     /**
-     * 十六进制转字符串函数
-     * @pream string $hex='616263';
-     *
+     * 十六进制转字符串
+     * @param String $hex 十六进制字符串
+     * @return String
      */
     public function hexToStr($hex)
     {

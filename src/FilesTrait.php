@@ -374,6 +374,8 @@ trait FilesTrait
         if ($fp === false) {
             return false;
         }
+        // 多个请求同时执行，会排队依次写入
+        flock($fp, LOCK_EX);
         $bytes_written = fwrite($fp, $str);
         fclose($fp);
         if ($bytes_written === false || $bytes_written < strlen($str)) {
@@ -584,6 +586,33 @@ trait FilesTrait
             return $this->str($list[$key] ?? $list[Constants::UNKOWN_ERROR], $param);
         }
         return $list;
+    }
+
+    /**
+     * 输出调试信息到日志文件 - 简洁版
+     * @param String $string 字符串
+     **/
+    public function log()
+    {
+        // 获取此方法的调用来源
+        $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+        $args_origin = func_get_args();
+        if (isset($trace[1]['function']) && $trace[1]['function'] === '__call') {
+            // 第一个参数
+            $file_name = $args_origin[0];
+            $file_name = date('d') . ".{$file_name}";
+            $args_new = array_slice($args_origin, 1);
+            $str = implode(PHP_EOL,$args_new);
+        } else {
+            $file_name = date('d');
+            $str = implode(PHP_EOL,$args_origin);
+        }
+
+        // 项目根目录
+        $root = $this->getRootPath();
+
+        $file_src = $this->str("{root}/data/logs/{dir}/{file}.log", ["root" => $root, "dir" => date('Ym'), "file" => $file_name]);
+        $this->writeFile($str.PHP_EOL, $file_src, "a");
     }
 
     /**

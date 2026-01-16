@@ -68,8 +68,6 @@ class Mail extends Common
     private $password = 'dSBRX4fdI1heQUWJ';
     // 发件人名称
     private $user_name = "Dfer.Site";
-    // 日志文件路径
-    private $log_file = "";
     // pfsockopen对象
     private $sock_obj = null;
     // 超时时间（秒）
@@ -79,11 +77,7 @@ class Mail extends Common
 
     public function __construct($config = [])
     {
-        $root = $this->getRootPath();
-        $this->log_file = $this->str("{root}/data/logs/{dir}/{file}.mail.log", ["root" => $root, "dir" => date('Ym'), "file" => date('d')]);
-
-        if($config)
-            $this->setConfig($config);
+        $this->setConfig($config);
     }
 
     /**
@@ -104,7 +98,6 @@ class Mail extends Common
         $this->debug = $config['debug'] ?? $this->debug;
         $this->account = $config['account'] ?? $this->account;
         $this->password = $config['password'] ?? $this->password;
-        $this->log_file = $config['log_file'] ?? $this->log_file;
         $this->time_out = $config['time_out'] ?? $this->time_out;
         $this->auth = $config['auth'] ?? $this->auth;
         return $this;
@@ -125,35 +118,12 @@ class Mail extends Common
      * 写入日志
      * @param String $message
      */
-    public function logWrite($message)
+    public function logMail($message)
     {
-        if (!$this->debug) {
-            return false;
+        if ($this->debug) {
+            $message = date("H:i:s") . get_current_user() . "[" . getmypid() . "]: " . $message;
+            parent::logMail($message);
         }
-        // 检查log_file属性是否为空字符串，如果为空则不写入日志，直接返回true
-        if ($this->log_file == "") {
-            return true;
-        }
-
-        $this->writeFile(null, $this->log_file, "a");
-        // 格式化消息，添加时间戳、当前用户和进程ID
-        // 注意：get_current_user()函数在某些SAPI（如CLI）下可能不可用，且getmypid()返回的是当前PHP脚本的进程ID
-        $message = date("H:i:s") . get_current_user() . "[" . getmypid() . "]: " . $message;
-
-        // 检查日志文件是否存在，以及是否能以追加模式打开
-        if (!@file_exists($this->log_file) || !($fp = @fopen($this->log_file, "a"))) {
-            // 如果文件不存在或无法打开，则输出警告信息，并返回false
-            echo "警告：无法打开日志文件 \"" . $this->log_file . "\"\n";
-            return false;
-        }
-        // 对文件进行独占锁定，以避免并发写入时的数据竞争
-        flock($fp, LOCK_EX);
-        // 将格式化后的消息写入文件
-        fputs($fp, $message);
-        // 关闭文件句柄
-        fclose($fp);
-        // 返回true，表示日志写入成功
-        return true;
     }
 
     /**
@@ -358,7 +328,7 @@ class Mail extends Common
             // 发送邮件内容。
             if ($this->smtpSend($mail_from, $mail_address, $mail_header, $mail_content)) {
                 // 如果发送成功，记录日志。
-                $this->logWrite("电子邮件已发送至 <{$mail_address}>\n");
+                $this->logMail("电子邮件已发送至 <{$mail_address}>\n");
             } else {
                 $sent = false;
             }
@@ -367,7 +337,7 @@ class Mail extends Common
             fclose($this->sock_obj);
 
             // 记录断开连接的日志。
-            $this->logWrite("已断开 {$this->smtp_host}\n");
+            $this->logMail("已断开 {$this->smtp_host}\n");
         }
         // 返回最终的发送状态。
         return $sent;
@@ -458,19 +428,19 @@ class Mail extends Common
     public function smtpSockOpenRelay()
     {
         // 记录尝试连接的日志信息
-        $this->logWrite("尝试连接 {$this->smtp_host}:{$this->smtp_port}\n");
+        $this->logMail("尝试连接 {$this->smtp_host}:{$this->smtp_port}\n");
         // 尝试打开到中继主机的socket连接
         $this->sock_obj = @pfsockopen($this->smtp_host, $this->smtp_port, $errno, $errstr, $this->time_out);
         // 检查连接是否成功以及SMTP服务器是否响应正常
         if (!($this->sock_obj && $this->smtpResponse())) {
             // 如果连接失败或SMTP服务器响应不正常，则记录错误信息
-            $this->logWrite("错误：无法连接到中继主机 " . $this->smtp_host . "\n");
-            $this->logWrite("错误：{$errstr} ({$errno})\n");
+            $this->logMail("错误：无法连接到中继主机 " . $this->smtp_host . "\n");
+            $this->logMail("错误：{$errstr} ({$errno})\n");
             // 返回false表示连接失败
             return false;
         }
         // 如果连接成功且SMTP服务器响应正常，则记录成功信息
-        $this->logWrite("已连接到 {$this->smtp_host}\n");
+        $this->logMail("已连接到 {$this->smtp_host}\n");
         // 返回true表示连接成功
         return true;
     }
@@ -486,31 +456,31 @@ class Mail extends Common
         // 尝试获取域名的MX记录
         if (!@getmxrr($domain, $mx_host_list)) {
             // 如果无法获取MX记录，则记录错误信息
-            $this->logWrite("错误：无法解析MX \"{$domain}\"\n");
+            $this->logMail("错误：无法解析MX \"{$domain}\"\n");
             // 返回false表示无法获取MX记录
             return false;
         }
         // 遍历MX记录中的主机名
         foreach ($mx_host_list as $host) {
             // 记录尝试连接的日志信息
-            $this->logWrite("尝试连接mx主机 {$host}:" . $this->smtp_port . "\n");
+            $this->logMail("尝试连接mx主机 {$host}:" . $this->smtp_port . "\n");
             // 尝试打开到MX主机的socket连接
             $this->sock_obj = @pfsockopen($host, $this->smtp_port, $errno, $errstr, $this->time_out);
             // 检查连接是否成功以及SMTP服务器是否响应正常
             if (!($this->sock_obj && $this->smtpResponse())) {
                 // 如果连接失败或SMTP服务器响应不正常，则记录警告信息
-                $this->logWrite("警告：无法连接到mx主机 " . $host . "\n");
-                $this->logWrite("错误： " . $errstr . " (" . $errno . ")\n");
+                $this->logMail("警告：无法连接到mx主机 " . $host . "\n");
+                $this->logMail("错误： " . $errstr . " (" . $errno . ")\n");
                 // 继续尝试下一个MX主机
                 continue;
             }
             // 如果连接成功且SMTP服务器响应正常，则记录成功信息
-            $this->logWrite("已连接到mx主机 {$host}\n");
+            $this->logMail("已连接到mx主机 {$host}\n");
             // 返回true表示连接成功
             return true;
         }
         // 如果无法连接到任何MX主机，则记录错误信息
-        $this->logWrite("无法连接到任何mx主机(" . implode(", ", $mx_host_list) . ")\n");
+        $this->logMail("无法连接到任何mx主机(" . implode(", ", $mx_host_list) . ")\n");
         // 返回false表示连接失败
         return false;
     }
@@ -528,8 +498,8 @@ class Mail extends Common
         }
         // 使用fputs函数将命令（后面添加\r\n作为行结束符）写入到sock_obj指定的资源（通常是一个网络连接套接字）中
         fputs($this->sock_obj, "{$cmd}\r\n");
-        // 调用logWrite方法输出调试信息，显示发送的命令
-        $this->logWrite("> {$cmd}\n");
+        // 调用logMail方法输出调试信息，显示发送的命令
+        $this->logMail("> {$cmd}\n");
         // 调用smtpResponse方法检查SMTP服务器的响应，并返回其结果
         return $need_response ? $this->smtpResponse() : true;
     }
@@ -544,8 +514,8 @@ class Mail extends Common
         // 将邮件头信息和邮件内容通过fputs函数写入到sock_obj属性指定的资源（通常是一个网络连接套接字）中
         // SMTP协议要求使用\r\n作为行结束符，所以这里在邮件头信息和邮件内容之间添加了\r\n
         fputs($this->sock_obj, "{$mail_header}\r\n{$mail_content}");
-        // 调用logWrite方法输出调试信息，这里将邮件头信息和邮件内容进行了格式化
-        $this->logWrite("> " . str_replace("\r\n", "\n> ", "{$mail_header}\n> {$mail_content}\n"));
+        // 调用logMail方法输出调试信息，这里将邮件头信息和邮件内容进行了格式化
+        $this->logMail("> " . str_replace("\r\n", "\n> ", "{$mail_header}\n> {$mail_content}\n"));
         // 函数返回true，表示邮件消息已经成功写入到sock_obj指定的资源中
         return true;
     }
@@ -557,14 +527,14 @@ class Mail extends Common
     {
         // 从sock_obj指定的资源（通常是一个网络连接套接字）中读取一行（最多512个字符），并移除其中的\r\n行结束符
         $response = str_replace("\r\n", "", fgets($this->sock_obj, 512));
-        $this->logWrite("{$response}\n");
+        $this->logMail("{$response}\n");
         // 如果响应不是以2或3开头，表示SMTP服务器返回了一个错误响应
         if (!preg_match("/^[23]/", $response)) {
             // 向SMTP服务器发送QUIT命令，以优雅地关闭连接
             fputs($this->sock_obj, "QUIT\r\n");
             // 从服务器读取最后的响应（虽然这个响应可能不是QUIT命令的直接回应，但通常用于清理）
             fgets($this->sock_obj, 512);
-            // $this->logWrite("错误：远程主机返回 \"{$response}\"\n");
+            // $this->logMail("错误：远程主机返回 \"{$response}\"\n");
             // 返回false，表示SMTP服务器的响应不是成功的
             return false;
         }

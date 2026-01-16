@@ -119,8 +119,7 @@ class Sms extends Common
 
     public function __construct($config = [])
     {
-        if ($config)
-            $this->setConfig($config);
+        $this->setConfig($config);
     }
 
     /**
