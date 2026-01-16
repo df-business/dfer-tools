@@ -6,14 +6,14 @@
  * | 支持主机、端口、密码、数据库、前缀等配置
  * | 支持普通连接和持久连接
  * |    如：
+ * |        RedisClient::setConfig(['password' => 'HnStcTWffa8XV3J']);
+ * |        RedisClient::set('user1', ['name' => '张三', 'age' => 25],3600);
+ * |        $user1 = RedisClient::get('user1',true);
  * |
- * |
- * |
- * |
- * |
- * |
- * |
- * |
+ * |        RedisClient::hSet('user2', 'name', 'dfer');
+ * |        $count=RedisClient::hIncrBy('user2', 'counter', 1);
+ * |        RedisClient::expire('user2', 30);
+ * |        $user2_name = RedisClient::hGet('user2', 'name');
  * |
  * |
  * +----------------------------------------------------------------------
@@ -59,6 +59,18 @@ class RedisClient
     private $database;
     private $prefix;
     private $isConnected = false;
+    private $transaction = null;
+    // 默认配置
+    private $defaultConfig = [
+        'host' => '127.0.0.1',
+        'port' => 6379,
+        'password' => null,
+        'database' => 0,
+        'prefix' => '',
+        'timeout' => 5.0,
+        'persistent' => false,
+        'persistent_id' => null
+    ];
 
     /**
      * 构造函数
@@ -67,20 +79,19 @@ class RedisClient
      */
     public function __construct(array $config = [])
     {
-        // 默认配置
-        $defaultConfig = [
-            'host' => '127.0.0.1',
-            'port' => 6379,
-            'password' => null,
-            'database' => 0,
-            'prefix' => '',
-            'timeout' => 5.0,
-            'persistent' => false,
-            'persistent_id' => null
-        ];
+        if($config)
+            $this->setConfig($config);
+    }
 
+    /**
+     * 设置默认参数
+     * @param Array $config
+     */
+    public function setConfig($config)
+    {
+        // var_dump($config);
         // 合并配置
-        $config = array_merge($defaultConfig, $config);
+        $config = array_merge($this->defaultConfig, $config);
 
         // 检查Redis扩展是否安装
         if (!extension_loaded('redis')) {
@@ -99,6 +110,8 @@ class RedisClient
 
         // 连接Redis
         $this->connect($config);
+
+        return $this;
     }
 
     /**
@@ -137,6 +150,11 @@ class RedisClient
                 }
             }
 
+            // 测试连接
+            if (!$this->ping()) {
+                throw new Exception('Redis连接测试失败');
+            }
+
             // 选择数据库
             if ($config['database'] != 0) {
                 $this->redis->select($config['database']);
@@ -144,7 +162,6 @@ class RedisClient
 
             $this->isConnected = true;
             return true;
-
         } catch (Exception $e) {
             throw new Exception('Redis连接失败: ' . $e->getMessage());
         }
@@ -179,13 +196,78 @@ class RedisClient
     }
 
     /**
+     * PING服务器，测试连接
+     * @return bool
+     */
+    public function ping(): bool
+    {
+        try {
+            $response = $this->redis->ping();
+            return $response === true || $response === '+PONG' || $response === 'PONG';
+        } catch (Exception $e) {
+            $this->isConnected = false;
+            return false;
+        }
+    }
+
+    /**
+     * 开始事务
+     * @param int $mode 事务模式，Redis::MULTI 或 Redis::PIPELINE
+     * @return $this
+     */
+    public function multi(int $mode = Redis::MULTI): self
+    {
+        $this->transaction = $this->redis->multi($mode);
+        return $this;
+    }
+
+    /**
+     * 执行事务中的所有命令
+     * @return array|null
+     */
+    public function exec(): ?array
+    {
+        if ($this->transaction === null) {
+            return null;
+        }
+
+        $result = $this->transaction->exec();
+        $this->transaction = null;
+        return $result;
+    }
+
+    /**
+     * 取消事务
+     * @return bool
+     */
+    public function discard(): bool
+    {
+        if ($this->transaction === null) {
+            return false;
+        }
+
+        $result = $this->transaction->discard();
+        $this->transaction = null;
+        return $result;
+    }
+
+    /**
+     * 检查是否在事务中
+     * @return bool
+     */
+    public function inTransaction(): bool
+    {
+        return $this->transaction !== null;
+    }
+
+    /**
      * 添加字符串值
      * @param string $key 键名
      * @param mixed $value 值
      * @param int $expire 过期时间（秒），0表示不过期
      * @return bool
      */
-    public function set(string $key, $value, int $expire = 0): bool
+    public function set(string $key, $value, int $expire = 0)
     {
         $key = $this->getKey($key);
 
@@ -237,7 +319,7 @@ class RedisClient
         }
 
         // 添加前缀
-        $keys = array_map(function($key) {
+        $keys = array_map(function ($key) {
             return $this->getKey($key);
         }, $keys);
 
@@ -261,7 +343,7 @@ class RedisClient
      * @param int $seconds 过期时间（秒）
      * @return bool
      */
-    public function expire(string $key, int $seconds): bool
+    public function expire(string $key, int $seconds)
     {
         $key = $this->getKey($key);
         return $this->redis->expire($key, $seconds);
@@ -274,7 +356,7 @@ class RedisClient
      * @param mixed $value 值
      * @return bool
      */
-    public function hSet(string $key, string $field, $value): bool
+    public function hSet(string $key, string $field, $value)
     {
         $key = $this->getKey($key);
 
@@ -308,6 +390,32 @@ class RedisClient
         }
 
         return $value;
+    }
+
+    /**
+     * 哈希表 - 为哈希表中的字段值加上指定增量值
+     * @param string $key 键名
+     * @param string $field 字段名
+     * @param int $increment 增量值
+     * @return int 执行后的字段值
+     */
+    public function hIncrBy(string $key, string $field, int $increment = 1)
+    {
+        $key = $this->getKey($key);
+        return $this->redis->hIncrBy($key, $field, $increment);
+    }
+
+    /**
+     * 哈希表 - 为哈希表中的字段值加上指定浮点增量值
+     * @param string $key 键名
+     * @param string $field 字段名
+     * @param float $increment 浮点增量值
+     * @return float 执行后的字段值
+     */
+    public function hIncrByFloat(string $key, string $field, float $increment): float
+    {
+        $key = $this->getKey($key);
+        return $this->redis->hIncrByFloat($key, $field, $increment);
     }
 
     /**
@@ -351,6 +459,18 @@ class RedisClient
         }
 
         return $this->redis->hDel($key, ...$fields);
+    }
+
+    /**
+     * 哈希表 - 检查字段是否存在
+     * @param string $key 键名
+     * @param string $field 字段名
+     * @return bool
+     */
+    public function hExists(string $key, string $field): bool
+    {
+        $key = $this->getKey($key);
+        return $this->redis->hExists($key, $field);
     }
 
     /**

@@ -87,8 +87,9 @@ class SiteProtect extends Common
      * @param array $config 配置数组
      */
     public function __construct($config = [])
-    {
-        $this->setConfig($config);
+    {   
+        if($config)
+            $this->setConfig($config);
     }
 
     /**

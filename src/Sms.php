@@ -119,7 +119,9 @@ class Sms extends Common
 
     public function __construct($config = [])
     {
-        $this->setConfig($config);
+        // 静态调用会以空值初始化一次类，应该跳过，在非静态调用时正常设置参数
+        if($config)
+            $this->setConfig($config);
     }
 
     /**

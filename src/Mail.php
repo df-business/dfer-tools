@@ -77,7 +77,8 @@ class Mail extends Common
 
     public function __construct($config = [])
     {
-        $this->setConfig($config);
+        if($config)
+            $this->setConfig($config);
     }
 
     /**
