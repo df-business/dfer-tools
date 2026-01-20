@@ -50,13 +50,14 @@ namespace Dfer\Tools;
 
 use Exception, stdClass, Redis;
 
-class RedisClient
+class RedisClient extends Common
 {
     private $redis;
     private $isConnected = false;
     private $transaction = null;
     // 默认配置
     private $config = [
+        'debug' => true,
         'host' => '127.0.0.1',
         'port' => 6379,
         'password' => null,
@@ -88,6 +89,12 @@ class RedisClient
         // 合并配置
         $this->config = array_merge($this->config, $config);
         return $this;
+    }
+
+    public function debugRedisClient()
+    {
+        if ($this->config['debug'])
+            parent::debugRedisClient(func_get_args());
     }
 
     private function redis()
@@ -155,6 +162,7 @@ class RedisClient
             $this->isConnected = true;
             return true;
         } catch (Exception $e) {
+            $this->debugRedisClient($e);
             throw new Exception('Redis连接失败: ' . $e->getMessage());
         }
     }

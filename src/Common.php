@@ -1776,6 +1776,31 @@ class Common
     }
 
     /**
+     * 获取会话ID
+     * 更换浏览器、关闭浏览器、清缓存会改变ID
+     * 基于密码学安全的伪随机数生成，重复概率为：0.0000000000000000000000000000000000000001%
+     */
+    public function getSessionId()
+    {
+        // 检查会话状态
+        switch (session_status()) {
+            case PHP_SESSION_DISABLED:
+                // echo "会话被禁用";
+                $this->debugSiteProtect('会话被禁用');
+                break;
+            case PHP_SESSION_NONE:
+                // echo "会话存在但未启动";
+                session_start();
+                break;
+            case PHP_SESSION_ACTIVE:
+                // echo "会话已启动，ID: " . session_id();
+                break;
+        }
+        $sessionId = session_id();
+        return $sessionId;
+    }
+
+    /**
      * 字符串转小写
      *
      * @param string $value

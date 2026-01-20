@@ -42,14 +42,17 @@ namespace Dfer\Tools;
 
 use DOMDocument, Closure, Exception, Error, Throwable, DateTime, stdClass;
 
-class CronScheduler
+class CronScheduler extends Common
 {
     private $cronFile;
+    private $debug = true;
 
-    public function __construct()
+    public function __construct($config = [])
     {
         // 为每个PHP进程创建独立的cron文件
         $this->cronFile = '/tmp/cron_' . getmypid() . '.txt';
+        if($config)
+            $this->setConfig($config);
     }
 
     public function __destruct()
@@ -61,6 +64,25 @@ class CronScheduler
     }
 
     /**
+     * 设置默认参数
+     * @param Array $config
+     */
+    public function setConfig($config)
+    {
+        $this->debug = $config['debug'] ?? $this->debug;
+        return $this;
+    }
+
+    /**
+     * 重写父级方法
+     */
+    public function debugCronScheduler()
+    {
+        if ($this->debug)
+            parent::debugCronScheduler(func_get_args());
+    }
+
+    /**
      * 添加一次性cron任务（使用时间戳）
      * @param string $command 命令
      * @param Object $time 时间（支持多种格式）。如：1768320000、2026-03-05 10:30:00、14:30 2026-01-15、+1 hour
@@ -68,6 +90,7 @@ class CronScheduler
      */
     public function addJob($command, $time)
     {
+        $this->debugCronScheduler($command, $time);
         $validTime = $this->normalizeTime($time);
         // var_dump($validTime);
         if ($validTime === false) {
@@ -102,6 +125,8 @@ class CronScheduler
         // 安装新的crontab。将指定文件的内容安装为当前用户的crontab，修改之后立即生效，cron守护进程（crond）会自动检测文件变化
         exec('crontab ' . $this->cronFile, $output, $return_var);
 
+        $this->debugCronScheduler('crontab ' . $this->cronFile, $output, $return_var,$jobId);
+
         return $jobId;
     }
 
@@ -127,6 +152,8 @@ class CronScheduler
 
         // 安装新的crontab
         exec('crontab ' . $this->cronFile, $output, $return_var);
+
+        $this->debugCronScheduler('crontab ' . $this->cronFile, $output, $return_var,$jobId);
 
         return $return_var === 0;
     }

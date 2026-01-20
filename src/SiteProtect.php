@@ -44,10 +44,10 @@ use Dfer\Tools\Statics\{RedisClient};
 
 class SiteProtect extends Common
 {
-    private $debug = true;
     private $serverCacheKey;
     private $redis;
     private $config = [
+        'debug'=>false,
         // Redis配置
         'redis_host' => '127.0.0.1',
         'redis_port' => 6379,
@@ -111,6 +111,27 @@ class SiteProtect extends Common
     // **********************  初始化 END  **********************
 
     /**
+     * 日志
+     */
+    public function logSiteProtect()
+    {
+        if ($this->config['debug']) {
+            $args_origin = func_get_args();
+            $type=$args_origin[0]??null;
+            $data=$args_origin[1]??null;
+            $log = sprintf(
+                "[%s] %s - IP: %s - UA: %s - Data: %s\n",
+                date('Y-m-d H:i:s'),
+                $type,
+                $this->getClientIP(),
+                $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown',
+                substr($data, 0, 200)
+            );
+            parent::logSiteProtect($log);
+        }
+    }
+
+    /**
      * 综合防护检查
      * 所有请求都有频率限制
      * ua白名单之外的请求需要接受js验证。除了允许的搜索引擎爬虫之外，所有的请求都必须通过网页访问
@@ -154,9 +175,9 @@ class SiteProtect extends Common
         }
 
         $identifier = $identifier ?: $this->getClientIP();
-
+        $sessionId = $this->getSessionId();
         $domain = $_SERVER['HTTP_HOST'];
-        $this->serverCacheKey = "rate:{$identifier}:{$domain}";
+        $this->serverCacheKey = "rate:{$sessionId}:{$identifier}:{$domain}";
 
         if (RedisClient::getRedis()) {
             // Redis
@@ -233,12 +254,11 @@ class SiteProtect extends Common
         }
 
         $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
-
         // var_dump($userAgent);
         foreach ($this->config['whitelist_uas'] as $ua => $title) {
             // 不区分大小写
             if (stripos(strtolower($userAgent), strtolower($ua)) !== false) {
-                // $this->logSiteProtect('UA检测', $userAgent);
+                $this->logSiteProtect('UA检测', $userAgent);
                 return true;
             }
         }
@@ -333,20 +353,6 @@ class SiteProtect extends Common
         return $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
     }
 
-    /**
-     * 日志
-     */
-    private function logSiteProtect($type, $data)
-    {
-        $log = sprintf(
-            "[%s] %s - IP: %s - UA: %s - Data: %s\n",
-            date('Y-m-d H:i:s'),
-            $type,
-            $this->getClientIP(),
-            $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown',
-            substr($data, 0, 200)
-        );
 
-        parent::logSiteProtect($log);
-    }
+
 }

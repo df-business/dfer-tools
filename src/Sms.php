@@ -52,11 +52,11 @@ use Overtrue\EasySms\Exceptions\NoGatewayAvailableException;
 
 class Sms extends Common
 {
-    private $debug = false;
     private $smsInstance;
     private $mobile = "";
     private $gateways = ["aliyun"];
     private $config = [
+        'debug' => true,
         // HTTP 请求的超时时间（秒）
         'timeout' => 9.0,
 
@@ -130,10 +130,20 @@ class Sms extends Common
      */
     public function setConfig($config)
     {
-        $this->debug = $config['debug'] ?? $this->debug;
         $this->config = array_merge($this->config, $config);
         $this->smsInstance = new EasySms($this->config);
+
+        $this->debugSms($this->config);
         return $this;
+    }
+
+    /**
+     * 重写父级方法
+     */
+    public function debugSms()
+    {
+        if ($this->config['debug'])
+            parent::debugSms(func_get_args());
     }
 
     //////////////////////////////////////////////////  初始化 END  //////////////////////////////////////////////////
@@ -172,12 +182,4 @@ class Sms extends Common
         return $result;
     }
 
-    /**
-     * 重写父级方法
-     */
-    public function debugSms()
-    {
-        if ($this->debug)
-            parent::debugSms(func_get_args());
-    }
 }

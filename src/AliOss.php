@@ -119,7 +119,7 @@ class AliOss extends Common
             'callbackBody' => http_build_query($ext_param) . '&filePath=${object}&size=${size}&mimeType=${mimeType}&width=${imageInfo.width}&height=${imageInfo.height}',
             'callbackBodyType' => "application/x-www-form-urlencoded"
         ];
-        // $this->debug($callback_param);
+        // $this->debugAliOss($callback_param);
 
         //设置该policy超时时间（秒）
         $expire = 30;
@@ -177,7 +177,7 @@ class AliOss extends Common
             $pubKeyUrl = base64_decode($pubKeyUrlBase64);
 
             $pubKey = $this->httpRequest($pubKeyUrl);
-            // $this->debug($pubKey);
+            // $this->debugAliOss($pubKey);
             if (empty($pubKey)) {
                 $this->setHttpStatus(Constants::FORBIDDEN);
             }
@@ -197,7 +197,7 @@ class AliOss extends Common
 
             // 验证签名
             $status = openssl_verify($authStr, $authorization, $pubKey, OPENSSL_ALGO_MD5);
-            // $this->debug($status);
+            // $this->debugAliOss($status);
             $this->post_arr = $this->getPara($body);
             if ($status == 1) {
                 // 将查询字符串中的参数解析为变量
@@ -210,17 +210,17 @@ class AliOss extends Common
                 $this->setHttpStatus(Constants::FORBIDDEN);
             }
         } catch (OssException $exception) {
-            $this->debug($exception);
+            $this->debugAliOss($exception);
             $err_msg = $exception->getMessage();
             $this->post_arr['error'] = $err_msg;
             $this->returnData($callback_function);
         } catch (Exception $exception) {
-            $this->debug($exception);
+            $this->debugAliOss($exception);
             $err_msg = $exception->getMessage();
             $this->post_arr['error'] = $err_msg;
             $this->returnData($callback_function);
         } catch (Error $exception) {
-            $this->debug($exception);
+            $this->debugAliOss($exception);
             $err_msg = $exception->getMessage();
             $this->post_arr['error'] = $err_msg;
             $this->returnData($callback_function);
@@ -237,7 +237,7 @@ class AliOss extends Common
     private function ossClientInit()
     {
         if (!class_exists('OSS\OssClient')) {
-            $this->debug("缺少`OSS`组件");
+            $this->debugAliOss("缺少`OSS`组件");
         }
         if (is_null($this->ossClient)) {
             $this->ossClient = new OssClient($this->access_id, $this->access_key, $this->endpoint);
@@ -255,7 +255,7 @@ class AliOss extends Common
      */
     private function processSave()
     {
-        $this->debug('processSave', $this->post_arr);
+        $this->debugAliOss('processSave', $this->post_arr);
         // 文件类型。text、image、video、application
         $file_type = $this->getMimeTypePrefix($this->post_arr['mimeType']);
         // 文件在oss中的路径
@@ -319,7 +319,7 @@ class AliOss extends Common
      */
     private function returnData(Closure $callback_function)
     {
-        $this->debug($this->post_arr);
+        $this->debugAliOss($this->post_arr);
 
         $type = $this->post_arr['type'];
         // 运行状态。true 成功 false 失败
@@ -375,7 +375,7 @@ class AliOss extends Common
         }
 
 
-        $this->debug($return);
+        $this->debugAliOss($return);
         $this->showJsonBase($return);
     }
 
@@ -425,7 +425,7 @@ class AliOss extends Common
             // 通过添加另存为参数（sys/saveas）的方式将阿里云SDK处理后的文件保存至指定Bucket
             // https://help.aliyun.com/zh/oss/user-guide/sys-or-saveas?spm=5176.28426678.J_HeJR_wZokYt378dwP-lLl.19.211c5181AjnjwZ&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2326694.S_BB1@bl+RQW@ag0+BB2@ag0+os0.ID_2326694-RL_sys/saveas-LOC_search~UND~helpdoc~UND~item-OR_ser-V_3-P0_3
             $process = $this->str("{0}sys/saveas,o_{1},b_{2}", [$style, $this->base64UrlEncode($to_src), $this->base64UrlEncode($this->bucket)]);
-            $this->debug($from_src, $to_src, $process, $is_async);
+            $this->debugAliOss($from_src, $to_src, $process, $is_async);
 
             if ($is_async)
                 $result = $this->ossClient->asyncProcessObject($this->bucket, $from_src, $process);
@@ -477,7 +477,7 @@ class AliOss extends Common
             $host = $this->host;
             return compact('host', 'src');
         } catch (OssException $exception) {
-            $this->debug($exception);
+            $this->debugAliOss($exception);
             return false;
         }
     }
@@ -501,7 +501,7 @@ class AliOss extends Common
             $host = $this->host;
             return compact('host', 'src');
         } catch (OssException $exception) {
-            $this->debug($exception);
+            $this->debugAliOss($exception);
             return false;
         }
     }
@@ -530,7 +530,7 @@ class AliOss extends Common
                 return false;
             }
         } catch (OssException $exception) {
-            $this->debug($exception);
+            $this->debugAliOss($exception);
             return false;
         }
     }
@@ -541,7 +541,7 @@ class AliOss extends Common
      */
     public function delFileOss($src)
     {
-        $this->debug($this->bucket, $src);
+        $this->debugAliOss($this->bucket, $src);
         //判断object是否存在
         $doesExist = $this->ossClient->doesObjectExist($this->bucket, $src);
         if ($doesExist) {
@@ -559,7 +559,7 @@ class AliOss extends Common
      */
     public function copyFileOss($from_src, $to_src)
     {
-        $this->debug($this->bucket, $this->ossClient, $from_src, $to_src);
+        $this->debugAliOss($this->bucket, $this->ossClient, $from_src, $to_src);
         //判断object是否存在
         $doesExist = $this->ossClient->doesObjectExist($this->bucket, $from_src);
         if ($doesExist) {
@@ -571,10 +571,10 @@ class AliOss extends Common
     /**
      * 重写父级方法
      */
-    public function debug()
+    public function debugAliOss()
     {
         if ($this->debug)
-            parent::debug(func_get_args());
+            parent::debugAliOss(func_get_args());
     }
 
     //////////////////////////////////////////////////  自定义方法 END  //////////////////////////////////////////////////
